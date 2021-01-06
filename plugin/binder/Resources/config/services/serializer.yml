@@ -1,0 +1,13 @@
+services:
+    _defaults:
+        autowire: false
+        autoconfigure: false
+        public: false
+        tags: [claroline.serializer]
+
+    Sidpt\BinderBundle\Serializer\DocumentSerializer:
+        arguments:
+           - '@Claroline\AppBundle\Persistence\ObjectManager'
+           - '@Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer'
+        calls:
+           - setLogger: [ '@logger' ]

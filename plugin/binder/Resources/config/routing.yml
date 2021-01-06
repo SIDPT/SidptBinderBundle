@@ -1,0 +1,6 @@
+sidpt_document_api:
+    resource: "@SidptBinderBundle/Controller/"
+    prefix: apiv2
+    type: api
+    options:
+        expose: true

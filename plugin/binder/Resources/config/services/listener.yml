@@ -1,0 +1,17 @@
+services:
+    _defaults:
+        autowire: false
+        autoconfigure: false
+        public: true
+
+    Sidpt\BinderBundle\Listener\Resource\DocumentListener:
+        arguments:
+            - '@security.authorization_checker'
+            - '@Claroline\AppBundle\Persistence\ObjectManager'
+            - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
+            - '@Claroline\AppBundle\API\SerializerProvider'
+        tags:
+            - { name: kernel.event_listener, event: resource.sidpt_document.load, method: onLoad }
+            #- { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
+            #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
+            #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The uuid of the document"
+    },
+    "longTitle": {
+      "type": "string",
+      "description": "The complete title of the document"
+    },
+    "centerTitle": {
+      "type": "boolean",
+      "description": "option to set the title on the page center"
+    }
+  },
+  "claroline": {
+    "ids":  ["id"]
+  }
+}

@@ -1,0 +1,14 @@
+services:
+    _defaults:
+        autowire: false #change to true
+        autoconfigure: false
+        public: true #because controller
+
+    Sidpt\BinderBundle\Controller\DocumentController:
+        arguments:
+          - '@security.authorization_checker'
+          - '@Claroline\AppBundle\Persistence\ObjectManager'
+          - '@Claroline\AppBundle\API\Crud'
+          - '@Claroline\AppBundle\API\SerializerProvider'
+        calls:
+            - setLogger: [ '@logger' ]
