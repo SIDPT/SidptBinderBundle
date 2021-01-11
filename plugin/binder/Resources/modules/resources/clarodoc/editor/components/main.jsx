@@ -1,7 +1,6 @@
 import React, {Fragment, Component} from 'react'
 import {PropTypes as T} from 'prop-types'
-import get from 'lodash/get'
-import isEmpty from 'lodash/isEmpty'
+import cloneDeep from 'lodash/cloneDeep'
 
 import {LINK_BUTTON} from '#/main/app/buttons'
 import {FormData} from '#/main/app/content/form/containers/data'
@@ -230,7 +229,7 @@ class DocumentEditorMain extends Component {
               modal={[MODAL_WIDGET_CREATION, {
                 create: (widget) => this.props.update('widgets',
                   widgets.concat([widget]) // copy array & append element
-                )Ï
+                )
               }]}
               primary={true}
             />

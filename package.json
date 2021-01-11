@@ -1,0 +1,35 @@
+{
+  "name": "claroline-sidpt-binder",
+  "version": "1.0.0",
+  "description": "Binder resource plugin for Claroline LMS",
+  "main": "plugin/binder/Resources/modules/resources/clarodoc/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SIDPT/SidptBinderBundle.git"
+  },
+  "keywords": [
+    "claroline"
+  ],
+  "author": "Nicolas Pavie",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/SIDPT/SidptBinderBundle/issues"
+  },
+  "homepage": "https://github.com/SIDPT/SidptBinderBundle#readme",
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "prop-types": "^15.7.2",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-redux": "^7.0.3",
+    "react-router-dom": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.15.0",
+    "eslint-plugin-react": "^7.22.0",
+    "redux-freeze": "^0.1.7"
+  }
+}
