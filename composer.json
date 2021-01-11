@@ -1,7 +1,7 @@
 {
-    "name": "sidpt/claroline-binder-bundle",
+    "name": "sidpt/binder-bundle",
     "description": "Binder and Document resource plugin for the claroline LMS",
-    "type": "symfony-bundle",
+    "type": "claroline-plugin",
     "license": "GPL v3",
     "authors": [
         {

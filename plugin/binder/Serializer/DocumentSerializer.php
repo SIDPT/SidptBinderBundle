@@ -55,7 +55,7 @@ class DocumentSerializer
      */
     public function getSchema()
     {
-        return '~/sidpt/claroline-binder-bundle/plugin/binder/document.json';
+        return '~/sidpt/binder-bundle/plugin/binder/document.json';
     }
 
     public function serialize(Document $document, array $options = []): array

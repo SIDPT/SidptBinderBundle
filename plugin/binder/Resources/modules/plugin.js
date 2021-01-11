@@ -6,6 +6,6 @@ import {registry} from '#/main/app/plugins/registry'
 
 registry.add('SidptBinderBundle', {
   resources: {
-    'sidpt_document': () => { return import(/* webpackChunkName: "plugin-sidpt-clarodoc-resource" */ '#/plugin/binder/resources/clarodoc') }
+    'sidpt_document': () => { return import(/* webpackChunkName: "plugin-sidpt-clarodoc-resource" */ '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc') }
   }
 })

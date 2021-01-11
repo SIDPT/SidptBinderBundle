@@ -1,15 +1,10 @@
-import get from 'lodash/get'
-import isEmpty from 'lodash/isEmpty'
-
 import {makeInstanceAction} from '#/main/app/store/actions'
 import {combineReducers, makeReducer} from '#/main/app/store/reducer'
 import {makeFormReducer} from '#/main/app/content/form/store/reducer'
 
-import {FORM_SUBMIT_SUCCESS} from '#/main/app/content/form/store/actions'
-
 import {RESOURCE_LOAD} from '#/main/core/resource/store/actions'
 
-import {selectors} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
+import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
 
 
 /**

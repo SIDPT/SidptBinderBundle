@@ -17,11 +17,13 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 // Other use
 use Sensio\Bundle\FrameworkExtraBundle\Configuration as EXT;
-use Sidpt\BinderBundle\Entity\Document;
-use Sidpt\BinderBundle\Serializer\DocumentSerializer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+
+// the bundle new entity and serializer
+use Sidpt\BinderBundle\Entity\Document;
+use Sidpt\BinderBundle\Serializer\DocumentSerializer;
 
 // logging for debug
 use Claroline\AppBundle\Log\LoggableTrait;

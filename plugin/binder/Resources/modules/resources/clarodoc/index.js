@@ -1,8 +1,8 @@
 
-import {DocumentResource} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/containers/resource'
-import {DocumentMenu} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/containers/menu'
+import {DocumentResource} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/containers/resource'
+import {DocumentMenu} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/containers/menu'
 
-import {reducer} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/store'
+import {reducer} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
 
 /**
  * HomeTool application.

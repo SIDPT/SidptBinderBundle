@@ -6,11 +6,9 @@ import {withReducer} from '#/main/app/store/components/withReducer'
 import {selectors as resourcesSelectors} from '#/main/core/resource/store'
 import {hasPermission} from '#/main/app/security'
 
-//import {selectors as toolSelectors} from '#/main/core/tool/store'
 
-
-import {DocumentResource as DocumentResourceComponent} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/components/resource'
-import {reducer, selectors} from '~/sidpt/claroline-binder-bundle/plugin/binder/resources/clarodoc/store'
+import {DocumentResource as DocumentResourceComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/components/resource'
+import {reducer, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
 
 
 const DocumentResource = withRouter(
