@@ -11,5 +11,4 @@ class SidptBinderBundle extends DistributionPluginBundle
     {
         return new AdditionalInstaller();
     }
-    
 }

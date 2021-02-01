@@ -42,15 +42,16 @@ class Document extends AbstractResource
     /**
      * @ORM\ManyToMany(
      *      targetEntity="Claroline\CoreBundle\Entity\Widget\WidgetContainer",
-     *      cascade={"persist","remove"}
-     * )
+     *      cascade={"persist","remove"})
      * @ORM\JoinTable(
      *      name="sidpt__document_widgets",
      *      joinColumns={
-     *          @ORM\JoinColumn(name="document_id", referencedColumnName="id")},
-     *          inverseJoinColumns={
-     *             @ORM\JoinColumn(name="widget_container_id", referencedColumnName="id", unique=true)}
-     *      )
+     *          @ORM\JoinColumn(name="document_id", referencedColumnName="id")
+     *      },
+     *      inverseJoinColumns={
+     *          @ORM\JoinColumn(
+     *          name="widget_container_id",
+     *         referencedColumnName="id", unique=true)})
      *
      * @var WidgetContainer[]|ArrayCollection
      */
@@ -157,5 +158,4 @@ class Document extends AbstractResource
         $display .= "}";
         return $display;
     }
-
 }

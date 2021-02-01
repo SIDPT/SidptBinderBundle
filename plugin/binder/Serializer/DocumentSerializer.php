@@ -1,5 +1,7 @@
 <?php
-
+/**
+ *
+ */
 namespace Sidpt\BinderBundle\Serializer;
 
 use Claroline\AppBundle\API\Serializer\SerializerTrait;
@@ -14,22 +16,34 @@ use Sidpt\BinderBundle\Entity\Document;
 use Claroline\AppBundle\Log\LoggableTrait;
 use Psr\Log\LoggerAwareInterface;
 
+/**
+ *
+ */
 class DocumentSerializer
 {
-    use LoggableTrait;
+    //use LoggableTrait;
 
     use SerializerTrait;
 
-    /** @var ObjectManager */
+    /**
+     * [$om description]
+     *
+     * @var [type]
+     */
     private $om;
-    /** @var WidgetContainerSerializer */
+    
+    /**
+     * [$widgetContainerSerializer description]
+     *
+     * @var [type]
+     */
     private $widgetContainerSerializer;
 
     /**
      * DocumentSerializer constructor.
      *
-     * @param ObjectManager             $om
-     * @param WidgetContainerSerializer $widgetContainerSerializer
+     * @param ObjectManager             $om                        desc
+     * @param WidgetContainerSerializer $widgetContainerSerializer desc
      */
     public function __construct(
         ObjectManager $om,
@@ -39,18 +53,31 @@ class DocumentSerializer
         $this->widgetContainerSerializer = $widgetContainerSerializer;
     }
 
+    /**
+     * [getName description]
+     *
+     * @return [type] [description]
+     */
     public function getName()
     {
         return 'clarodoc';
-        // or document, not sure if it is the resource codename in javascript or the php classname that is needed
+        // or document, not sure if it is the resource codename in javascript
+        // or the php classname that is needed
     }
 
+    /**
+     * [getClass description]
+     *
+     * @return [type] [description]
+     */
     public function getClass()
     {
         return Document::class;
     }
 
     /**
+     * [getSchema description]
+     *
      * @return string
      */
     public function getSchema()
@@ -58,10 +85,16 @@ class DocumentSerializer
         return '~/sidpt/binder-bundle/plugin/binder/document.json';
     }
 
+    /**
+     * [serialize description]
+     *
+     * @param Document $document [description]
+     * @param array    $options  [description]
+     *
+     * @return [type]             [description]
+     */
     public function serialize(Document $document, array $options = []): array
     {
-
-        /** @var WidgetContainer[] $savedContainers */
         $savedContainers = $document->getWidgetContainers()->toArray();
         $containers = [];
 
@@ -69,7 +102,11 @@ class DocumentSerializer
             //temporary
             $widgetContainerConfig = $container->getWidgetContainerConfigs()[0];
             if ($widgetContainerConfig) {
-                if (!array_key_exists($widgetContainerConfig->getPosition(), $containers)) {
+                if (!array_key_exists(
+                    $widgetContainerConfig->getPosition(),
+                    $containers
+                )
+                ) {
                     $containers[$widgetContainerConfig->getPosition()] = $container;
                 } else {
                     $containers[] = $container;
@@ -81,23 +118,37 @@ class DocumentSerializer
         $containers = array_values($containers);
 
 
-
         $data = [
             'id' => $document->getUuid(),
             'title' => $document->getResourceNode()->getName(),
             'longTitle' => $document->getLongTitle(),
             'centerTitle' => $document->isCenterTitle(),
-            'widgets' => array_map(function ($container) use ($options) {
-                return $this->widgetContainerSerializer->serialize($container, $options);
-            }, $containers)
+            'widgets' => array_map(
+                function ($container) use ($options) {
+                    return $this->widgetContainerSerializer
+                        ->serialize($container, $options);
+                },
+                $containers
+            )
         ];
 
         return $data;
     }
 
-    public function deserialize(array $data, Document $document = null, array $options = []): Document
-    {
-
+    /**
+     * [deserialize description]
+     *
+     * @param array         $data     [description]
+     * @param Document|null $document [description]
+     * @param array         $options  [description]
+     *
+     * @return [type]                  [description]
+     */
+    public function deserialize(
+        array $data,
+        Document $document = null,
+        array $options = []
+    ): Document {
         if (empty($document)) {
             $document = new Document();
         }
@@ -108,14 +159,15 @@ class DocumentSerializer
         
 
         if (isset($data['widgets'])) {
-            /** @var WidgetContainer[] $currentContainers */
             $currentContainers = $document->getWidgetContainers()->toArray();
             $containerIds = [];
 
             // update containers
             foreach ($data['widgets'] as $position => $widgetContainerData) {
                 if (isset($widgetContainerData['id'])) {
-                    $widgetContainer = $document->getWidgetContainer($widgetContainerData['id']);
+                    $widgetContainer = $document->getWidgetContainer(
+                        $widgetContainerData['id']
+                    );
                 }
 
                 if (empty($widgetContainer)) {
@@ -123,8 +175,13 @@ class DocumentSerializer
                     $document->addWidgetContainer($widgetContainer);
                 }
 
-                $this->widgetContainerSerializer->deserialize($widgetContainerData, $widgetContainer, $options);
-                $widgetContainerConfig = $widgetContainer->getWidgetContainerConfigs()[0];
+                $this->widgetContainerSerializer->deserialize(
+                    $widgetContainerData,
+                    $widgetContainer,
+                    $options
+                );
+                $widgetContainerConfig = $widgetContainer
+                    ->getWidgetContainerConfigs()[0];
                 $widgetContainerConfig->setPosition($position);
                 $containerIds[] = $widgetContainer->getUuid();
             }
@@ -137,8 +194,6 @@ class DocumentSerializer
                 }
             }
         }
-
-
         return $document;
     }
 }

@@ -47,11 +47,4 @@ class DocumentListener
         $event->stopPropagation();
     }
 
-//    public function onCopy(CopyResourceEvent $event)
-//    {
-//        /** @var Binder $document */
-//        $document = $event->getResource();
-//
-//        // copy the document only (not the widgets)
-//    }
 }

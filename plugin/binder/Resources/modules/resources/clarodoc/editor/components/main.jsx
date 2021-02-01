@@ -16,7 +16,7 @@ import {MODAL_WIDGET_CREATION} from '#/main/core/widget/editor/modals/creation'
 import {MODAL_WIDGET_PARAMETERS} from '#/main/core/widget/editor/modals/parameters'
 
 import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
- 
+
 class DocumentEditorMain extends Component {
   constructor(props) {
     super(props)

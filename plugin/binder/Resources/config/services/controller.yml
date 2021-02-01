@@ -12,3 +12,13 @@ services:
           - '@Claroline\AppBundle\API\SerializerProvider'
         calls:
             - setLogger: [ '@logger' ]
+    
+    Sidpt\BinderBundle\Controller\BinderController:
+        arguments:
+          - '@security.authorization_checker'
+          - '@Claroline\AppBundle\Persistence\ObjectManager'
+          - '@Claroline\AppBundle\API\Crud'
+          - '@Claroline\AppBundle\API\SerializerProvider'
+        calls:
+            - setLogger: [ '@logger' ]
+

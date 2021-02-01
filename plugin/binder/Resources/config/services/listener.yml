@@ -15,3 +15,15 @@ services:
             #- { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
             #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
             #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }
+    
+    Sidpt\BinderBundle\Listener\Resource\BinderListener:
+        arguments:
+            - '@security.authorization_checker'
+            - '@Claroline\AppBundle\Persistence\ObjectManager'
+            - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
+            - '@Claroline\AppBundle\API\SerializerProvider'
+        tags:
+            - { name: kernel.event_listener, event: resource.sidpt_binder.load, method: onLoad }
+            #- { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
+            #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
+            #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }

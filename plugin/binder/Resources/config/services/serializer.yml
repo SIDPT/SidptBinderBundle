@@ -3,11 +3,22 @@ services:
         autowire: false
         autoconfigure: false
         public: false
-        tags: [claroline.serializer]
+        
 
     Sidpt\BinderBundle\Serializer\DocumentSerializer:
-        arguments:
-           - '@Claroline\AppBundle\Persistence\ObjectManager'
-           - '@Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer'
-        calls:
-           - setLogger: [ '@logger' ]
+      tags: [claroline.serializer]
+      arguments:
+         - '@Claroline\AppBundle\Persistence\ObjectManager'
+         - '@Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer'
+      # calls:
+      #    - setLogger: [ '@logger' ]
+
+    Sidpt\BinderBundle\Serializer\BinderSerializer:
+      tags: [claroline.serializer]
+      arguments:
+         - '@Claroline\AppBundle\Persistence\ObjectManager'
+         - '@Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer'
+         - '@Sidpt\BinderBundle\Serializer\DocumentSerializer'
+         - '@Claroline\CoreBundle\API\Serializer\User\RoleSerializer'
+      calls:
+         - setLogger: [ '@logger' ]

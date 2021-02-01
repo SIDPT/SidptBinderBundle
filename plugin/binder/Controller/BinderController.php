@@ -22,17 +22,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 // the bundle new entity and serializer
-use Sidpt\BinderBundle\Entity\Document;
-use Sidpt\BinderBundle\Serializer\DocumentSerializer;
+use Sidpt\BinderBundle\Entity\Binder;
+use Sidpt\BinderBundle\Serializer\BinderSerializer;
 
 // logging for debug
 use Claroline\AppBundle\Log\LoggableTrait;
 use Psr\Log\LoggerAwareInterface;
 
 /**
- *
+ * Binder controller
+ * @category Controller
  */
-class DocumentController implements LoggerAwareInterface
+class BinderController implements LoggerAwareInterface
 {
     use LoggableTrait;
 
@@ -42,26 +43,31 @@ class DocumentController implements LoggerAwareInterface
     /**
      * [$om description]
      *
-     * @var [type]
+     * @var ObjectManager [desc]
      */
     private $om;
 
     /**
      * [$crud description]
-     *
      * @var [type]
-     *
      */
     private $crud;
 
     /**
      * [$serializer description]
-     *
      * @var [type]
      */
     private $serializer;
 
 
+    /**
+     * [__construct description]
+     *
+     * @param AuthorizationCheckerInterface $authorization [description]
+     * @param ObjectManager                 $om            [description]
+     * @param Crud                          $crud          [description]
+     * @param SerializerProvider            $serializer    [description]
+     */
     public function __construct(
         AuthorizationCheckerInterface $authorization,
         ObjectManager $om,
@@ -75,22 +81,28 @@ class DocumentController implements LoggerAwareInterface
     }
 
     /**
-     * [desc]
+     * Update the document
      *
-     * @Route("/document/{id}", name="sidpt_document_update", methods={"PUT"})
+     * @param Binder  $binder  [description]
+     * @param Request $request [description]
+     *
+     * @return JsonResponse [<description>]
+     *
+     * @Route("/binder/{id}", name="sidpt_binder_update", methods={"PUT"})
      * @EXT\ParamConverter(
-     *     "document",
-     *     class="SidptBinderBundle:Document",
+     *     "binder",
+     *     class="SidptBinderBundle:Binder",
      *     options={"mapping": {"id": "uuid"}})
-     *
      */
-    public function updateAction(Document $document, Request $request): JsonResponse
+    public function updateAction(Binder $binder, Request $request): JsonResponse
     {
-        $this->checkPermission('EDIT', $document->getResourceNode(), [], true);
+        $this->checkPermission('EDIT', $binder->getResourceNode(), [], true);
         $data = $this->decodeRequest($request);
-        $object = $this->crud->update(Document::class, $data);
+        $object = $this->crud->update(Binder::class, $data);
         return new JsonResponse(
             $this->serializer->serialize($object)
         );
     }
+
+    
 }

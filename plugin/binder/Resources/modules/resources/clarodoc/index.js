@@ -11,5 +11,5 @@ export default {
   component: DocumentResource,
   menu: DocumentMenu,
   store: reducer,
-  styles: ['claroline-distribution-plugin-binder-clarodoc-resource']
+  styles: ['sidpt-binder-plugin-binder-document-resource']
 }
