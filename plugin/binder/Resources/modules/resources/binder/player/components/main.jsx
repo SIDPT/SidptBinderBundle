@@ -15,11 +15,23 @@ import {DocumentPlayerMain} from '~/sidpt/binder-bundle/plugin/binder/resources/
 class BinderPlayerMain extends Component {
   constructor(props){
     super(props);
-
+    // build the slug tree
+    // 
+    
     this.state = {
-      currentTabIndex:0
+      currentTabIndex:0,
+      selectedTab:null,
+      currentTabPath:''
     }
   }
+
+  // Idea of structuration for the binder
+  // the binder could be structured as a 2 part UI 
+  // A first is the binder tree navigator with :
+  // - the breadcrumb to the current tab if
+  // - the parent tab if there is one
+  // - The selected tab choices
+
 
   render(){ 
 
@@ -77,6 +89,7 @@ class BinderPlayerMain extends Component {
 
 BinderPlayerMain.propTypes = {
   binder:T.object.isRequired,
+  selectedTabPath:T.string,
   currentContext:T.object.isRequired
 }
 

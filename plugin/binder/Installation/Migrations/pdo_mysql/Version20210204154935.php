@@ -8,9 +8,9 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated migration based on mapping information: modify it with caution.
  *
- * Generation date: 2021/01/29 08:54:36
+ * Generation date: 2021/02/04 03:49:38
  */
-class Version20210129085434 extends AbstractMigration
+class Version20210204154935 extends AbstractMigration
 {
     public function up(Schema $schema)
     {
@@ -29,6 +29,7 @@ class Version20210129085434 extends AbstractMigration
                 icon VARCHAR(255) DEFAULT NULL, 
                 is_visible TINYINT(1) NOT NULL, 
                 details LONGTEXT DEFAULT NULL COMMENT '(DC2Type:json_array)', 
+                translations LONGTEXT DEFAULT NULL COMMENT '(DC2Type:json)', 
                 uuid VARCHAR(36) NOT NULL, 
                 UNIQUE INDEX UNIQ_BC9F1F3AD17F50A6 (uuid), 
                 INDEX IDX_BC9F1F3A7E3C61F9 (owner_id), 
@@ -93,6 +94,10 @@ class Version20210129085434 extends AbstractMigration
         $this->addSql("
             ALTER TABLE sidpt__document 
             DROP FOREIGN KEY FK_F4A7C431B87FAB32
+        ");
+        $this->addSql("
+            ALTER TABLE sidpt__document 
+            ADD translations LONGTEXT DEFAULT NULL COMMENT '(DC2Type:json)'
         ");
         $this->addSql("
             DROP INDEX uniq_f4a7c431d17f50a6 ON sidpt__document
@@ -170,6 +175,10 @@ class Version20210129085434 extends AbstractMigration
         $this->addSql("
             ALTER TABLE sidpt__document 
             DROP FOREIGN KEY FK_1E3DD56BB87FAB32
+        ");
+        $this->addSql("
+            ALTER TABLE sidpt__document 
+            DROP translations
         ");
         $this->addSql("
             DROP INDEX uniq_1e3dd56bb87fab32 ON sidpt__document

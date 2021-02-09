@@ -13,49 +13,52 @@ import {Tab as TabTypes} from '~/sidpt/binder-bundle/plugin/binder/resources/bin
 
 const TabsList = props => 
 	<nav className="binder-nav">
-	    {props.tabs.length > 0 && props.tabs.map((tab,index) =>
-	      <CallbackButton
-	        key={tab.id || 'new_tab'}
-	        className={classes('nav-tab', {
-	          'nav-tab-hidden': get(tab, 'restrictions.hidden')
-	        })}
-	        style={{
-	          backgroundColor: get(tab, 'metadata.backgroundColor'),
-	          borderColor: get(tab, 'metadata.borderColor'),
-	          color: get(tab, 'metadata.textColor')
-	        }}
-	        callback={()=>{props.onClick(index)}}
-	      >
-	        {tab.metadata.icon &&
-	          <span className={classes('fa fa-fw', `fa-${tab.metadata.icon}`, tab.title && 'icon-with-text-right')} />
-	        }
-	        {tab.title || tab.resourceNode.name || trans('new_tab')}
-	      </CallbackButton>
-	    )}
+		{props.tabs.length > 0 && props.tabs.map(
+			(tab,index) =>
+				<CallbackButton
+						key={tab.id || 'new_tab'}
+						className={classes('nav-tab', {
+							'nav-tab-hidden': get(tab, 'restrictions.hidden')
+						})}
+						style={{
+							backgroundColor: get(tab, 'metadata.backgroundColor'),
+							borderColor: get(tab, 'metadata.borderColor'),
+							color: get(tab, 'metadata.textColor')
+						}}
+						callback={()=>{props.onClick(index)}}>
+					{tab.metadata.icon &&
+						<span className={classes(
+								'fa fa-fw', 
+								`fa-${tab.metadata.icon}`, 
+								tab.title && 'icon-with-text-right')} />
+					}
+					{tab.title || (tab.resourceNode && tab.resourceNode.name) || trans('new_tab')}
+				</CallbackButton>
+			)}
 
-	    {props.create &&
-	      <Button
-	        className="nav-add-tab"
-	        type={CALLBACK_BUTTON}
-	        icon="fa fa-fw fa-plus"
-	        label={trans('add_tab', {}, 'home')}
-	        tooltip="bottom"
-	        callback={props.create}
-	      />
-	    }
-	  </nav>
+		{props.create &&
+			<Button
+			className="nav-add-tab"
+			type={CALLBACK_BUTTON}
+			icon="fa fa-fw fa-plus"
+			label={trans('add_tab', {}, 'home')}
+			tooltip="bottom"
+			callback={props.create}
+			/>
+		}
+	</nav>
 
 TabsList.propTypes = {
-  prefix: T.string,
-  tabs: T.arrayOf(T.shape(
-    TabTypes.propTypes
-  )),
-  onClick:T.func,
-  create: T.func
+	prefix: T.string,
+	tabs: T.arrayOf(T.shape(
+		TabTypes.propTypes
+		)),
+	onClick:T.func,
+	create: T.func
 }
 
 TabsList.defaultProps = {
-  prefix: ''
+	prefix: ''
 }
 
 export {

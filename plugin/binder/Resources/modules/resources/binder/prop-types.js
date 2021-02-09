@@ -18,11 +18,15 @@ const Tab = {
     id: T.string.isRequired,
     title: T.string,
     slug:T.string,
-    metadata: T.shape({
+    display: T.shape({
+      visible:T.boolean,
       backgroundColor:T.string,
+      position:T.number,
       borderColor:T.string,
       textColor:T.string,
-      icon:T.string,
+      icon:T.string
+    }),
+    metadata: T.shape({
       details:T.string,
       type:T.oneOf(['document','binder','undefined']),
       roles: T.arrayOf(T.shape({

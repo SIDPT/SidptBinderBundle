@@ -33,6 +33,8 @@ class Document extends AbstractResource
      */
     private $longTitle = '';
 
+    
+
 
     /**
      * @ORM\Column(name="center_title", type="boolean")
@@ -58,12 +60,70 @@ class Document extends AbstractResource
     private $widgetContainers;
 
     /**
+     * Possible translations for the document (and subobject) fields.
+     *
+     * Note that fields names are based on the serializer data sent or received
+     *
+     * example :
+     * [{  path:"longTitle",
+     *     locales:{
+     *         en:'',
+     *         fr:''
+     *      }
+     *  } ...
+     * }]
+     * 
+     *
+     * @ORM\Column(type="json", nullable=true)
+     *
+     * @var json object
+     */
+    private $translations;
+
+    /**
      * Document constructor.
      */
     public function __construct()
     {
         $this->refreshUuid();
         $this->widgetContainers = new ArrayCollection();
+    }
+
+    /**
+     * @return json_array
+     */
+    public function getTranslations()
+    {
+        if (empty($this->translations)) {
+            $tempArray = [];
+            foreach ($this->getTranslatableFields() as $value) {
+                $tempArray[] = [
+                    "path" => $value,
+                    "locales" => [
+                        'en' => ''
+                    ]
+                ];
+            }
+            $this->translations = $tempArray;
+        }
+        return $this->translations;
+    }
+
+    public function getTranslatableFields()
+    {
+        $translatableFields = array();
+        $translatableFields[] = 'resourceName';
+        $translatableFields[] = 'longTitle';
+        
+        foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
+            $translatableFields[] = "widgets[".$index."].name";
+        }
+        return $translatableFields;
+    }
+
+    public function setTranslations($translations)
+    {
+        $this->translations = $translations;
     }
 
     /**

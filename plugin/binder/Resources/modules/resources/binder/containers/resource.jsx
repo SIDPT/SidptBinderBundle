@@ -20,6 +20,10 @@ const BinderResource = withRouter(
      (dispatch) => ({
       update(field, value) {
         dispatch(formActions.updateProp(selectors.FORM_NAME, field, value))
+      },
+      loadSection(binder,path) {
+        // update breadcrumb
+        // load selected binder or document to the view
       }
     })
     )(BinderResourceComponent)

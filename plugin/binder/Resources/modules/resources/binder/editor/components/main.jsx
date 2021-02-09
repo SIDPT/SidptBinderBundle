@@ -12,7 +12,7 @@ import {LINK_BUTTON} from '#/main/app/buttons'
 import {FormData} from '#/main/app/content/form/containers/data'
 
 import {makeId} from '#/main/core/scaffolding/id'
-import {trans} from '#/main/app/intl/translation'
+import {Translator, trans} from '#/main/app/intl/translation'
 import {Button} from '#/main/app/action/components/button'
 import {CALLBACK_BUTTON, MODAL_BUTTON} from '#/main/app/buttons'
 import {ContentPlaceholder} from '#/main/app/content/components/placeholder'
@@ -32,16 +32,13 @@ class BinderEditorMain extends Component {
     }
   }
 
-  startMovingContent(contentId) {
-    this.setState({movingContentId: contentId})
+  changeTab(tabId){
+    this.setState({currentTabIndex: tabId})
   }
 
-  stopMovingContent() {
-    this.setState({movingContentId: null})
-  }
-
-  getFormSection(selectedTab){
-    return {
+  getFormSection(tabs, selectedTab){
+    return [
+      {
         title: `tabs[${selectedTab}].title`,
         primary: true,
         fields: [
@@ -51,50 +48,65 @@ class BinderEditorMain extends Component {
               type: 'string',
               required: false
           }, {
-            name: `tabs[${selectedTab}].position`,
-            label: trans('position'),
-            type: 'number',
-            required: true
-          }, {
             name: `tabs[${selectedTab}].resourceNode`,
             label: trans('resource'),
             type: 'resource',
-            validating:(data)=>{console.log(data)},
             required: false
-          },
+          }
+        ]
+      }, {
+        title:trans('display'),
+        fields:[
           {
-              name: `tabs[${selectedTab}].metadata.backgroundColor`,
+            name: `tabs[${selectedTab}].display.position`,
+            label: trans('position'),
+            type: 'number',
+            onChange:(value)=>{
+              // recompute positions
+              
+            },
+            required: true
+          }, 
+          {
+              name: `tabs[${selectedTab}].display.backgroundColor`,
               label: trans('background_color'),
               type: 'color',
               required: false
           },
           {
-              name: `tabs[${selectedTab}].metadata.borderColor`,
+              name: `tabs[${selectedTab}].display.borderColor`,
               label: trans('border_color'),
               type: 'color',
               required: false
           },
           {
-              name: `tabs[${selectedTab}].metadata.textColor`,
+              name: `tabs[${selectedTab}].display.textColor`,
               label: trans('text_color'),
               type: 'color',
               required: false
           },
           {
-              name: `tabs[${selectedTab}].metadata.icon`,
+              name: `tabs[${selectedTab}].display.icon`,
               label: trans('icon'),
               type: 'icon',
               required: false
-          },
-          {
-            name: `tabs[${selectedTab}].restrictions.hidden`,
+          },{
+            name: `tabs[${selectedTab}].display.visible`,
             type: 'boolean',
-            label: trans('restrict_hidden')
-          }, {
+            label: trans('visible')
+          }
+        ]
+      }, {
+        title:trans('restrictions'),
+        fields:[ 
+          {
             name: `tabs[${selectedTab}].restrictByRole`,
             type: 'boolean',
             label: trans('restrictions_by_roles', {}, 'widget'),
-            calculated: (tab) => tab.restrictByRole || !isEmpty(get(tab, 'metadata.roles')),
+            calculated: (binder) => (
+                binder.tabs[selectedTab].restrictByRole || 
+                !isEmpty(get(binder.tabs[selectedTab], 'metadata.roles'))
+              ),
             onChange: (checked) => {
               if (!checked) {
                 this.props.update(`tabs[${selectedTab}].metadata.roles`, [])
@@ -104,7 +116,10 @@ class BinderEditorMain extends Component {
               {
                 name: `tabs[${selectedTab}].metadata.roles`,
                 label: trans('roles'),
-                displayed: (tab) => tab.restrictByRole || !isEmpty(get(tab, 'metadata.roles')),
+                displayed: (binder) => (
+                    binder.tabs[selectedTab].restrictByRole || 
+                    !isEmpty(get(binder.tabs[selectedTab], 'metadata.roles'))
+                  ),
                 type: 'roles',
                 required: true,
                 options: {
@@ -117,7 +132,8 @@ class BinderEditorMain extends Component {
             ]
           }
         ]
-      };
+      }
+    ];
   }
 
   render() {
@@ -145,7 +161,7 @@ class BinderEditorMain extends Component {
                   target: this.props.path,
                   exact: true
                 }}
-              sections={[ this.getFormSection(index) ]}
+              sections={this.getFormSection(tabs, index)}
             >
             <Button className="delete-tab"
                   type={CALLBACK_BUTTON}
@@ -165,9 +181,12 @@ class BinderEditorMain extends Component {
       <Fragment>
         <TabsList 
           prefix={this.props.path}
-          tabs={tabs}
+          tabs={tabs.sort(
+            (tab1, tab2) => {
+              return tab1.metadata.position - tab2.metadata.position;
+            })}
           onClick={(index) => {
-            this.setState({currentTabIndex:index})
+            this.changeTab(index)
           }}
           create={()=>{
             tabs.push({
@@ -181,7 +200,7 @@ class BinderEditorMain extends Component {
 
             });
             this.props.update('tabs',tabs);
-            this.setState({currentTabIndex:tabs.length - 1})
+            this.changeTab(tabs.length - 1);
           }}
         />
         

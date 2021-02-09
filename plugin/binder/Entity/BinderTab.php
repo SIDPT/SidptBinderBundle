@@ -117,6 +117,7 @@ class BinderTab
      */
     private $title;
 
+    
 
     /**
      * Tab backgroundcolor
@@ -172,6 +173,19 @@ class BinderTab
      */
     private $roles;
 
+
+    /**
+     * Possible translations for the tab fields.
+     *
+     * Note that fields names are based on the serializer data sent or received
+     * [ {path:'fieldname', locales:{en:'',fr:'' etc} } ...]
+     *
+     * @ORM\Column(type="json", nullable=true)
+     *
+     * @var array
+     */
+    private $translations;
+
     /**
      * Document constructor.
      */
@@ -179,6 +193,38 @@ class BinderTab
     {
         $this->refreshUuid();
         $this->roles = new ArrayCollection();
+    }
+
+    /**
+     * @return json_array
+     */
+    public function getTranslations()
+    {
+        if (empty($this->translations)) {
+            $tempArray = [];
+            foreach ($this->getTranslatableFields() as $value) {
+                $tempArray[] = [
+                    "path" => $value,
+                    "locales" => [
+                        'en' => ''
+                    ]
+                ];
+            }
+            $this->translations = $tempArray;
+        }
+        return $this->translations;
+    }
+
+    public function getTranslatableFields()
+    {
+        $translatableFields = array();
+        $translatableFields[] = 'title';
+        return $translatableFields;
+    }
+
+    public function setTranslations($translations)
+    {
+        $this->translations = $translations;
     }
 
     /**
