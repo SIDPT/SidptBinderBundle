@@ -2,7 +2,7 @@
 /**
  *
  */
-namespace Sidpt\BinderBundle\Serializer;
+namespace Sidpt\BinderBundle\API\Serializer;
 
 use Claroline\AppBundle\API\Serializer\SerializerTrait;
 use Claroline\AppBundle\Persistence\ObjectManager;
@@ -13,7 +13,7 @@ use Claroline\CoreBundle\API\Serializer\User\RoleSerializer;
 use Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer;
 
 use Sidpt\BinderBundle\Entity\Document;
-use Sidpt\BinderBundle\Serializer\DocumentSerializer;
+use Sidpt\BinderBundle\API\Serializer\DocumentSerializer;
 
 use Sidpt\BinderBundle\Entity\Binder;
 use Sidpt\BinderBundle\Entity\BinderTab;
@@ -151,15 +151,17 @@ class BinderSerializer
             'slug' => $resourceNode ?
                 $resourceNode->getSlug() :
                 $tab->getUuId(),
-            'metadata' => [
+            'display' => [
+                'visible' => $tab->isVisible(),
                 'position' => $tab->getPosition() ?: 0,
                 'backgroundColor' => $tab->getBackgroundColor(),
                 'borderColor' => $tab->getBorderColor(),
                 'textColor' => $tab->getTextColor(),
-                'icon' => $tab->getIcon(),
+                'icon' => $tab->getIcon()
+            ],
+            'metadata' => [
                 'details'=> $tab->getDetails(),
                 'type' => $tab->getType(),
-                'visible' => $tab->isVisible(),
                 'roles' => array_map(
                     function ($role) use ($options) {
                         return $this->roleSerializer
@@ -198,16 +200,16 @@ class BinderSerializer
 
         $this->sipe('title', 'setTitle', $data, $tab);
 
+        $display = $data['display'];
+        $this->sipe('visible', 'setVisible', $display, $tab);
+        $this->sipe('position', 'setPosition', $display, $tab);
+        $this->sipe('backgroundColor', 'setBackgroundColor', $display, $tab);
+        $this->sipe('borderColor', 'setBorderColor', $display, $tab);
+        $this->sipe('textColor', 'setTextColor', $display, $tab);
+        $this->sipe('icon', 'setIcon', $display, $tab);
 
         $metadata = $data['metadata'];
-        $this->sipe('position', 'setPosition', $metadata, $tab);
-        $this->sipe('backgroundColor', 'setBackgroundColor', $metadata, $tab);
-        $this->sipe('borderColor', 'setBorderColor', $metadata, $tab);
-        $this->sipe('textColor', 'setTextColor', $metadata, $tab);
-        $this->sipe('icon', 'setIcon', $metadata, $tab);
         $this->sipe('details', 'setDetails', $metadata, $tab);
-        $this->sipe('visible', 'setVisible', $metadata, $tab);
-
         if (isset($metadata['roles'])) {
             $currentRoles = $tab->getRoles()->toArray();
             $roleIds = [];

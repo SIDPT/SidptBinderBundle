@@ -5,7 +5,7 @@ services:
         public: false
         
 
-    Sidpt\BinderBundle\Serializer\DocumentSerializer:
+    Sidpt\BinderBundle\API\Serializer\DocumentSerializer:
       tags: [claroline.serializer]
       arguments:
          - '@Claroline\AppBundle\Persistence\ObjectManager'
@@ -13,12 +13,12 @@ services:
       # calls:
       #    - setLogger: [ '@logger' ]
 
-    Sidpt\BinderBundle\Serializer\BinderSerializer:
+    Sidpt\BinderBundle\API\Serializer\BinderSerializer:
       tags: [claroline.serializer]
       arguments:
          - '@Claroline\AppBundle\Persistence\ObjectManager'
          - '@Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer'
-         - '@Sidpt\BinderBundle\Serializer\DocumentSerializer'
+         - '@Sidpt\BinderBundle\API\Serializer\DocumentSerializer'
          - '@Claroline\CoreBundle\API\Serializer\User\RoleSerializer'
       calls:
          - setLogger: [ '@logger' ]

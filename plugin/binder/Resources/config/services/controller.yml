@@ -4,7 +4,7 @@ services:
         autoconfigure: false
         public: true #because controller
 
-    Sidpt\BinderBundle\Controller\DocumentController:
+    Sidpt\BinderBundle\API\Controller\DocumentController:
         arguments:
           - '@security.authorization_checker'
           - '@Claroline\AppBundle\Persistence\ObjectManager'
@@ -13,7 +13,7 @@ services:
         calls:
             - setLogger: [ '@logger' ]
     
-    Sidpt\BinderBundle\Controller\BinderController:
+    Sidpt\BinderBundle\API\Controller\BinderController:
         arguments:
           - '@security.authorization_checker'
           - '@Claroline\AppBundle\Persistence\ObjectManager'

@@ -1,6 +1,6 @@
 <?php
 
-namespace Sidpt\BinderBundle\Controller;
+namespace Sidpt\BinderBundle\API\Controller;
 
 // traits
 use Claroline\AppBundle\Controller\RequestDecoderTrait;

@@ -1,5 +1,5 @@
 sidpt_document_api:
-    resource: "@SidptBinderBundle/Controller/"
+    resource: "@SidptBinderBundle/API/Controller/"
     prefix: apiv2
     type: api
     options:

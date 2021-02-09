@@ -4,7 +4,7 @@ services:
         autoconfigure: false
         public: true
 
-    Sidpt\BinderBundle\Listener\Resource\DocumentListener:
+    Sidpt\BinderBundle\API\Listener\Resource\DocumentListener:
         arguments:
             - '@security.authorization_checker'
             - '@Claroline\AppBundle\Persistence\ObjectManager'
@@ -16,7 +16,7 @@ services:
             #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
             #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }
     
-    Sidpt\BinderBundle\Listener\Resource\BinderListener:
+    Sidpt\BinderBundle\API\Listener\Resource\BinderListener:
         arguments:
             - '@security.authorization_checker'
             - '@Claroline\AppBundle\Persistence\ObjectManager'

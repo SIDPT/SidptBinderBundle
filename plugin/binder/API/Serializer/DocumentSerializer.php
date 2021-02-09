@@ -2,7 +2,7 @@
 /**
  *
  */
-namespace Sidpt\BinderBundle\Serializer;
+namespace Sidpt\BinderBundle\API\Serializer;
 
 use Claroline\AppBundle\API\Serializer\SerializerTrait;
 use Claroline\AppBundle\Persistence\ObjectManager;
@@ -117,10 +117,9 @@ class DocumentSerializer
         ksort($containers);
         $containers = array_values($containers);
 
-
         $data = [
             'id' => $document->getUuid(),
-            'title' => $document->getResourceNode()->getName(),
+            'resourceName' => $document->getResourceNode()->getName(),
             'longTitle' => $document->getLongTitle(),
             'centerTitle' => $document->isCenterTitle(),
             'widgets' => array_map(
@@ -129,8 +128,10 @@ class DocumentSerializer
                         ->serialize($container, $options);
                 },
                 $containers
-            )
+            ),
+            'translations' => $document->getTranslations()
         ];
+
 
         return $data;
     }
@@ -156,7 +157,7 @@ class DocumentSerializer
 
         $this->sipe('longTitle', 'setLongTitle', $data, $document);
         $this->sipe('centerTitle', 'setCenterTitle', $data, $document);
-        
+        $this->sipe('translations', 'setTranslations', $data, $document);
 
         if (isset($data['widgets'])) {
             $currentContainers = $document->getWidgetContainers()->toArray();

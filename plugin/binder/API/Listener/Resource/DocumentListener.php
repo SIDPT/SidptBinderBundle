@@ -1,6 +1,6 @@
 <?php
 
-namespace Sidpt\BinderBundle\Listener\Resource;
+namespace Sidpt\BinderBundle\API\Listener\Resource;
 
 use Claroline\AppBundle\API\SerializerProvider;
 use Claroline\AppBundle\Persistence\ObjectManager;
