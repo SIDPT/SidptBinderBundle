@@ -124,6 +124,15 @@ class BinderSerializer
         $content = null;
         $resourceNode = null ;
 
+        $slug = $resourceNode ?
+                $resourceNode->getSlug() :
+                $tab->getUuId();
+
+        if (isset($options["slug_prefix"])) {
+            $slug = $options["slug_prefix"]."/".$slug;
+        }
+        $options["slug_prefix"] = $slug;
+
         if ($tab->getType() === BinderTab::TYPE_BINDER) {
             $content = $this->serialize($tab->getBinder(), $options);
             $resourceNode = $tab->getBinder()->getResourceNode();
@@ -148,9 +157,7 @@ class BinderSerializer
         $data = [
             'id' => $tab->getUuid(),
             'title' => $title,
-            'slug' => $resourceNode ?
-                $resourceNode->getSlug() :
-                $tab->getUuId(),
+            'slug' => $slug,
             'display' => [
                 'visible' => $tab->isVisible(),
                 'position' => $tab->getPosition() ?: 0,
@@ -268,16 +275,27 @@ class BinderSerializer
             }
         );
 
+        // serialize tabs up to a a certain depth to avoid
+        // possible infinite loop
+        
+        if (isset($options["depth"])) {
+            $options["depth"] = $options["depth"] + 1;
+        } else {
+            $options["depth"] = 0;
+        }
+        $depth = $options["depth"];
+        
+        // For now i limit a single binder to a maximum of 6 computed levels
         $data = [
             'id' => $binder->getUuid(),
             'title' => $binder->getResourceNode()->getName(),
-            'tabs' => array_map(
-                function (BinderTab $tab) use ($options) {
-                    return $this->serializeTab($tab, $options);
-                },
-                $sortedTabs
-
-            )
+            'tabs' =>  $depth < 6 ?
+                array_map(
+                    function (BinderTab $tab) use ($options) {
+                            return $this->serializeTab($tab, $options);
+                    },
+                    $sortedTabs
+                ) : []
         ];
 
         return $data;

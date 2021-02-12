@@ -34,6 +34,7 @@ class Binder extends AbstractResource
      */
     protected $binderTabs;
 
+    
     /**
      * Document constructor.
      */

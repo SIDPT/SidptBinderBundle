@@ -16,6 +16,31 @@
 
   margin: 0 floor((@grid-gutter-width / 2) - 5px);
 
+  .nav-crumb {
+    position: relative;
+    color: @binder-tab-color;
+    padding: @padding-small-vertical @padding-small-horizontal;
+    margin: 5px;
+    background: @binder-tab-bg;
+    border-radius: @binder-tab-border-radius;
+    border-bottom: 2px solid black;
+    transform: skew(-10deg);
+
+    &:hover {
+      color: @binder-tab-hover-color;
+      background: @binder-tab-hover-bg;
+      .box-shadow(@box-shadow-base);
+    }
+
+    &.active {
+      border-color: @brand-primary; // can be overridden by tab config
+      background: @brand-primary; // can be overridden by tab config
+
+      .text-movie-subtitles();
+      .box-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+    }
+  }
+
   .nav-tab-hidden {
     color: @text-muted;
     text-decoration: line-through;

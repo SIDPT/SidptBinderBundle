@@ -10,19 +10,41 @@ import {CALLBACK_BUTTON, MODAL_BUTTON} from '#/main/app/buttons'
 
 import {TabsList} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/components/tabslist'
 
+import {BinderNavigator} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/components/nav'
+
 import {DocumentPlayerMain} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
 
 class BinderPlayerMain extends Component {
   constructor(props){
     super(props);
-    // build the slug tree
-    // 
+
+    console.log(props);
+    // compute the first document slug and open it
+    
+    // Try to open the first document in the binder
+    let displayedSlug = undefined;
+    let content = undefined;
+    if(this.props.binder.tabs.length > 0){
+      let tabLookingQueue = this.props.binder.tabs.slice();
+      let slug = '';
+      do {
+        let tab = tabLookingQueue.shift();
+        let slug = tab.slug;
+        if(tab.metadata.type === 'binder'){
+          tabLookingQueue.push(...tab.content.tabs);
+        } else {
+          content = tab.content
+          displayedSlug = tab.slug;
+        };
+      } while(content === undefined && tabLookingQueue.length > 0);
+    }
     
     this.state = {
-      currentTabIndex:0,
-      selectedTab:null,
-      currentTabPath:''
+      contentToDisplay:content,
+      displayedSlug:displayedSlug
     }
+
+    this.changeContentToDisplay = this.changeContentToDisplay.bind(this);
   }
 
   // Idea of structuration for the binder
@@ -32,56 +54,33 @@ class BinderPlayerMain extends Component {
   // - the parent tab if there is one
   // - The selected tab choices
 
+  changeContentToDisplay(content){
+    this.setState({
+      contentToDisplay:content
+    })
+  }
 
   render(){ 
-
-    let visibleTabs = this.props.binder.tabs.filter(
-        tab => tab.metadata.visible === true
-    );
-
-    const contents = visibleTabs.length === 0 ? [] :  visibleTabs.map(
-      (tab,index) => {
-        if (tab.metadata.type === 'document'){
-          return (
-              <DocumentPlayerMain 
-                clarodoc={tab.content}
-                currentContext={this.props.currentContext} />);
-        } else if(tab.metadata.type === 'binder'){
-          return (
-              <BinderPlayerMain 
-                binder={tab.content} 
-                currentContext={this.props.currentContext} />);
-
-        } else return (
-            <ContentPlaceholder
-                size="lg"
-                icon="fa fa-frown-o"
-                title={trans('no_section')} />);
-      });
-
-
     return (
       <Fragment>
-        {0 === visibleTabs.length &&
+        <BinderNavigator 
+            binder={this.props.binder}
+            openingSlugPath={this.state.displayedSlug}
+            onContentSelected={this.changeContentToDisplay}
+        />
+        
+        {this.state.contentToDisplay === undefined &&
           <ContentPlaceholder
             size="lg"
             icon="fa fa-frown-o"
             title={trans('no_section')}
           />
         }
-        {0 !== visibleTabs.length && 
-          <TabsList 
-              prefix={this.props.path}
-              tabs={visibleTabs}
-              onClick={(index) => {
-                this.setState({currentTabIndex:index})
-              }}
-          />
+        {this.state.contentToDisplay && 
+          <DocumentPlayerMain 
+              clarodoc={this.state.contentToDisplay}
+              currentContext={this.props.currentContext} />
         }
-
-        {0 !== visibleTabs.length && contents[this.state.currentTabIndex]}
-        
-
       </Fragment>
     );
   }

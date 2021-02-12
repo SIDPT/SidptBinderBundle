@@ -104,5 +104,29 @@ class BinderController implements LoggerAwareInterface
         );
     }
 
+    /**
+     * Load a binder with its tab
+     * (used for subbinder lazy loading)
+     *
+     * @param Binder  $binder  [description]
+     * @param Request $request [description]
+     *
+     * @return JsonResponse [<description>]
+     *
+     * @Route("/binder/{id}", name="sidpt_binder_load", methods={"GET"})
+     * @EXT\ParamConverter(
+     *     "binder",
+     *     class="SidptBinderBundle:Binder",
+     *     options={"mapping": {"id": "uuid"}})
+     */
+    public function binderLoad(Binder $binder, Request $request): JsonResponse
+    {
+        return new JsonResponse(
+            $this->serializer->serialize($binder)
+        );
+    }
+
+
+
     
 }

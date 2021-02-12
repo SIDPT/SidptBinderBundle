@@ -12,31 +12,31 @@ import {DocumentPlayerMain} from '~/sidpt/binder-bundle/plugin/binder/resources/
 const DocumentResource = (props) => {
 	
 	const translations = props.clarodoc.translations;
-    if(Object.keys(translations).length > 0){
-      console.log(translations);
-      for(const field in translations){
-        for(const locale in translations[field]){
-          if(translations[field][locale].length > 0){
-            Translator.add(
-              field,
-              translations[field][locale],
-              `${props.clarodoc.id}`,
-              locale);
-          }
+  if(Object.keys(translations).length > 0){
+    console.log(translations);
+    for(const field in translations){
+      for(const locale in translations[field]){
+        if(translations[field][locale].length > 0){
+          Translator.add(
+            field,
+            translations[field][locale],
+            `${props.clarodoc.id}`,
+            locale);
         }
       }
     }
-    const resourceNode = cloneDeep(props.resourceNode);
-    for(let fieldKey of translations.keys()){
-    	if(translations[fieldKey].path === "resourceName"){
-    		let newName = trans('resourceName', {}, `${props.clarodoc.id}`);
-    		if(newName.length > 0 && newName != "resourceName"){
-    			resourceNode.name = newName;			
-    		}
-    	}
-    }
+  }
+  const resourceNode = cloneDeep(props.resourceNode);
+  for(let fieldKey of translations.keys()){
+  	if(translations[fieldKey].path === "resourceName"){
+  		let newName = trans('resourceName', {}, `${props.clarodoc.id}`);
+  		if(newName.length > 0 && newName != "resourceName"){
+  			resourceNode.name = newName;			
+  		}
+  	}
+  }
 
-    console.log(resourceNode);
+  console.log(resourceNode);
 	return (
 		<ResourcePage
 			basePath={props.basePath}
@@ -47,18 +47,17 @@ const DocumentResource = (props) => {
 			userEvaluation={props.userEvaluation}
 			accessErrors={props.accessErrors}
 			resourceNode={resourceNode}
-		    routes={[
+	    routes={[
 			  {
-		        path: '/edit',
-		        disabled: !props.canEdit,
-		        component: DocumentEditorMain
-		      },{
-		        path: '/',
-		        exact: true,
-		        component: DocumentPlayerMain
-		      }
-		    ]}
-  		/>
+	        path: '/edit',
+	        disabled: !props.canEdit,
+	        component: DocumentEditorMain
+	      },{
+	        path: '/',
+	        exact: true,
+	        component: DocumentPlayerMain
+	      }
+		  ]} />
   	);
 } 
 

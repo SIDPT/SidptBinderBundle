@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {Component} from 'react'
 import {PropTypes as T} from 'prop-types'
 import classes from 'classnames'
 import get from 'lodash/get'
@@ -11,42 +11,73 @@ import {CallbackButton} from '#/main/app/buttons/callback/components/button'
 
 import {Tab as TabTypes} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
 
-const TabsList = props => 
-	<nav className="binder-nav">
-		{props.tabs.length > 0 && props.tabs.map(
-			(tab,index) =>
-				<CallbackButton
-						key={tab.id || 'new_tab'}
-						className={classes('nav-tab', {
-							'nav-tab-hidden': get(tab, 'restrictions.hidden')
-						})}
-						style={{
-							backgroundColor: get(tab, 'metadata.backgroundColor'),
-							borderColor: get(tab, 'metadata.borderColor'),
-							color: get(tab, 'metadata.textColor')
-						}}
-						callback={()=>{props.onClick(index)}}>
-					{tab.metadata.icon &&
-						<span className={classes(
-								'fa fa-fw', 
-								`fa-${tab.metadata.icon}`, 
-								tab.title && 'icon-with-text-right')} />
-					}
-					{tab.title || (tab.resourceNode && tab.resourceNode.name) || trans('new_tab')}
-				</CallbackButton>
-			)}
+class TabsList extends Component{
+	constructor(props){
+		super(props);
 
-		{props.create &&
-			<Button
-			className="nav-add-tab"
-			type={CALLBACK_BUTTON}
-			icon="fa fa-fw fa-plus"
-			label={trans('add_tab', {}, 'home')}
-			tooltip="bottom"
-			callback={props.create}
-			/>
+		this.state = {
+			currentTab:0
 		}
-	</nav>
+
+		this.changeTab = this.changeTab.bind(this);
+	}
+
+	changeTab(newIndex){
+		this.setState({
+			currentTab:newIndex
+		});
+		if(this.props.onClick){
+			this.props.onClick(newIndex);
+		}
+	}
+
+
+	render(){
+		return (
+			<nav className="binder-nav">
+				{this.props.tabs.length > 0 && this.props.tabs.map(
+					(tab,index) => {
+						const style = this.state.currentTab === index ? 
+							{
+								backgroundColor: get(tab, 'display.backgroundColor'),
+								borderColor: get(tab, 'display.borderColor'),
+								color: get(tab, 'display.textColor')
+							}:{};
+
+						return (
+							<CallbackButton
+									key={tab.id || 'new_tab'}
+									className={classes('nav-tab', {
+										'nav-tab-hidden': get(tab, 'restrictions.hidden')
+									})}
+									style={style}
+									callback={()=>{this.changeTab(index)}}>
+								{tab.metadata.icon &&
+									<span className={classes(
+											'fa fa-fw', 
+											`fa-${tab.metadata.icon}`, 
+											tab.title && 'icon-with-text-right')} />
+								}
+								{tab.title || (tab.resourceNode && tab.resourceNode.name) || trans('new_tab')}
+							</CallbackButton>);
+					}
+						
+					)}
+
+				{this.props.create &&
+					<Button
+					className="nav-add-tab"
+					type={CALLBACK_BUTTON}
+					icon="fa fa-fw fa-plus"
+					label={trans('add_tab', {}, 'home')}
+					tooltip="bottom"
+					callback={this.props.create}
+					/>
+				}
+			</nav>);
+
+	}
+}
 
 TabsList.propTypes = {
 	prefix: T.string,

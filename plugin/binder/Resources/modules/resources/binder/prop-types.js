@@ -5,17 +5,13 @@ import {Document} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/p
 const Binder = {
   propTypes: {
     id: T.string.isRequired,
-    title: T.string,
-    tabs: T.arrayOf(T.object) // Tab types
-  },
-  defaultProps: {
-    tabs: []
+    title: T.string
   }
 }
 
 const Tab = {
   propTypes: {
-    id: T.string.isRequired,
+    id: T.string,
     title: T.string,
     slug:T.string,
     display: T.shape({
@@ -27,7 +23,7 @@ const Tab = {
       icon:T.string
     }),
     metadata: T.shape({
-      details:T.string,
+      details:T.oneOf([T.arrayOf(T.object),T.object,T.string]),
       type:T.oneOf(['document','binder','undefined']),
       roles: T.arrayOf(T.shape({
         id: T.string.isRequired,
@@ -37,14 +33,19 @@ const Tab = {
       }))
     }),
     resourceNode: T.object,
-    content: T.object
+    content: T.oneOf([
+        T.shape(Binder.propTypes),
+        T.shape(Document.propTypes)
+      ])
   },
   defaultProps: {
-    metadata:{
-      position:0,
+    display:{
+      position:-1,
       backgroundColor:"white",
       borderColor:"white",
       textColor:"black",
+    },
+    metadata:{
       type:'undefined',
       roles:[]
     },
@@ -52,6 +53,10 @@ const Tab = {
   }
 }
 
+Binder.propTypes.tabs = T.arrayOf(T.shape(Tab.propTypes));
+Binder.defaultProps =  {
+  tabs: []
+}
 
 
 

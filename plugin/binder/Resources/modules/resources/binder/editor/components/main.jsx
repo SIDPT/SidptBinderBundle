@@ -1,5 +1,4 @@
 import React, {Fragment, Component} from 'react'
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import classes from 'classnames'
 
 import {PropTypes as T} from 'prop-types'
@@ -21,6 +20,8 @@ import {TabsList} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/com
 
 
 import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/selectors'
+
+import {Tab} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
 
 class BinderEditorMain extends Component {
   constructor(props) {
@@ -189,16 +190,7 @@ class BinderEditorMain extends Component {
             this.changeTab(index)
           }}
           create={()=>{
-            tabs.push({
-              id:null,
-              position:tabs.length,
-              metadata:{
-                type:'undefined',
-                roles:[]
-              },
-              content:undefined
-
-            });
+            tabs.push(cloneDeep(Tab.defaultProps));
             this.props.update('tabs',tabs);
             this.changeTab(tabs.length - 1);
           }}
