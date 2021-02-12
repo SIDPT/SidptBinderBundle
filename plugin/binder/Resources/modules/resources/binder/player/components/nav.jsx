@@ -18,7 +18,7 @@ class BinderNavigator extends Component {
 		let stack = [];
 		let displayedTabs = this.props.binder.tabs;
 		// fill the tab stack based on opening slug
-		if(this.props.openingSlugPath.length > 0){
+		if(this.props.openingSlugPath && this.props.openingSlugPath.length > 0){
 			this.props.openingSlugPath.split("/").forEach(
 				(slug) => {
 					let slugFound = !displayedTabs.every((tab) => {

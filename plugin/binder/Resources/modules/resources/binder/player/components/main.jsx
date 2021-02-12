@@ -47,13 +47,6 @@ class BinderPlayerMain extends Component {
     this.changeContentToDisplay = this.changeContentToDisplay.bind(this);
   }
 
-  // Idea of structuration for the binder
-  // the binder could be structured as a 2 part UI 
-  // A first is the binder tree navigator with :
-  // - the breadcrumb to the current tab if
-  // - the parent tab if there is one
-  // - The selected tab choices
-
   changeContentToDisplay(content){
     this.setState({
       contentToDisplay:content
