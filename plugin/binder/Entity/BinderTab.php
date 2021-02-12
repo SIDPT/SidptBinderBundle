@@ -15,6 +15,8 @@ use Sidpt\BinderBundle\Entity\Binder;
 
 use Claroline\AppBundle\Entity\Identifier\Uuid;
 
+use Claroline\CoreBundle\Entity\Resource\AbstractResource;
+
 
 use Doctrine\ORM\Mapping as ORM;
 
