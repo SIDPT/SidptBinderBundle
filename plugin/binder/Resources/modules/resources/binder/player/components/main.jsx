@@ -17,9 +17,6 @@ import {DocumentPlayerMain} from '~/sidpt/binder-bundle/plugin/binder/resources/
 class BinderPlayerMain extends Component {
   constructor(props){
     super(props);
-
-    console.log(props);
-    // compute the first document slug and open it
     
     // Try to open the first document in the binder
     let displayedSlug = undefined;

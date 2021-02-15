@@ -29,9 +29,14 @@ class BinderNavigator extends Component {
 						}
 						return true;
 					});
-					if(slugFound && stack[stack.length - 1].metadata.type === 'binder'){
-						displayedTabs = stack[stack.length - 1].content.tabs;
+					if(slugFound){
+						if(stack[stack.length - 1].metadata.type === 'binder'){
+							displayedTabs = stack[stack.length - 1].content.tabs;
+						} else { // unpop the document tab from the breadcrumb stack
+							stack.pop();
+						}
 					}
+					
 				}
 			);
 
@@ -62,7 +67,6 @@ class BinderNavigator extends Component {
 
 		// slice the stack based on index in the stack
 		let stack = this.state.tabStack.slice(0, index+1);
-
 		// reset displayedTabs to the last tab in the stack
 		this.setState({
 			tabStack:stack,
@@ -99,7 +103,7 @@ class BinderNavigator extends Component {
 								callback={()=>{this.selectingBinder()}}>					
 							|<span className="visually-hidden">{trans('binder_root')}</span>
 						</CallbackButton>
-						{ this.state.tabStack.map(
+						{ this.state.tabStack.length > 0 &&  this.state.tabStack.map(
 							(tab,index) => 
 								<CallbackButton
 										key={tab.id}
