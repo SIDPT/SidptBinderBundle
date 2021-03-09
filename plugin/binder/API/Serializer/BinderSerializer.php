@@ -333,7 +333,7 @@ class BinderSerializer
                     null;
 
                 if (empty($binderTab)) {
-                    $binderTab = new binderTab();
+                    $binderTab = new BinderTab();
                     $binderTab->setOwner($binder);
                     $binder->addBinderTab($binderTab);
                 }

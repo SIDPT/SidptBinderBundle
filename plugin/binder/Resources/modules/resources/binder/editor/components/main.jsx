@@ -23,6 +23,11 @@ import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/st
 
 import {Tab} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
 
+const authorizedTypes = [
+  'sidpt_binder',
+  'sidpt_document'
+]
+
 class BinderEditorMain extends Component {
   constructor(props) {
     super(props)
@@ -52,7 +57,19 @@ class BinderEditorMain extends Component {
             name: `tabs[${selectedTab}].resourceNode`,
             label: trans('resource'),
             type: 'resource',
-            required: false
+            required: false,
+            options: {
+              picker: {
+                current: tabs[selectedTab].resourceNode && tabs[selectedTab].resourceNode.parent ? tabs[selectedTab].resourceNode.parent : null,
+                root: null,
+                filters: [{property: 'resourceType', value: ['directory'].concat(authorizedTypes), locked: true}]
+              }
+            },
+            onChange: (resource) => {
+              if (-1 === authorizedTypes.indexOf(get(resource, 'meta.type'))) {
+                this.props.update(`tabs[${selectedTab}].resourceNode`, null)
+              }
+            }
           }
         ]
       }, {

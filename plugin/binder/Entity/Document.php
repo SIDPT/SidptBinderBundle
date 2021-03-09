@@ -1,13 +1,5 @@
 <?php
 
-/*
- * This file is part of the Claroline Connect package.
- *
- * (c) Claroline Consortium <consortium@claroline.net>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
 
 namespace Sidpt\BinderBundle\Entity;
 
@@ -33,8 +25,6 @@ class Document extends AbstractResource
      */
     private $longTitle = '';
 
-    
-
 
     /**
      * @ORM\Column(name="center_title", type="boolean")
@@ -42,6 +32,9 @@ class Document extends AbstractResource
     private $centerTitle = false;
 
     /**
+     * Widgets of a document
+     *
+     *
      * @ORM\ManyToMany(
      *      targetEntity="Claroline\CoreBundle\Entity\Widget\WidgetContainer",
      *      cascade={"persist","remove"})
@@ -60,7 +53,22 @@ class Document extends AbstractResource
     private $widgetContainers;
 
     /**
-     * Possible translations for the document (and subobject) fields.
+     * Language Locale (in short format like en, fr, es, de etc.) of the document
+     *
+     * @ORM\Column(type="string", length=255, nullable=true)
+     *
+     * @var [string]
+     */
+    private $locale;
+
+   
+    
+
+
+    /**
+     * @deprecated [<version>] removed in favor of document versioning
+     * 
+     * Possible translations for the documentfields.
      *
      * Note that fields names are based on the serializer data sent or received
      *
@@ -115,9 +123,12 @@ class Document extends AbstractResource
         $translatableFields[] = 'resourceName';
         $translatableFields[] = 'longTitle';
         
-        foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
-            $translatableFields[] = "widgets[".$index."].name";
-        }
+        // replaced by localized documents with versioning, 
+        // to handle both sections and resources translations
+        // 
+        // foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
+        //     $translatableFields[] = "widgets[".$index."].name";
+        // }
         return $translatableFields;
     }
 
@@ -205,6 +216,27 @@ class Document extends AbstractResource
         $this->centerTitle = $centerTitle;
     }
 
+    /**
+     * [getLocale description]
+     * @return [type] [description]
+     */
+    public function getLocale()
+    {
+        return $this->locale;
+    }
+
+    
+    /**
+     * [getPreviousVersion description]
+     * @return [type] [description]
+     */
+    public function setLocale(string $locale)
+    {
+        $this->locale = $locale;
+    }
+    
+    
+
     public function __toString()
     {
         $display = "{";
@@ -218,4 +250,19 @@ class Document extends AbstractResource
         $display .= "}";
         return $display;
     }
+
+    public function __clone()
+    {
+        if ($this->getId()) {
+            $this->setId(null);
+            $this->resourceNode = clone $this->resourceNode;
+            $containersClone = new ArrayCollection();
+            foreach ($this->widgetContainers as $container) {
+                $newContainer = clone $container;
+                $containersClone->add($newContainer);
+            }
+            $this->widgetContainers = $containersClone;
+        }
+    }
+
 }

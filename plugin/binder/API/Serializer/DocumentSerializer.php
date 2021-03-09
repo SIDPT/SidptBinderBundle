@@ -95,6 +95,7 @@ class DocumentSerializer
      */
     public function serialize(Document $document, array $options = []): array
     {
+
         $savedContainers = $document->getWidgetContainers()->toArray();
         $containers = [];
 
@@ -117,10 +118,28 @@ class DocumentSerializer
         ksort($containers);
         $containers = array_values($containers);
 
+        // TODO check for translations based on user local
+        $resourceName = $document->getResourceNode()->getName();
+        $longTitle = $document->getLongTitle();
+
+        foreach ($document->getTranslations() as $translation) {
+            switch ($translation["path"]) {
+                case 'resourceName':
+                    # code...
+                    break;
+                case 'longTitle':
+                    # code...
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+
         $data = [
             'id' => $document->getUuid(),
-            'resourceName' => $document->getResourceNode()->getName(),
-            'longTitle' => $document->getLongTitle(),
+            'resourceName' => $resourceName,
+            'longTitle' => $longTitle,
             'centerTitle' => $document->isCenterTitle(),
             'widgets' => array_map(
                 function ($container) use ($options) {
