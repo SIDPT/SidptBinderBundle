@@ -11,4 +11,16 @@ class SidptBinderBundle extends DistributionPluginBundle
     {
         return new AdditionalInstaller();
     }
+
+    // public function getPostInstallFixturesDirectory($environment)
+    // {
+    //     return 'DataFixtures/PostInstall';
+    // }
+
+    public function getRequiredPlugins()
+    {
+        return [
+            'Sidpt\\VersioningBundle\\SidptVersioningBundle',
+        ];
+    }
 }

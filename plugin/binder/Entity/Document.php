@@ -10,6 +10,7 @@ use Claroline\AppBundle\Entity\Identifier\Uuid;
 use Claroline\CoreBundle\Entity\Resource\AbstractResource;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
+use Claroline\AppBundle\Entity\Parameters\ListParameters;
 
 /**
  *
@@ -19,6 +20,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Document extends AbstractResource
 {
     use Uuid;
+
+
+    use ListParameters;
     
     /**
      * @ORM\Column(name="long_title", nullable=true, type="text")
@@ -52,23 +56,13 @@ class Document extends AbstractResource
      */
     private $widgetContainers;
 
-    /**
-     * Language Locale (in short format like en, fr, es, de etc.) of the document
-     *
-     * @ORM\Column(type="string", length=255, nullable=true)
-     *
-     * @var [string]
-     */
-    private $locale;
-
-   
     
 
-
     /**
-     * @deprecated [<version>] removed in favor of document versioning
-     * 
-     * Possible translations for the documentfields.
+     * Translations of document level fields
+     * (like document sections names, long title, current resource name to display etc)
+     *
+     * May be replaced by versionned document later on but it remains to be tested
      *
      * Note that fields names are based on the serializer data sent or received
      *
@@ -95,6 +89,23 @@ class Document extends AbstractResource
     {
         $this->refreshUuid();
         $this->widgetContainers = new ArrayCollection();
+
+        // C/C from directory
+        // set some list configuration defaults
+        // can be done later in the resource.directory.create event
+        $this->count = true;
+        $this->card = ['icon', 'flags', 'subtitle', 'description', 'footer'];
+
+        $this->availableColumns = ['name', 'published', 'resourceType'];
+        $this->displayedColumns = ['name', 'published', 'resourceType'];
+
+        $this->filterable = true;
+        $this->searchMode = 'unified';
+        $this->availableFilters = ['name', 'published', 'resourceType'];
+
+        $this->sortable = true;
+        $this->sortBy = 'name';
+        $this->availableSort = ['name', 'resourceType'];
     }
 
     /**
@@ -123,12 +134,9 @@ class Document extends AbstractResource
         $translatableFields[] = 'resourceName';
         $translatableFields[] = 'longTitle';
         
-        // replaced by localized documents with versioning, 
-        // to handle both sections and resources translations
-        // 
-        // foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
-        //     $translatableFields[] = "widgets[".$index."].name";
-        // }
+        foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
+            $translatableFields[] = "widgets[".$index."].name";
+        }
         return $translatableFields;
     }
 

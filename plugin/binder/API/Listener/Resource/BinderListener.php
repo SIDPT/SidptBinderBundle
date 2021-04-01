@@ -5,15 +5,30 @@
 
 namespace Sidpt\BinderBundle\API\Listener\Resource;
 
-use Claroline\AppBundle\API\SerializerProvider;
-use Claroline\AppBundle\Persistence\ObjectManager;
 use Claroline\CoreBundle\Event\ExportObjectEvent;
 use Claroline\CoreBundle\Event\ImportObjectEvent;
 use Claroline\CoreBundle\Event\Resource\CopyResourceEvent;
-use Claroline\CoreBundle\Event\Resource\LoadResourceEvent;
 use Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler;
 use Sidpt\BinderBundle\Entity\Binder;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+
+use Claroline\AppBundle\API\Crud;
+use Claroline\AppBundle\API\Options;
+use Claroline\AppBundle\API\SerializerProvider;
+use Claroline\AppBundle\Persistence\ObjectManager;
+use Claroline\CoreBundle\API\Serializer\ParametersSerializer;
+use Claroline\CoreBundle\Entity\Resource\AbstractResource;
+use Claroline\CoreBundle\Entity\Resource\Directory;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
+use Claroline\CoreBundle\Entity\Role;
+use Claroline\CoreBundle\Event\Resource\LoadResourceEvent;
+use Claroline\CoreBundle\Event\Resource\ResourceActionEvent;
+use Claroline\CoreBundle\Manager\Resource\ResourceActionManager;
+use Claroline\CoreBundle\Manager\Resource\RightsManager;
+use Claroline\CoreBundle\Manager\ResourceManager;
+use Claroline\CoreBundle\Security\Collection\ResourceCollection;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  *
@@ -47,6 +62,15 @@ class BinderListener
      * @var [type]
      */
     private $serializer;
+
+    /** @var Crud */
+    private $crud;
+    /** @var ResourceManager */
+    private $resourceManager;
+    /** @var ResourceActionManager */
+    private $actionManager;
+    /** @var RightsManager */
+    private $rightsManager;
     
 
     /**
@@ -61,12 +85,21 @@ class BinderListener
         AuthorizationCheckerInterface $authorization,
         ObjectManager $om,
         PlatformConfigurationHandler $config,
-        SerializerProvider $serializer
+        SerializerProvider $serializer,
+        Crud $crud,
+        ResourceManager $resourceManager,
+        ResourceActionManager $actionManager,
+        RightsManager $rightsManager
     ) {
         $this->authorization = $authorization;
         $this->om = $om;
         $this->config = $config;
         $this->serializer = $serializer;
+
+        $this->crud = $crud;
+        $this->resourceManager = $resourceManager;
+        $this->rightsManager = $rightsManager;
+        $this->actionManager = $actionManager;
     }
 
     /**
@@ -84,12 +117,75 @@ class BinderListener
          * @var [type]
          */
         $binder = $event->getResource();
+        $binderData = $this->serializer->serialize($binder);
 
-        $event->setData(
-            [
-                'binder' => $this->serializer->serialize($binder)
-            ]
-        );
+        $event->setData($binderData);
         $event->stopPropagation();
+    }
+
+    /**
+     * From the directory listener : add a resource in a binder
+     */
+    public function onAdd(ResourceActionEvent $event)
+    {
+        $data = $event->getData();
+        $parent = $event->getResourceNode();
+
+        $add = $this->actionManager->get($parent, 'add');
+
+        // checks if the current user can add
+        $collection = new ResourceCollection([$parent], ['type' => $data['resourceNode']['meta']['type']]);
+        if (!$this->actionManager->hasPermission($add, $collection)) {
+            throw new AccessDeniedException($collection->getErrorsForDisplay());
+        }
+
+        $options = $event->getOptions();
+
+        // create the resource node
+
+        /** @var ResourceNode $resourceNode */
+        $resourceNode = $this->crud->create(ResourceNode::class, $data['resourceNode'], $options);
+        $resourceNode->setParent($parent);
+        $resourceNode->setWorkspace($parent->getWorkspace());
+
+        // initialize custom resource Entity
+        $resourceClass = $resourceNode->getResourceType()->getClass();
+
+        /** @var AbstractResource $resource */
+        $resource = $this->crud->create($resourceClass, !empty($data['resource']) ? $data['resource'] : [], $options);
+        $resource->setResourceNode($resourceNode);
+
+        // maybe do it in the serializer (if it can be done without intermediate flush)
+        if (!empty($data['resourceNode']['rights'])) {
+            foreach ($data['resourceNode']['rights'] as $rights) {
+                /** @var Role $role */
+                $role = $this->om->getRepository(Role::class)->findOneBy(['name' => $rights['name']]);
+
+                $creation = [];
+                if (!empty($rights['permissions']['create']) && $resource instanceof Directory) {
+                    // only forward creation rights to resource which can handle it (only directories atm)
+                    $creation = $rights['permissions']['create'];
+                }
+                $this->rightsManager->editPerms($rights['permissions'], $role, $resourceNode, false, $creation);
+            }
+        } else {
+            // todo : initialize default rights
+        }
+
+        $this->om->persist($resource);
+        $this->om->persist($resourceNode);
+
+        $this->om->flush();
+
+        // todo : dispatch get/load action instead
+        $event->setResponse(
+            new JsonResponse(
+                [
+                    'resourceNode' => $this->serializer->serialize($resourceNode),
+                    'resource' => $this->serializer->serialize($resource),
+                ],
+                201
+            )
+        );
     }
 }

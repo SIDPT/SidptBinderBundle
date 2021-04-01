@@ -15,7 +15,9 @@ const BinderResource = withRouter(
   withReducer(selectors.STORE_NAME, reducer)(
     connect(
       (state) => ({
-        editable: hasPermission('edit', resourcesSelectors.resourceNode(state))
+        editable: hasPermission('edit', resourcesSelectors.resourceNode(state)),
+        resourceNode:resourcesSelectors.resourceNode(state),
+        path: resourcesSelectors.basePath(state)
       }),
      (dispatch) => ({
       update(field, value) {

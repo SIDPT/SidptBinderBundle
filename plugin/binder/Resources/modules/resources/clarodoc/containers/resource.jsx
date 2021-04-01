@@ -13,41 +13,34 @@ import {reducer, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/
 // resources
 import {selectors as securitySelectors} from '#/main/app/security/store'
 import {selectors as toolSelectors} from '#/main/core/tool/store'
-import {actions as resourcesActions, selectors as resourcesSelectors} from '#/main/core/resource/store'
+import {actions as resourceActions, selectors as resourceSelectors} from '#/main/core/resource/store'
 
 
 const DocumentResource = withRouter(
   withReducer(selectors.STORE_NAME, reducer)(
     connect(
       (state) => ({
-		resourceNode:resourcesSelectors.resourceNode(state),
-		clarodoc: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)),
-		canEdit: hasPermission('edit', resourcesSelectors.resourceNode(state)),
-		currentUser: securitySelectors.currentUser(state),
-		// tool params
-		basePath:resourcesSelectors.basePath(state),
-		contextType: toolSelectors.contextType(state),
-		// resource params
-		embedded:resourcesSelectors.embedded(state),
-		showHeader:resourcesSelectors.showHeader(state),
-		managed:resourcesSelectors.managed(state),
-		userEvaluation:resourcesSelectors.resourceEvaluation(state),
-		accessErrors:resourcesSelectors.accessErrors(state)
+        editable: hasPermission('edit', resourceSelectors.resourceNode(state)),
+        resourceNode:resourceSelectors.resourceNode(state),
+        path: resourceSelectors.basePath(state),
+        clarodoc: formSelect.data(formSelect.form(state, selectors.FORM_NAME))
       }),
     (dispatch) => ({
       reload() {
-        dispatch(resourcesActions.setResourceLoaded(false))
+        dispatch(resourceActions.setResourceLoaded(false))
       },
       dismissRestrictions() {
-        dispatch(resourcesActions.dismissRestrictions(true))
+        dispatch(resourceActions.dismissRestrictions(true))
       },
       checkAccessCode(resourceNode, code, embedded = false) {
-        dispatch(resourcesActions.checkAccessCode(resourceNode, code, embedded))
+        dispatch(resourceActions.checkAccessCode(resourceNode, code, embedded))
       }
     })
     )(DocumentResourceComponent)
   )
 );
+
+
 
 export {
   DocumentResource

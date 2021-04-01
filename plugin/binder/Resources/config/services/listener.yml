@@ -10,9 +10,14 @@ services:
             - '@Claroline\AppBundle\Persistence\ObjectManager'
             - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
             - '@Claroline\AppBundle\API\SerializerProvider'
+            - '@Claroline\AppBundle\API\Crud'
+            - '@claroline.manager.resource_manager'
+            - '@claroline.manager.resource_action'
+            - '@claroline.manager.rights_manager'
         tags:
             - { name: kernel.event_listener, event: resource.sidpt_document.load, method: onLoad }
-            #- { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
+            - { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
+            - { name: kernel.event_listener, event: resource.sidpt_document.add, method: onAdd }
             #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
             #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }
     
@@ -22,8 +27,10 @@ services:
             - '@Claroline\AppBundle\Persistence\ObjectManager'
             - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
             - '@Claroline\AppBundle\API\SerializerProvider'
+            - '@Claroline\AppBundle\API\Crud'
+            - '@claroline.manager.resource_manager'
+            - '@claroline.manager.resource_action'
+            - '@claroline.manager.rights_manager'
         tags:
             - { name: kernel.event_listener, event: resource.sidpt_binder.load, method: onLoad }
-            #- { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
-            #- { name: kernel.event_listener, event: transfer.sidpt_document.export, method: onExport }
-            #- { name: kernel.event_listener, event: transfer.sidpt_document.import.after, method: onImport }
+            - { name: kernel.event_listener, event: resource.sidpt_binder.add, method: onAdd }

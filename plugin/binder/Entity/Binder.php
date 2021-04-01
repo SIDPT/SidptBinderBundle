@@ -11,6 +11,8 @@ use Claroline\CoreBundle\Entity\Resource\AbstractResource;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
 
+use Claroline\AppBundle\Entity\Parameters\ListParameters;
+
 /**
  * Binder with tabs
  *
@@ -21,6 +23,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Binder extends AbstractResource
 {
     use Uuid;
+
+    use ListParameters;
 
     /**
      * [desc]
@@ -42,6 +46,24 @@ class Binder extends AbstractResource
     {
         $this->refreshUuid();
         $this->binderTabs = new ArrayCollection();
+
+
+        // C/C from directory
+        // set some list configuration defaults
+        // can be done later in the resource.directory.create event
+        $this->count = true;
+        $this->card = ['icon', 'flags', 'subtitle', 'description', 'footer'];
+
+        $this->availableColumns = ['name', 'published', 'resourceType'];
+        $this->displayedColumns = ['name', 'published', 'resourceType'];
+
+        $this->filterable = true;
+        $this->searchMode = 'unified';
+        $this->availableFilters = ['name', 'published', 'resourceType'];
+
+        $this->sortable = true;
+        $this->sortBy = 'name';
+        $this->availableSort = ['name', 'resourceType'];
     }
 
     /**

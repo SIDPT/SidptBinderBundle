@@ -2,7 +2,7 @@ services:
     _defaults:
         autowire: false
         autoconfigure: false
-        public: false
+        public: true
         
 
     Sidpt\BinderBundle\API\Serializer\DocumentSerializer:

@@ -137,18 +137,54 @@ class DocumentSerializer
         }
 
         $data = [
-            'id' => $document->getUuid(),
-            'resourceName' => $resourceName,
-            'longTitle' => $longTitle,
-            'centerTitle' => $document->isCenterTitle(),
-            'widgets' => array_map(
-                function ($container) use ($options) {
-                    return $this->widgetContainerSerializer
-                        ->serialize($container, $options);
-                },
-                $containers
-            ),
-            'translations' => $document->getTranslations()
+            'clarodoc' => [
+                'id' => $document->getUuid(),
+                'resourceName' => $resourceName,
+                'longTitle' => $longTitle,
+                'centerTitle' => $document->isCenterTitle(),
+                'widgets' => array_map(
+                    function ($container) use ($options) {
+                        return $this->widgetContainerSerializer
+                            ->serialize($container, $options);
+                    },
+                    $containers
+                ),
+                'translations' => $document->getTranslations()
+            ],
+            'directory' => [
+                'id' => $document->getId(),
+                'list' => [
+                    'actions' => $document->hasActions(),
+                    'count' => $document->hasCount(),
+                    // display feature
+                    'display' => $document->getDisplay(),
+                    'availableDisplays' => $document->getAvailableDisplays(),
+
+                    // sort feature
+                    'sorting' => $document->getSortBy(),
+                    'availableSort' => $document->getAvailableSort(),
+
+                    // filter feature
+                    'searchMode' => $document->getSearchMode(),
+                    'filters' => $document->getFilters(),
+                    'availableFilters' => $document->getAvailableFilters(),
+
+                    // pagination feature
+                    'paginated' => $document->isPaginated(),
+                    'pageSize' => $document->getPageSize(),
+                    'availablePageSizes' => $document->getAvailablePageSizes(),
+
+                    // table config
+                    'columns' => $document->getDisplayedColumns(),
+                    'availableColumns' => $document->getAvailableColumns(),
+
+                    // grid config
+                    'card' => [
+                        'display' => $document->getCard(),
+                        'mapping' => [], // TODO
+                    ],
+                ]
+            ]
         ];
 
 
@@ -214,6 +250,34 @@ class DocumentSerializer
                 }
             }
         }
+
+        $this->sipe('directory.list.count', 'setCount', $data, $document);
+        $this->sipe('directory.list.actions', 'setActions', $data, $document);
+
+        // display feature
+        $this->sipe('directory.list.display', 'setDisplay', $data, $document);
+        $this->sipe('directory.list.availableDisplays', 'setAvailableDisplays', $data, $document);
+
+        // sort feature
+        $this->sipe('directory.list.sorting', 'setSortBy', $data, $document);
+        $this->sipe('directory.list.availableSort', 'setAvailableSort', $data, $document);
+
+        // filter feature
+        $this->sipe('directory.list.searchMode', 'setSearchMode', $data, $document);
+        $this->sipe('directory.list.filters', 'setFilters', $data, $document);
+        $this->sipe('directory.list.availableFilters', 'setAvailableFilters', $data, $document);
+
+        // pagination feature
+        $this->sipe('directory.list.paginated', 'setPaginated', $data, $document);
+        $this->sipe('directory.list.pageSize', 'setPageSize', $data, $document);
+        $this->sipe('directory.list.availablePageSizes', 'setAvailablePageSizes', $data, $document);
+
+        // table config
+        $this->sipe('directory.list.columns', 'setDisplayedColumns', $data, $document);
+        $this->sipe('directory.list.availableColumns', 'setAvailableColumns', $data, $document);
+
+        // grid config
+        $this->sipe('directory.list.card.display', 'setCard', $data, $document);
         return $document;
     }
 }

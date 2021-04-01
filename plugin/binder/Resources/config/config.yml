@@ -6,7 +6,18 @@ plugin:
           class: Sidpt\BinderBundle\Entity\Document
           tags: [content]
           exportable: false
+          actions:
+              - name: add
+                decoder: create
+                group: management
+                api: [POST]
+
         - name: sidpt_binder
           class: Sidpt\BinderBundle\Entity\Binder
           tags: [content]
           exportable: false
+          actions:
+              - name: add
+                decoder: create
+                group: management
+                api: [POST]

@@ -287,15 +287,51 @@ class BinderSerializer
         
         // For now i limit a single binder to a maximum of 6 computed levels
         $data = [
-            'id' => $binder->getUuid(),
-            'title' => $binder->getResourceNode()->getName(),
-            'tabs' =>  $depth < 6 ?
-                array_map(
-                    function (BinderTab $tab) use ($options) {
-                            return $this->serializeTab($tab, $options);
-                    },
-                    $sortedTabs
-                ) : []
+            'binder' => [
+                'id' => $binder->getUuid(),
+                'title' => $binder->getResourceNode()->getName(),
+                'tabs' =>  $depth < 6 ?
+                    array_map(
+                        function (BinderTab $tab) use ($options) {
+                                return $this->serializeTab($tab, $options);
+                        },
+                        $sortedTabs
+                    ) : []
+            ],
+            'directory' => [
+                'id' => $binder->getId(),
+                'list' => [
+                    'actions' => $binder->hasActions(),
+                    'count' => $binder->hasCount(),
+                    // display feature
+                    'display' => $binder->getDisplay(),
+                    'availableDisplays' => $binder->getAvailableDisplays(),
+
+                    // sort feature
+                    'sorting' => $binder->getSortBy(),
+                    'availableSort' => $binder->getAvailableSort(),
+
+                    // filter feature
+                    'searchMode' => $binder->getSearchMode(),
+                    'filters' => $binder->getFilters(),
+                    'availableFilters' => $binder->getAvailableFilters(),
+
+                    // pagination feature
+                    'paginated' => $binder->isPaginated(),
+                    'pageSize' => $binder->getPageSize(),
+                    'availablePageSizes' => $binder->getAvailablePageSizes(),
+
+                    // table config
+                    'columns' => $binder->getDisplayedColumns(),
+                    'availableColumns' => $binder->getAvailableColumns(),
+
+                    // grid config
+                    'card' => [
+                        'display' => $binder->getCard(),
+                        'mapping' => [], // TODO
+                    ],
+                ],
+            ]
         ];
 
         return $data;
@@ -354,6 +390,36 @@ class BinderSerializer
                 }
             }
         }
+
+        $this->sipe('directory.list.count', 'setCount', $data, $binder);
+        $this->sipe('directory.list.actions', 'setActions', $data, $binder);
+
+        // display feature
+        $this->sipe('directory.list.display', 'setDisplay', $data, $binder);
+        $this->sipe('directory.list.availableDisplays', 'setAvailableDisplays', $data, $binder);
+
+        // sort feature
+        $this->sipe('directory.list.sorting', 'setSortBy', $data, $binder);
+        $this->sipe('directory.list.availableSort', 'setAvailableSort', $data, $binder);
+
+        // filter feature
+        $this->sipe('directory.list.searchMode', 'setSearchMode', $data, $binder);
+        $this->sipe('directory.list.filters', 'setFilters', $data, $binder);
+        $this->sipe('directory.list.availableFilters', 'setAvailableFilters', $data, $binder);
+
+        // pagination feature
+        $this->sipe('directory.list.paginated', 'setPaginated', $data, $binder);
+        $this->sipe('directory.list.pageSize', 'setPageSize', $data, $binder);
+        $this->sipe('directory.list.availablePageSizes', 'setAvailablePageSizes', $data, $binder);
+
+        // table config
+        $this->sipe('directory.list.columns', 'setDisplayedColumns', $data, $binder);
+        $this->sipe('directory.list.availableColumns', 'setAvailableColumns', $data, $binder);
+
+        // grid config
+        $this->sipe('directory.list.card.display', 'setCard', $data, $binder);
+
+
         return $binder;
     }
 }

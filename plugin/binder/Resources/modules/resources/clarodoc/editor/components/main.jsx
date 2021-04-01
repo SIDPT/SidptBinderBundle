@@ -26,7 +26,6 @@ class DocumentEditorMain extends Component {
 
     const translations = this.props.clarodoc.translations;
     if(translations.length > 0){
-      console.log(translations);
       for(const field of translations){
         for(const locale in field.locales){
           if(field.locales[locale].length > 0){
