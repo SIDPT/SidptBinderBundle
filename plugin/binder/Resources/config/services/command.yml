@@ -1,0 +1,13 @@
+services:
+    _defaults:
+        autowire: false
+        autoconfigure: false
+
+    Sidpt\BinderBundle\Command\SidptDataLoadCommand:
+        arguments:
+            - '@Claroline\AppBundle\Persistence\ObjectManager'
+            - '@Claroline\AppBundle\API\Crud'
+            - '@Claroline\AppBundle\API\SerializerProvider'
+            - '@Claroline\CoreBundle\Manager\Organization\OrganizationManager'
+        tags:
+            - { name: 'console.command', command: 'claroline:sidpt:load' }

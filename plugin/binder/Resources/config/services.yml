@@ -3,3 +3,4 @@ imports:
     - { resource: services/finder.yml }
     - { resource: services/listener.yml }
     - { resource: services/serializer.yml }
+    - { resource: services/command.yml }
