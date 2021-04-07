@@ -191,6 +191,48 @@ class DocumentSerializer
         return $data;
     }
 
+    public function deserializeWidgets(
+        array $widgetsDataArray,
+        Document $document,
+        array $options = []
+    ) {
+        $currentContainers = $document->getWidgetContainers()->toArray();
+        $containerIds = [];
+
+        // update containers
+        foreach ($widgetsDataArray as $position => $widgetContainerData) {
+            if (isset($widgetContainerData['id'])) {
+                $widgetContainer = $document->getWidgetContainer(
+                    $widgetContainerData['id']
+                );
+            }
+
+            if (empty($widgetContainer)) {
+                $widgetContainer = new WidgetContainer();
+                $document->addWidgetContainer($widgetContainer);
+            }
+
+            $this->widgetContainerSerializer->deserialize(
+                $widgetContainerData,
+                $widgetContainer,
+                $options
+            );
+            $widgetContainerConfig = $widgetContainer
+                ->getWidgetContainerConfigs()[0];
+            $widgetContainerConfig->setPosition($position);
+            $containerIds[] = $widgetContainer->getUuid();
+        }
+
+        // removes containers which no longer exists
+        foreach ($currentContainers as $currentContainer) {
+            if (!in_array($currentContainer->getUuid(), $containerIds)) {
+                $document->removeWidgetContainer($currentContainer);
+                $this->om->remove($currentContainer);
+            }
+        }
+        return $document;
+    }
+
     /**
      * [deserialize description]
      *
@@ -215,40 +257,7 @@ class DocumentSerializer
         $this->sipe('translations', 'setTranslations', $data, $document);
 
         if (isset($data['widgets'])) {
-            $currentContainers = $document->getWidgetContainers()->toArray();
-            $containerIds = [];
-
-            // update containers
-            foreach ($data['widgets'] as $position => $widgetContainerData) {
-                if (isset($widgetContainerData['id'])) {
-                    $widgetContainer = $document->getWidgetContainer(
-                        $widgetContainerData['id']
-                    );
-                }
-
-                if (empty($widgetContainer)) {
-                    $widgetContainer = new WidgetContainer();
-                    $document->addWidgetContainer($widgetContainer);
-                }
-
-                $this->widgetContainerSerializer->deserialize(
-                    $widgetContainerData,
-                    $widgetContainer,
-                    $options
-                );
-                $widgetContainerConfig = $widgetContainer
-                    ->getWidgetContainerConfigs()[0];
-                $widgetContainerConfig->setPosition($position);
-                $containerIds[] = $widgetContainer->getUuid();
-            }
-
-            // removes containers which no longer exists
-            foreach ($currentContainers as $currentContainer) {
-                if (!in_array($currentContainer->getUuid(), $containerIds)) {
-                    $document->removeWidgetContainer($currentContainer);
-                    $this->om->remove($currentContainer);
-                }
-            }
+            $this->deserializeWidgets($data['widgets'], $document, $options);
         }
 
         $this->sipe('directory.list.count', 'setCount', $data, $document);
