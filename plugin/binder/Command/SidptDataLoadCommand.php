@@ -13,6 +13,8 @@ use Claroline\CoreBundle\Entity\Role;
 use Claroline\CoreBundle\Entity\User as UserEntity;
 use Claroline\CoreBundle\Security\PlatformRoles;
 use Claroline\CoreBundle\Manager\Organization\OrganizationManager;
+use Claroline\TagBundle\Manager\TagManager;
+
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -27,6 +29,9 @@ use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 use Claroline\CoreBundle\Entity\Resource\ResourceType;
 use Claroline\CoreBundle\Entity\Resource\Directory;
 
+use Claroline\TagBundle\Entity\Tag;
+use Claroline\TagBundle\Entity\TaggedObject;
+
 use Sidpt\BinderBundle\Entity\Binder;
 use Sidpt\BinderBundle\Entity\Document;
 
@@ -40,19 +45,21 @@ class SidptDataLoadCommand extends Command
     private $crud;
     private $serializer;
     private $organizationManager;
-
+    private $tagManager;
 
 
     public function __construct(
         ObjectManager $om,
         Crud $crud,
         SerializerProvider $serializer,
-        OrganizationManager $organizationManager
+        OrganizationManager $organizationManager,
+        TagManager $tagManager
     ) {
         $this->om = $om;
         $this->crud = $crud;
         $this->serializer = $serializer;
         $this->organizationManager = $organizationManager;
+        $this->tagManager = $tagManager;
 
         parent::__construct();
     }
@@ -61,14 +68,18 @@ class SidptDataLoadCommand extends Command
     {
         $this
             ->setDescription('Generate the courses hierarchy for the SIDPT project')
-            ->addArgument('csv_path', InputArgument::REQUIRED, 'The absolute path to the csv file containing a list of curriculum/course/module/learning units to import');
+            ->addArgument('csv_path', InputArgument::REQUIRED, 'The absolute path to the csv file containing a list of curriculum/course/module/learning units to import')
+            ->addArgument('username', InputArgument::OPTIONAL, 'the user login to be used as resources creator', 'claroline-connect');
     }
+
+
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         
-        // get emails from file
         $file = $input->getArgument('csv_path');
+        $username = $input->getArgument('username');
+
         $lines = str_getcsv(file_get_contents($file), PHP_EOL);
 
         $workspaceRepo = $this->om->getRepository(Workspace::class);
@@ -76,6 +87,8 @@ class SidptDataLoadCommand extends Command
         $binderRepo = $this->om->getRepository(Binder::class);
         $documentRepo = $this->om->getRepository(Document::class);
         $typesRepo = $this->om->getRepository(ResourceType::class);
+        $tagsRepo = $this->om->getRepository(Tag::class);
+        $taggedObjectRepo = $this->om->getRepository(TaggedObject::class);
 
         $binderType = $typesRepo->findOneBy([
             'name' => 'sidpt_binder'
@@ -88,7 +101,11 @@ class SidptDataLoadCommand extends Command
             'name' => 'directory'
         ]);
 
-        $user = $this->om->getRepository(UserEntity::class)->findOneBy(['id'=>1]);
+        $user = $this->om->getRepository(UserEntity::class)->findOneBy(['username'=>$username]);
+
+        // To consider for other types :
+        // first part of a path is a workspace, last part is a sidpt_document
+        
 
         foreach ($lines as $key => $line) {
             $fields = str_getcsv($line, ';');
@@ -151,6 +168,15 @@ class SidptDataLoadCommand extends Command
 
                 $this->om->persist($workspace);
                 $this->om->flush();
+
+                $this->tagManager->tagData(
+                    ['Curriculum',$curriculum],
+                    [ 0 => [
+                            'id'=> $workspace->getId(),
+                            'class' => "Claroline\CoreBundle\Entity\Workspace\Workspace"
+                    ]]
+                );
+
             }
             $curriculumNode = $resourceNodeRepo->findOneBy([
                 'name' => $curriculum,
@@ -170,10 +196,28 @@ class SidptDataLoadCommand extends Command
                 $curriculumDirectory->setResourceNode($curriculumNode);
                 $curriculumDirectory->setName($curriculum);
 
+                $curriculumSummaryNode = new ResourceNode();
+                $curriculumSummaryNode->setName("Summary");
+                $curriculumSummaryNode->setWorkspace($workspace);
+                $curriculumSummaryNode->setResourceType($documentType);
+                $curriculumSummaryNode->setCreator($user);
+                $curriculumSummaryNode->setParent($curriculumNode);
+                $curriculumSummaryNode->setMimeType("custom/sidpt_document");
+
+                $curriculumSummary = new Document();
+                $curriculumSummary->setResourceNode($curriculumSummaryNode);
+                $curriculumSummary->setName("Summary");
+
                 $this->om->persist($curriculumNode);
                 $this->om->persist($curriculumDirectory);
+                $this->om->persist($curriculumSummaryNode);
+                $this->om->persist($curriculumSummary);
                 $this->om->flush();
+                // TODO maybe also tag the root directory of the workspace ?
+
             }
+
+            // Create
 
 
             $courseNode = $resourceNodeRepo->findOneBy([
@@ -196,10 +240,33 @@ class SidptDataLoadCommand extends Command
                 $courseBinder->setResourceNode($courseNode);
                 $courseBinder->setName($course);
                 
+                $courseSummaryNode = new ResourceNode();
+                $courseSummaryNode->setName("Summary");
+                $courseSummaryNode->setWorkspace($workspace);
+                $courseSummaryNode->setResourceType($documentType);
+                $courseSummaryNode->setCreator($user);
+                $courseSummaryNode->setParent($courseNode);
+                $courseSummaryNode->setMimeType("custom/sidpt_document");
+
+                $courseSummary = new Document();
+                $courseSummary->setResourceNode($courseSummaryNode);
+                $courseSummary->setName("Summary");
 
                 $this->om->persist($courseNode);
                 $this->om->persist($courseBinder);
+
+                $this->om->persist($courseSummaryNode);
+                $this->om->persist($courseSummary);
+
                 $this->om->flush();
+
+                $this->tagManager->tagData(
+                    ['Course',$curriculum, $course],
+                    [ 0 => [
+                            'id'=> $courseNode->getId(),
+                            'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    ]]
+                );
 
             }
 
@@ -225,11 +292,33 @@ class SidptDataLoadCommand extends Command
                 $moduleBinder = new Binder();
                 $moduleBinder->setResourceNode($moduleNode);
                 $moduleBinder->setName($module);
+
+                $moduleSummaryNode = new ResourceNode();
+                $moduleSummaryNode->setName("Summary");
+                $moduleSummaryNode->setWorkspace($workspace);
+                $moduleSummaryNode->setResourceType($documentType);
+                $moduleSummaryNode->setCreator($user);
+                $moduleSummaryNode->setParent($moduleNode);
+                $moduleSummaryNode->setMimeType("custom/sidpt_document");
+
+                $moduleSummary = new Document();
+                $moduleSummary->setResourceNode($moduleSummaryNode);
+                $moduleSummary->setName("Summary");
                 
 
                 $this->om->persist($moduleNode);
                 $this->om->persist($moduleBinder);
+                $this->om->persist($moduleSummaryNode);
+                $this->om->persist($moduleSummary);
                 $this->om->flush();
+
+                $this->tagManager->tagData(
+                    ['Module', $curriculum, $course, $module],
+                    [ 0 => [
+                            'id'=> $moduleNode->getId(),
+                            'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    ]]
+                );
             }
             // Check if learning unit exist within the module
             // a learning unit is a document
@@ -256,7 +345,16 @@ class SidptDataLoadCommand extends Command
                 $this->om->persist($learningUnitNode);
                 $this->om->persist($learningUnitDocument);
                 $this->om->flush();
+
+                $this->tagManager->tagData(
+                    ['Learning unit',$curriculum, $course, $module, $learningUnit],
+                    [ 0 => [
+                            'id'=> $learningUnitNode->getId(),
+                            'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    ]]
+                );
             }
+            // TODO : for each learning unit, pre-create the default structure ?
         }
 
 

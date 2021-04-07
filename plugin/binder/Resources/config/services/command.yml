@@ -9,5 +9,6 @@ services:
             - '@Claroline\AppBundle\API\Crud'
             - '@Claroline\AppBundle\API\SerializerProvider'
             - '@Claroline\CoreBundle\Manager\Organization\OrganizationManager'
+            - '@Claroline\TagBundle\Manager\TagManager'
         tags:
             - { name: 'console.command', command: 'claroline:sidpt:load' }
