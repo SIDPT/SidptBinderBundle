@@ -8,6 +8,7 @@ services:
             - '@Claroline\AppBundle\Persistence\ObjectManager'
             - '@Claroline\AppBundle\API\Crud'
             - '@Claroline\AppBundle\API\SerializerProvider'
+            - '@Claroline\AppBundle\API\FinderProvider'
             - '@Claroline\CoreBundle\Manager\Organization\OrganizationManager'
             - '@Claroline\TagBundle\Manager\TagManager'
         tags:

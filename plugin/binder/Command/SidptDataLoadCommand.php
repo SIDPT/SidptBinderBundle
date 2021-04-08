@@ -4,7 +4,9 @@
 namespace Sidpt\BinderBundle\Command;
 
 use Claroline\AppBundle\API\Crud;
+use Claroline\AppBundle\API\FinderProvider;
 use Claroline\AppBundle\API\SerializerProvider;
+use Claroline\AppBundle\API\Options;
 
 use Claroline\AppBundle\Command\BaseCommandTrait;
 use Claroline\AppBundle\Persistence\ObjectManager;
@@ -29,6 +31,9 @@ use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 use Claroline\CoreBundle\Entity\Resource\ResourceType;
 use Claroline\CoreBundle\Entity\Resource\Directory;
 
+use Claroline\HomeBundle\Entity\HomeTab;
+use Claroline\HomeBundle\Entity\Type\WidgetsTab;
+
 use Claroline\TagBundle\Entity\Tag;
 use Claroline\TagBundle\Entity\TaggedObject;
 
@@ -38,6 +43,7 @@ use UJM\ExoBundle\Entity\Exercise;
 use UJM\ExoBundle\Library\Options\ExerciseType;
 
 use Sidpt\BinderBundle\Entity\Binder;
+use Sidpt\BinderBundle\Entity\BinderTab;
 use Sidpt\BinderBundle\Entity\Document;
 
 /**
@@ -49,6 +55,7 @@ class SidptDataLoadCommand extends Command
     private $om;
     private $crud;
     private $serializer;
+    private $finder;
     private $organizationManager;
     private $tagManager;
 
@@ -57,12 +64,14 @@ class SidptDataLoadCommand extends Command
         ObjectManager $om,
         Crud $crud,
         SerializerProvider $serializer,
+        FinderProvider $finder,
         OrganizationManager $organizationManager,
         TagManager $tagManager
     ) {
         $this->om = $om;
         $this->crud = $crud;
         $this->serializer = $serializer;
+        $this->finder = $finder;
         $this->organizationManager = $organizationManager;
         $this->tagManager = $tagManager;
 
@@ -93,8 +102,7 @@ class SidptDataLoadCommand extends Command
         $binderRepo = $this->om->getRepository(Binder::class);
         $documentRepo = $this->om->getRepository(Document::class);
         $typesRepo = $this->om->getRepository(ResourceType::class);
-        $tagsRepo = $this->om->getRepository(Tag::class);
-        $taggedObjectRepo = $this->om->getRepository(TaggedObject::class);
+        $homeTabsRepo = $this->om->getRepository(HomeTab::class);
 
         $binderType = $typesRepo->findOneBy([
             'name' => 'sidpt_binder'
@@ -120,13 +128,11 @@ class SidptDataLoadCommand extends Command
         ]);
 
         $documentSeralizer = $this->serializer->get(Document::class);
-        $nodeSerializer = $this->serializer->get(ResourceNode::class);
+        $nodeSeralizer = $this->serializer->get(ResourceNode::class);
 
         $user = $this->om->getRepository(UserEntity::class)->findOneBy(['username'=>$username]);
 
-        // To consider for other types :
-        // first part of a path is a workspace, last part is a sidpt_document
-        
+                
 
         foreach ($lines as $key => $line) {
             $fields = str_getcsv($line, ';');
@@ -246,6 +252,47 @@ class SidptDataLoadCommand extends Command
                 $this->om->flush();
 
                 // Add the summary as first tab of the workspace home
+                $summaryTab = [
+                    'title' => "Summary",
+                    'longTitle' => "Curriculum summary",
+                    'slug' => 'summary',
+                    'context' => HomeTab::TYPE_WORKSPACE,
+                    'workspace' => [
+                        'id' => $workspace->getUuid()
+                    ],
+                    'type' => WidgetsTab::getType(),
+                    'class' => WidgetsTab::class,
+                    'position' => 1,
+                    'restrictions' => [
+                        'hidden' => false,
+                    ],
+                    'parameters' => [
+                        'widgets' => [[
+                            'name' => null,
+                            'visible' => true,
+                            'display' => [
+                                'layout' => [1],
+                                'color' => '#333333',
+                                'backgroundType' => 'color',
+                                'background' => '#ffffff',
+                            ],
+                            'parameters' => [],
+                            'contents' => [[
+                                'type' => 'resource',
+                                'source' => 'resource',
+                                "parameters" => [
+                                    "showResourceHeader" => false,
+                                    "resource" => [
+                                        'id' => $curriculumSummaryNode->getUuid()
+                                    ]
+                                ],
+                            ]],
+                        ]],
+                    ],
+                ];
+                $tab = $this->serializer->deserialize($summaryTab, new HomeTab());
+                $this->om->persist($tab);
+                $this->om->flush();
             }
 
 
@@ -282,7 +329,56 @@ class SidptDataLoadCommand extends Command
                     ]]
                 );
 
-                // Add a new tab the curriculum workspace, and add the binder to it
+
+                $tabs = $homeTabsRepo->findBy([
+                    'workspace' => $workspace->getUuid(),
+                    'parent' => null
+                ]);
+
+                $newPosition = count($tabs) + 1;
+                // Add a new tab the curriculum workspace, and add the course node to it
+                $binderTab = [
+                    'title' => $courseNode->getName(),
+                    'longTitle' => $courseNode->getName(),
+                    'slug' => $courseNode->getSlug(),
+                    'context' => HomeTab::TYPE_WORKSPACE,
+                    'workspace' => [
+                        'id' => $workspace->getUuid()
+                    ],
+                    'type' => WidgetsTab::getType(),
+                    'class' => WidgetsTab::class,
+                    'position' => $newPosition,
+                    'restrictions' => [
+                        'hidden' => false,
+                    ],
+                    'parameters' => [
+                        'widgets' => [[
+                            'name' => null,
+                            'visible' => true,
+                            'display' => [
+                                'layout' => [1],
+                                'color' => '#333333',
+                                'backgroundType' => 'color',
+                                'background' => '#ffffff',
+                            ],
+                            'parameters' => [],
+                            'contents' => [[
+                                'type' => 'resource',
+                                'source' => 'resource',
+                                "parameters" => [
+                                    "showResourceHeader" => false,
+                                    "resource" => [
+                                        'id' => $courseNode->getUuid()
+                                    ]
+                                ],
+                            ]],
+                        ]],
+                    ],
+                ];
+                $tab = $this->serializer->deserialize($binderTab, new HomeTab());
+                $this->om->persist($tab);
+                $this->om->flush();
+
             }
             $courseSummaryNode = $resourceNodeRepo->findOneBy([
                 'name' => "Summary",
@@ -298,16 +394,24 @@ class SidptDataLoadCommand extends Command
                 $courseSummaryNode->setCreator($user);
                 $courseSummaryNode->setParent($courseNode);
                 $courseSummaryNode->setMimeType("custom/sidpt_document");
+                $this->om->persist($courseSummaryNode);
 
                 $courseSummary = new Document();
                 $courseSummary->setResourceNode($courseSummaryNode);
                 $courseSummary->setName("Summary");
-
-                $this->om->persist($courseSummaryNode);
                 $this->om->persist($courseSummary);
+
+                // Add the summary as first tab of the course binder
+                $courseSummaryTab = new BinderTab();
+                $courseSummaryTab->setDocument($courseSummary);
+                $courseSummaryTab->setOwner($courseBinder);
+                $courseBinder->addBinderTab($courseSummaryTab);
+                
+                $this->om->persist($courseSummaryTab);
+                $this->om->persist($courseBinder);
                 $this->om->flush();
 
-                // Add the summary as first tab of the course binder 
+                
 
             }
 
@@ -345,6 +449,16 @@ class SidptDataLoadCommand extends Command
                             'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
                     ]]
                 );
+
+                // Add module to the course binder
+                $moduleTab = new BinderTab();
+                $moduleTab->setBinder($moduleBinder);
+                $moduleTab->setOwner($courseBinder);
+                $courseBinder->addBinderTab($moduleTab);
+                
+                $this->om->persist($moduleTab);
+                $this->om->persist($courseBinder);
+                $this->om->flush();
             }
 
             $moduleSummaryNode = $resourceNodeRepo->findOneBy([
@@ -368,9 +482,16 @@ class SidptDataLoadCommand extends Command
 
                 $this->om->persist($moduleSummaryNode);
                 $this->om->persist($moduleSummary);
-                $this->om->flush();
 
                 // Add the summary as first tab of the module binder
+                $moduleSummaryTab = new BinderTab();
+                $moduleSummaryTab->setDocument($moduleSummary);
+                $moduleSummaryTab->setOwner($moduleBinder);
+                $moduleBinder->addBinderTab($moduleSummaryTab);
+                
+                $this->om->persist($moduleSummaryTab);
+                $this->om->persist($moduleBinder);
+                $this->om->flush();
 
             }
 
@@ -516,7 +637,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($externalReferencesNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $externalReferencesNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -558,7 +681,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($practiceNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $practiceNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -578,7 +703,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($theoryNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $theoryNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -598,7 +725,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($assessmentNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $assessmentNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -618,7 +747,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($activityNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $activityNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -638,7 +769,9 @@ class SidptDataLoadCommand extends Command
                                 "source" => "resource",
                                 "parameters" => [
                                     "showResourceHeader" => false,
-                                    "resource" => $nodeSerializer->serialize($referencesNode, [Options::SERIALIZE_MINIMAL])
+                                    "resource" => [
+                                        'id' => $referencesNode->getUuid()
+                                    ]
                                 ]
                             ]
                         ]
@@ -649,6 +782,16 @@ class SidptDataLoadCommand extends Command
                     $learningUnitDocument
                 );
                 $this->om->persist($learningUnitDocument);
+                $this->om->flush();
+
+                // Add the learning unit to the module binder
+                $learningUnitTab = new BinderTab();
+                $learningUnitTab->setDocument($learningUnitDocument);
+                $learningUnitTab->setOwner($moduleBinder);
+                $moduleBinder->addBinderTab($learningUnitTab);
+                
+                $this->om->persist($learningUnitTab);
+                $this->om->persist($moduleBinder);
                 $this->om->flush();
             }
         }

@@ -128,7 +128,7 @@ class BinderTab
      *
      * @var string
      */
-    private $backgroundColor = null;
+    private $backgroundColor = "#FFFFFF";
 
     /**
      * Tab text color
@@ -137,7 +137,7 @@ class BinderTab
      *
      * @var string
      */
-    private $textColor = null;
+    private $textColor = "#333333";
 
     /**
      * Tab border color
@@ -146,7 +146,7 @@ class BinderTab
      *
      * @var string
      */
-    private $borderColor = null;
+    private $borderColor = "#FFFFFF";
 
     /**
      * @ORM\Column(nullable=true)
