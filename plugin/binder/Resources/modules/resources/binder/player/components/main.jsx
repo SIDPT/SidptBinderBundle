@@ -28,7 +28,7 @@ class BinderPlayerMain extends Component {
         let tab = tabLookingQueue.shift();
         let slug = tab.slug;
         if(tab.metadata.type === 'binder'){
-          tabLookingQueue.push(...tab.content.tabs);
+          tabLookingQueue.push(...tab.content.binder.tabs);
         } else {
           content = tab.content
           displayedSlug = tab.slug;
@@ -44,18 +44,20 @@ class BinderPlayerMain extends Component {
     this.changeContentToDisplay = this.changeContentToDisplay.bind(this);
   }
 
-  changeContentToDisplay(content){
+  changeContentToDisplay(content, slug){
     this.setState({
-      contentToDisplay:content
+      contentToDisplay:content,
+      displayedSlug:slug
     })
   }
 
-  render(){ 
+  render(){
+    console.log(this.state)
     return (
       <Fragment>
         <BinderNavigator 
             binder={this.props.binder}
-            openingSlugPath={this.state.displayedSlug}
+            selectedSlug={this.state.displayedSlug}
             onContentSelected={this.changeContentToDisplay}
         />
         
@@ -68,7 +70,7 @@ class BinderPlayerMain extends Component {
         }
         {this.state.contentToDisplay && 
           <DocumentPlayerMain 
-              clarodoc={this.state.contentToDisplay}
+              clarodoc={this.state.contentToDisplay.clarodoc}
               currentContext={this.props.currentContext} />
         }
       </Fragment>

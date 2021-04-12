@@ -57,11 +57,12 @@ class DocumentEditorMain extends Component {
     const widgets = this.props.clarodoc.widgets;
     
     const defaultValues = {};
-    for(const field of this.props.clarodoc.translations){
-      console.log(field);
-      defaultValues[field.path] = get(this.props.clarodoc,`${field.path}`,'');
+    if(this.props.clarodoc.translations){
+      for(const field of this.props.clarodoc.translations){
+        defaultValues[field.path] = get(this.props.clarodoc,`${field.path}`,'');
+      }
     }
-    console.log(defaultValues);
+    
 
     return (
       <Fragment>

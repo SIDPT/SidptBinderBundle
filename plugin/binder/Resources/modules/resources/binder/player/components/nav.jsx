@@ -13,16 +13,19 @@ import {Tab as TabType, Binder as BinderType} from '~/sidpt/binder-bundle/plugin
 class BinderNavigator extends Component {
 	constructor(props){
 		super(props);
-
 		// default to empty stack and displayed binder tabs
 		let stack = [];
 		let displayedTabs = this.props.binder.tabs;
 		// fill the tab stack based on opening slug
-		if(this.props.openingSlugPath && this.props.openingSlugPath.length > 0){
-			this.props.openingSlugPath.split("/").forEach(
-				(slug) => {
+		// first check if the dis
+		if(this.props.selectedSlug && this.props.selectedSlug.length > 0){
+			this.props.selectedSlug.split("/").forEach(
+				(searchedSlugPart) => {
 					let slugFound = !displayedTabs.every((tab) => {
-						if(tab.slug === slug){
+						const tabNodeSlugs = tab.slug.split("/");
+						const tabSlugPart = tabNodeSlugs[tabNodeSlugs.length - 1];
+						// Check if the last part of the tab slug match the search slugpart
+						if(tabSlugPart === searchedSlugPart){
 							// slug found
 							stack.push(tab);
 							return false;
@@ -31,7 +34,7 @@ class BinderNavigator extends Component {
 					});
 					if(slugFound){
 						if(stack[stack.length - 1].metadata.type === 'binder'){
-							displayedTabs = stack[stack.length - 1].content.tabs;
+							displayedTabs = stack[stack.length - 1].content.binder.tabs;
 						} else { // unpop the document tab from the breadcrumb stack
 							stack.pop();
 						}
@@ -39,9 +42,7 @@ class BinderNavigator extends Component {
 					
 				}
 			);
-
 		}
-		
   
 		this.state = {
 			tabStack:stack,
@@ -68,13 +69,14 @@ class BinderNavigator extends Component {
 		// slice the stack based on index in the stack
 		let stack = this.state.tabStack.slice(0, index+1);
 		// reset displayedTabs to the last tab in the stack
+		console.log(stack);
 		this.setState({
 			tabStack:stack,
-			displayedTabs:stack[index].content.tabs
+			displayedTabs:stack[index].content.binder.tabs
 		})
 
 		if(this.props.onBinderSelected){
-		 	this.props.onBinderSelected(tab.content);
+		 	this.props.onBinderSelected(tab.content.binder, tab.slug);
 		}
 	}
 
@@ -82,20 +84,50 @@ class BinderNavigator extends Component {
 		if(tab.metadata.type === 'binder'){
 			let stack = this.state.tabStack.slice();
 			stack.push(tab);
+
 			this.setState({
 				tabStack:stack,
-				displayedTabs:tab.content.tabs
+				displayedTabs:tab.content.binder.tabs
 			});
 		} else if(this.props.onContentSelected){
-			this.props.onContentSelected(tab.content);
+			this.props.onContentSelected(tab.content, tab.slug);
 		}
 	}
 
 	render(){
+		const tabsCrumb = this.state.tabStack.map(
+			(tab,index) => {
+				return (
+					<CallbackButton
+							key={tab.id}
+							className={classes('nav-crumb')}
+							style={{
+								backgroundColor: get(tab, 'display.backgroundColor'),
+								borderColor: get(tab, 'display.borderColor'),
+								color: get(tab, 'display.textColor')
+							}}
+							callback={()=>{
+								if(index !== tabsCrumb.length - 1) {
+									this.selectingBreadcrumbTab(tab,index)
+								}}}>
+						{tab.display.icon &&
+							<span className={classes(
+									'fa fa-fw', 
+									`fa-${tab.display.icon}`, 
+									tab.title && 'icon-with-text-right')} />
+						}
+						{tab.title || (tab.resourceNode && tab.resourceNode.name)}
+						{index === this.state.tabStack.length - 1 && 
+							<span className="visually-hidden">{trans('current_section')}</span>}
+					</CallbackButton>
+				)
+			}
+		)
+		
 
 		return (
 			<Fragment>
-				{this.state.tabStack.length > 0 && 
+				{tabsCrumb.length > 0 &&
 					<nav className="binder-nav" aria-label="Breadcrumb">
 						<CallbackButton
 								key={this.props.binder.id}
@@ -103,32 +135,7 @@ class BinderNavigator extends Component {
 								callback={()=>{this.selectingBinder()}}>					
 							|<span className="visually-hidden">{trans('binder_root')}</span>
 						</CallbackButton>
-						{ this.state.tabStack.length > 0 &&  this.state.tabStack.map(
-							(tab,index) => 
-								<CallbackButton
-										key={tab.id}
-										className={classes('nav-crumb')}
-										style={{
-											backgroundColor: get(tab, 'display.backgroundColor'),
-											borderColor: get(tab, 'display.borderColor'),
-											color: get(tab, 'display.textColor')
-										}}
-										callback={()=>{
-											if(index !== this.state.tabStack.length - 1) {
-												this.selectingBreadcrumbTab(tab,index)
-											}}}>
-									{tab.display.icon &&
-										<span className={classes(
-												'fa fa-fw', 
-												`fa-${tab.display.icon}`, 
-												tab.title && 'icon-with-text-right')} />
-									}
-									{tab.title || (tab.resourceNode && tab.resourceNode.name)}
-									{index === this.state.tabStack.length - 1 && 
-										<span className="visually-hidden">{trans('current_section')}</span>}
-								</CallbackButton>
-							)
-						}
+						{tabsCrumb}
 					</nav>
 				}
 				{this.state.displayedTabs.length > 0 && 
@@ -174,7 +181,7 @@ class BinderNavigator extends Component {
 
 BinderNavigator.propTypes = {
 	binder:T.shape(BinderType.propTypes),
-	openingSlugPath:T.string,
+	selectedSlug:T.string,
 	onContentSelected:T.func,
 	onBinderSelected:T.func
 }

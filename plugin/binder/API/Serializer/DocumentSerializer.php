@@ -192,7 +192,7 @@ class DocumentSerializer
     }
 
     public function deserializeWidgets(
-        array $widgetsDataArray,
+        array $widgetsData,
         Document $document,
         array $options = []
     ) {
@@ -200,10 +200,10 @@ class DocumentSerializer
         $containerIds = [];
 
         // update containers
-        foreach ($widgetsDataArray as $position => $widgetContainerData) {
-            if (isset($widgetContainerData['id'])) {
+        foreach ($widgetsData as $position => $widget) {
+            if (isset($widget['id'])) {
                 $widgetContainer = $document->getWidgetContainer(
-                    $widgetContainerData['id']
+                    $widget['id']
                 );
             }
 
@@ -213,7 +213,7 @@ class DocumentSerializer
             }
 
             $this->widgetContainerSerializer->deserialize(
-                $widgetContainerData,
+                $widget,
                 $widgetContainer,
                 $options
             );

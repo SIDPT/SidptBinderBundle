@@ -9,6 +9,7 @@ import {Widget} from '#/main/core/widget/player/components/widget'
 
 class DocumentPlayerMain extends Component {
   constructor(props) {
+    
     super(props);
     const translations = this.props.clarodoc.translations;
     if(translations.length > 0){

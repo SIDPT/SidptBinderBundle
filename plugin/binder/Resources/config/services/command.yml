@@ -11,5 +11,6 @@ services:
             - '@Claroline\AppBundle\API\FinderProvider'
             - '@Claroline\CoreBundle\Manager\Organization\OrganizationManager'
             - '@Claroline\TagBundle\Manager\TagManager'
+            - '@Claroline\CoreBundle\Manager\RoleManager'
         tags:
             - { name: 'console.command', command: 'claroline:sidpt:load' }

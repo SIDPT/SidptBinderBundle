@@ -91,7 +91,7 @@ class BinderTab
      * Binder possibly associated to the tab
      *
      * @ORM\ManyToOne(targetEntity="Sidpt\BinderBundle\Entity\Binder")
-     * @ORM\JoinColumn(name="binder_id",nullable=true)
+     * @ORM\JoinColumn(name="binder_id", nullable=true, onDelete="SET NULL")
      *
      * @var Binder
      */
@@ -101,7 +101,7 @@ class BinderTab
      * Document possibly associated to the tab
      *
      * @ORM\ManyToOne(targetEntity="Sidpt\BinderBundle\Entity\Document")
-     * @ORM\JoinColumn(name="document_id",nullable=true)
+     * @ORM\JoinColumn(name="document_id", nullable=true, onDelete="SET NULL")
      *
      * @var Binder
      */

@@ -124,25 +124,33 @@ class BinderSerializer
         $content = null;
         $resourceNode = null ;
 
-        $slug = $resourceNode ?
+        if ($tab->getType() === BinderTab::TYPE_BINDER) {
+            $resourceNode = $tab->getBinder()->getResourceNode();
+            $slug = $resourceNode ?
                 $resourceNode->getSlug() :
                 $tab->getUuId();
+            if (isset($options["slug_prefix"])) {
+                $slug = $options["slug_prefix"]."/".$slug;
+            }
+            $options["slug_prefix"] = $slug;
 
-        if (isset($options["slug_prefix"])) {
-            $slug = $options["slug_prefix"]."/".$slug;
-        }
-        $options["slug_prefix"] = $slug;
-
-        if ($tab->getType() === BinderTab::TYPE_BINDER) {
             $content = $this->serialize($tab->getBinder(), $options);
-            $resourceNode = $tab->getBinder()->getResourceNode();
+
         } else if ($tab->getType() === BinderTab::TYPE_DOCUMENT) {
+            $resourceNode = $tab->getDocument()->getResourceNode();
+            $slug = $resourceNode ?
+                $resourceNode->getSlug() :
+                $tab->getUuId();
+            if (isset($options["slug_prefix"])) {
+                $slug = $options["slug_prefix"]."/".$slug;
+            }
+            $options["slug_prefix"] = $slug;
+
             $content = $this->documentSerializer
                 ->serialize(
                     $tab->getDocument(),
                     $options
                 );
-            $resourceNode = $tab->getDocument()->getResourceNode();
         }
 
         
