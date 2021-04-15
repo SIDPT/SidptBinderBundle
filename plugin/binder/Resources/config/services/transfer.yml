@@ -2,8 +2,10 @@ services:
     _defaults:
         autowire: false
         autoconfigure: false
-
-    Sidpt\BinderBundle\Command\SidptDataLoadCommand:
+        public: true
+        
+    Sidpt\BinderBundle\API\Transfer\Action\iPiP\GenerateContent:
+        tags: [claroline.transfer.action]
         arguments:
             - '@Claroline\AppBundle\Persistence\ObjectManager'
             - '@Claroline\AppBundle\API\Crud'
@@ -14,5 +16,6 @@ services:
             - '@Claroline\CoreBundle\Manager\RoleManager'
             - '@Claroline\CoreBundle\Manager\Workspace\WorkspaceManager'
             - '@Claroline\CoreBundle\Manager\ResourceManager'
-        tags:
-            - { name: 'console.command', command: 'claroline:sidpt:load' }
+            - '@security.token_storage'
+        calls:
+            - setLogger: ['@logger']

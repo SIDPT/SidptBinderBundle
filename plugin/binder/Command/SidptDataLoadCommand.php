@@ -16,8 +16,9 @@ use Claroline\CoreBundle\Entity\User as UserEntity;
 use Claroline\CoreBundle\Security\PlatformRoles;
 use Claroline\CoreBundle\Manager\Organization\OrganizationManager;
 use Claroline\CoreBundle\Manager\RoleManager;
+use Claroline\CoreBundle\Manager\ResourceManager;
+use Claroline\CoreBundle\Manager\Workspace\WorkspaceManager;
 use Claroline\TagBundle\Manager\TagManager;
-
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -68,6 +69,8 @@ class SidptDataLoadCommand extends Command
     private $organizationManager;
     private $tagManager;
     private $roleManager;
+    private $workspaceManager;
+    private $resourceManager;
 
 
     public function __construct(
@@ -77,7 +80,9 @@ class SidptDataLoadCommand extends Command
         FinderProvider $finder,
         OrganizationManager $organizationManager,
         TagManager $tagManager,
-        RoleManager $roleManager
+        RoleManager $roleManager,
+        WorkspaceManager $workspaceManager,
+        ResourceManager $resourceManager
     ) {
         $this->om = $om;
         $this->crud = $crud;
@@ -86,6 +91,8 @@ class SidptDataLoadCommand extends Command
         $this->organizationManager = $organizationManager;
         $this->tagManager = $tagManager;
         $this->roleManager = $roleManager;
+        $this->workspaceManager = $workspaceManager;
+        $this->resourceManager = $resourceManager;
 
         parent::__construct();
     }
@@ -110,6 +117,8 @@ class SidptDataLoadCommand extends Command
         $lines = str_getcsv(file_get_contents($file), PHP_EOL);
 
         $workspaceRepo = $this->om->getRepository(Workspace::class);
+        $tagsRepo = $this->om->getRepository(Tag::class);
+        $taggedObjectsRepo = $this->om->getRepository(TaggedObject::class);
         $resourceNodeRepo = $this->om->getRepository(ResourceNode::class);
         $binderRepo = $this->om->getRepository(Binder::class);
         $documentRepo = $this->om->getRepository(Document::class);
@@ -148,6 +157,17 @@ class SidptDataLoadCommand extends Command
         $user = $this->om->getRepository(UserEntity::class)->findOneBy(['username'=>$username]);
         $resourceDataSource = $dataSourceRepo->findOneBy(['name' => 'resource']);
         $widgetType = $widgetsTypeRepo->findOneBy(['name' => 'resource']);
+
+        $defaultRights = [
+            'ROLE_ANONYMOUS' => [
+                'open' => true, 'export' => false, 'create' => [],
+                'role' => $this->roleManager->getRoleByName('ROLE_ANONYMOUS'),
+            ],
+            'ROLE_USER' => [
+                'open' => true, 'export' => false, 'create' => [],
+                'role' => $this->roleManager->getRoleByName('ROLE_USER'),
+            ],
+        ];
                 
 
         foreach ($lines as $key => $line) {
@@ -157,22 +177,15 @@ class SidptDataLoadCommand extends Command
             $module = trim($fields[2]);
             $learningUnit = trim($fields[3]);
             
-            // Check if curriculum exist :
-            // Curriculum is alledgedly a workspace
+
+            ///// WORKSPACE / CURRICULUM
+            // Check if curriculum exist
             $workspace = $workspaceRepo->findOneBy(['name' => $curriculum]);
-            // Check if course exist in the curriculum
-            // course is a binder resource
+            // Create it if not
             if (empty($workspace)) {
                 $workspaceCode = str_replace(" ", "_", strtolower($curriculum));
                 $output->writeln("Making workspace {$curriculum} with code ${workspaceCode}");
-                $workspace = new Workspace();
                 
-                $workspace->addOrganization($this->organizationManager->getDefault());
-                $workspace->setCreator($user);
-
-                
-
-
                 $data = [
                     "name" => $curriculum,
                     "code" => $workspaceCode,
@@ -210,56 +223,75 @@ class SidptDataLoadCommand extends Command
                       "enabled" => false
                     ]
                 ];
-                $this->serializer->deserialize($data, $workspace);
+            
+                // From workspace manager (seems mandatory to do it this way for default rights ?)
+                $workspace = $this->crud->create(Workspace::class, $data);
+                $model = $workspace->getWorkspaceModel();
+                $workspace = $this->workspaceManager->copy($model, $workspace, false);
+                $workspace = $this->serializer->get(Workspace::class)->deserialize($data, $workspace);
 
+                $workspace->setCreator($user);
                 $this->om->persist($workspace);
 
+                $this->om->flush();
+            }
+
+
+            // Tag the workspace (if not already done)
+            $this->tagManager->tagObject(
+                ['Curriculum',$curriculum],
+                $workspace
+            );
+            
+            $wscollaborator = $this->roleManager->getCollaboratorRole($workspace);
+            if (empty($wscollaborator)) {
                 // Create roles collaborator and manager
                 $wscollaborator = $this->roleManager->createWorkspaceRole(
                     "ROLE_WS_COLLABORATOR_{$workspace->getUuid()}",
                     "collaborator",
                     $workspace
                 );
+                $this->om->persist($wscollaborator);
+            }
+            $wsmanager = $this->roleManager->getManagerRole($workspace);
+            if (empty($wsmanager)) {
+                // Create roles collaborator and manager
                 $wsmanager = $this->roleManager->createWorkspaceRole(
                     "ROLE_WS_MANAGER_{$workspace->getUuid()}",
                     "manager",
                     $workspace
                 );
+                
                 // assign managing role to the selected user
                 $user->addRole($wsmanager);
                 $this->om->persist($user);
-
-                $this->tagManager->tagData(
-                    ['Curriculum',$curriculum],
-                    [ 0 => [
-                            'id'=> $workspace->getUuid(),
-                            'class' => "Claroline\CoreBundle\Entity\Workspace\Workspace"
-                    ]]
-                );
-                $this->om->flush();
             }
+
+            $workspaceRights = [
+                $wsmanager->getName() => [
+                    'open' => true,
+                    'export' => true,
+                    'delete' => true,
+                    'edit' => true,
+                    'administrate' => true,
+                    'role' => $wsmanager
+                ],
+                $wscollaborator->getName() => [
+                    'open' => true,
+                    'export' => true,
+                    'delete' => false,
+                    'edit' => true,
+                    'administrate' => false,
+                    'role' => $wscollaborator
+                ],
+            ];
+            
+            // Workspace root directory
             $curriculumNode = $resourceNodeRepo->findOneBy([
-                'name' => $curriculum,
-                'workspace' => $workspace->getId(),
-                'resourceType' => $directoryType->getId()
+                'parent' => null,
+                'workspace' => $workspace->getId()
             ]);
-            if (empty($curriculumNode)) {
-                $output->writeln("Making node and directory {$curriculum}");
-                $curriculumNode = new ResourceNode();
-                $curriculumNode->setName($curriculum);
-                $curriculumNode->setWorkspace($workspace);
-                $curriculumNode->setResourceType($directoryType);
-                $curriculumNode->setCreator($user);
-                $curriculumNode->setMimeType("custom/directory");
 
-                $curriculumDirectory = new Directory();
-                $curriculumDirectory->setResourceNode($curriculumNode);
-                $curriculumDirectory->setName($curriculum);
-
-                $this->om->persist($curriculumNode);
-                $this->om->persist($curriculumDirectory);
-                $this->om->flush();
-            }
             $curriculumSummaryNode = $resourceNodeRepo->findOneBy([
                 'name' => "Summary",
                 'parent' => $curriculumNode->getId(),
@@ -325,7 +357,7 @@ class SidptDataLoadCommand extends Command
                 $this->om->persist($tab);
                 $this->om->flush();
             }
-
+            $this->resourceManager->createRights($curriculumSummaryNode, array_merge($defaultRights, $workspaceRights), true, false);
 
 
             $courseNode = $resourceNodeRepo->findOneBy([
@@ -343,6 +375,7 @@ class SidptDataLoadCommand extends Command
                 $courseNode->setParent($curriculumNode);
                 $courseNode->setCreator($user);
                 $courseNode->setMimeType("custom/sidpt_binder");
+
 
                 $courseBinder = new Binder();
                 $courseBinder->setResourceNode($courseNode);
@@ -413,6 +446,7 @@ class SidptDataLoadCommand extends Command
                     'resourceNode' => $courseNode->getId()
                 ]);
             }
+            $this->resourceManager->createRights($courseNode, array_merge($defaultRights, $workspaceRights), true, false);
 
             $courseSummaryNode = $resourceNodeRepo->findOneBy([
                 'name' => "Summary",
@@ -446,6 +480,7 @@ class SidptDataLoadCommand extends Command
                 $this->om->flush();
 
             }
+            $this->resourceManager->createRights($courseSummaryNode, array_merge($defaultRights, $workspaceRights), true, false);
 
             // Check if module exist in the course
             // module is also a binder
@@ -496,6 +531,8 @@ class SidptDataLoadCommand extends Command
                 ]);
             }
 
+            $this->resourceManager->createRights($moduleNode, array_merge($defaultRights, $workspaceRights), true, false);
+
             $moduleSummaryNode = $resourceNodeRepo->findOneBy([
                 'name' => "Summary",
                 'parent'=> $moduleNode->getId(),
@@ -530,6 +567,7 @@ class SidptDataLoadCommand extends Command
 
             }
 
+            $this->resourceManager->createRights($moduleSummaryNode, array_merge($defaultRights, $workspaceRights), true, false);
 
             // Check if learning unit exist within the module
             // a learning unit is a document
@@ -564,9 +602,32 @@ class SidptDataLoadCommand extends Command
                     ]]
                 );
 
-                // for each learning unit, pre-creating the default resources and widget
-                // that is :
-                // - a practice "exercise":
+                $this->om->persist($learningUnitDocument);
+                
+                // Add the learning unit to the module binder
+                $learningUnitTab = new BinderTab();
+                $learningUnitTab->setDocument($learningUnitDocument);
+                $learningUnitTab->setOwner($moduleBinder);
+                $moduleBinder->addBinderTab($learningUnitTab);
+                
+                $this->om->persist($learningUnitTab);
+                $this->om->persist($moduleBinder);
+                $this->om->flush();
+            } else {
+                $learningUnitDocument = $this->resourceManager->getResourceFromNode($learningUnitNode);
+            }
+            $this->resourceManager->createRights($learningUnitNode, array_merge($defaultRights, $workspaceRights), true, false);
+
+            // for each learning unit, pre-creating the default resources and widget
+            // that is :
+            // - a practice "exercise":
+            $practiceNode = $resourceNodeRepo->findOneBy([
+                'name' => "Practice",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $exerciseType->getId()
+            ]);
+            if (empty($practiceNode)) {
                 $practiceNode = new ResourceNode();
                 $practiceNode->setName("Practice");
                 $practiceNode->setWorkspace($workspace);
@@ -581,7 +642,43 @@ class SidptDataLoadCommand extends Command
 
                 $this->om->persist($practiceNode);
                 $this->om->persist($practiceExercise);
-                
+
+                // Preparing widgets for the learning unit document
+                $practiceWidget = new ResourceWidget();
+                $practiceWidget->setResourceNode($practiceNode);
+                $practiceWidgetInstance = new WidgetInstance();
+                $practiceWidgetInstance->setWidget($widgetType);
+                $practiceWidgetInstance->setDataSource($resourceDataSource);
+                $practiceWidget->setWidgetInstance($practiceWidgetInstance);
+                $practiceWidgetInstanceConfig = new WidgetInstanceConfig();
+                $practiceWidgetInstanceConfig->setType("resource");
+                $practiceWidgetInstanceConfig->setWidgetInstance($practiceWidgetInstance);
+                $practiceWidgetContainer = new WidgetContainer();
+                $practiceWidgetContainer->addInstance($practiceWidgetInstance);
+                $practiceWidgetInstance->setContainer($practiceWidgetContainer);
+                $practiceWidgetContainerConfig = new WidgetContainerConfig();
+                $practiceWidgetContainerConfig->setName("Practice");
+                $practiceWidgetContainerConfig->setBackgroundType("color");
+                $practiceWidgetContainerConfig->setBackground("#ffffff");
+                $practiceWidgetContainerConfig->setPosition(0);
+                $practiceWidgetContainerConfig->setLayout(array(1));
+                $practiceWidgetContainerConfig->setWidgetContainer($practiceWidgetContainer);
+                $this->om->persist($practiceWidget);
+                $this->om->persist($practiceWidgetInstance);
+                $this->om->persist($practiceWidgetContainer);
+
+                $learningUnitDocument->addWidgetContainer($practiceWidgetContainer);
+
+            }
+            $this->resourceManager->createRights($practiceNode, array_merge($defaultRights, $workspaceRights), true, false);
+
+            $theoryNode = $resourceNodeRepo->findOneBy([
+                'name' => "Theory",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $lessonType->getId()
+            ]);
+            if (empty($theoryNode)) {
                 // - a theory "lesson":
                 $theoryNode = new ResourceNode();
                 $theoryNode->setName("Theory");
@@ -595,8 +692,44 @@ class SidptDataLoadCommand extends Command
                 $theoryLesson->setName("Theory");
                 $this->om->persist($theoryNode);
                 $this->om->persist($theoryLesson);
-                
-                // - an assessment "Exercise":
+
+                $theoryWidget = new ResourceWidget();
+                $theoryWidget->setResourceNode($theoryNode);
+                $theoryWidgetInstance = new WidgetInstance();
+                $theoryWidgetInstance->setWidget($widgetType);
+                $theoryWidgetInstance->setDataSource($resourceDataSource);
+                $theoryWidget->setWidgetInstance($theoryWidgetInstance);
+                $theoryWidgetInstanceConfig = new WidgetInstanceConfig();
+                $theoryWidgetInstanceConfig->setType("resource");
+                $theoryWidgetInstanceConfig->setWidgetInstance($theoryWidgetInstance);
+                $theoryWidgetContainer = new WidgetContainer();
+                $theoryWidgetContainer->addInstance($theoryWidgetInstance);
+                $theoryWidgetInstance->setContainer($theoryWidgetContainer);
+                $theoryWidgetContainerConfig = new WidgetContainerConfig();
+                $theoryWidgetContainerConfig->setName("Theory");
+                $theoryWidgetContainerConfig->setBackgroundType("color");
+                $theoryWidgetContainerConfig->setBackground("#ffffff");
+                $theoryWidgetContainerConfig->setPosition(0);
+                $theoryWidgetContainerConfig->setLayout(array(1));
+                $theoryWidgetContainerConfig->setWidgetContainer($theoryWidgetContainer);
+                $this->om->persist($theoryWidget);
+                $this->om->persist($theoryWidgetInstance);
+                $this->om->persist($theoryWidgetContainer);
+
+                $learningUnitDocument->addWidgetContainer($theoryWidgetContainer);
+
+
+            }
+            $this->resourceManager->createRights($theoryNode, array_merge($defaultRights, $workspaceRights), true, false);
+
+            $assessmentNode = $resourceNodeRepo->findOneBy([
+                'name' => "Assessment",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $exerciseType->getId()
+            ]);
+            if (empty($assessmentNode)) {
+                 // - an assessment "Exercise":
                 $assessmentNode = new ResourceNode();
                 $assessmentNode->setName("Assessment");
                 $assessmentNode->setWorkspace($workspace);
@@ -610,7 +743,42 @@ class SidptDataLoadCommand extends Command
                 $assessmentExercise->setType(ExerciseType::SUMMATIVE);
                 $this->om->persist($assessmentNode);
                 $this->om->persist($assessmentExercise);
-                
+
+                $assessmentWidget = new ResourceWidget();
+                $assessmentWidget->setResourceNode($assessmentNode);
+                $assessmentWidgetInstance = new WidgetInstance();
+                $assessmentWidgetInstance->setWidget($widgetType);
+                $assessmentWidgetInstance->setDataSource($resourceDataSource);
+                $assessmentWidget->setWidgetInstance($assessmentWidgetInstance);
+                $assessmentWidgetInstanceConfig = new WidgetInstanceConfig();
+                $assessmentWidgetInstanceConfig->setType("resource");
+                $assessmentWidgetInstanceConfig->setWidgetInstance($assessmentWidgetInstance);
+                $assessmentWidgetContainer = new WidgetContainer();
+                $assessmentWidgetContainer->addInstance($assessmentWidgetInstance);
+                $assessmentWidgetInstance->setContainer($assessmentWidgetContainer);
+                $assessmentWidgetContainerConfig = new WidgetContainerConfig();
+                $assessmentWidgetContainerConfig->setName("Assessment");
+                $assessmentWidgetContainerConfig->setBackgroundType("color");
+                $assessmentWidgetContainerConfig->setBackground("#ffffff");
+                $assessmentWidgetContainerConfig->setPosition(0);
+                $assessmentWidgetContainerConfig->setLayout(array(1));
+                $assessmentWidgetContainerConfig->setWidgetContainer($assessmentWidgetContainer);
+                $this->om->persist($assessmentWidget);
+                $this->om->persist($assessmentWidgetInstance);
+                $this->om->persist($assessmentWidgetContainer);
+
+                $learningUnitDocument->addWidgetContainer($assessmentWidgetContainer);
+            }
+            $this->resourceManager->createRights($assessmentNode, array_merge($defaultRights, $workspaceRights), true, false);
+
+
+            $activityNode = $resourceNodeRepo->findOneBy([
+                'name' => "Activity",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $textType->getId()
+            ]);
+            if (empty($activityNode)) {
                 // - an activity "text":
                 $activityNode = new ResourceNode();
                 $activityNode->setName("Activity");
@@ -624,7 +792,41 @@ class SidptDataLoadCommand extends Command
                 $activityText->setName("Activity");
                 $this->om->persist($activityNode);
                 $this->om->persist($activityText);
-                
+
+                $activityWidget = new ResourceWidget();
+                $activityWidget->setResourceNode($activityNode);
+                $activityWidgetInstance = new WidgetInstance();
+                $activityWidgetInstance->setWidget($widgetType);
+                $activityWidgetInstance->setDataSource($resourceDataSource);
+                $activityWidget->setWidgetInstance($activityWidgetInstance);
+                $activityWidgetInstanceConfig = new WidgetInstanceConfig();
+                $activityWidgetInstanceConfig->setType("resource");
+                $activityWidgetInstanceConfig->setWidgetInstance($activityWidgetInstance);
+                $activityWidgetContainer = new WidgetContainer();
+                $activityWidgetContainer->addInstance($activityWidgetInstance);
+                $activityWidgetInstance->setContainer($activityWidgetContainer);
+                $activityWidgetContainerConfig = new WidgetContainerConfig();
+                $activityWidgetContainerConfig->setName("activity");
+                $activityWidgetContainerConfig->setBackgroundType("color");
+                $activityWidgetContainerConfig->setBackground("#ffffff");
+                $activityWidgetContainerConfig->setPosition(0);
+                $activityWidgetContainerConfig->setLayout(array(1));
+                $activityWidgetContainerConfig->setWidgetContainer($activityWidgetContainer);
+                $this->om->persist($activityWidget);
+                $this->om->persist($activityWidgetInstance);
+                $this->om->persist($activityWidgetContainer);
+
+                $learningUnitDocument->addWidgetContainer($activityWidgetContainer);
+            }
+            $this->resourceManager->createRights($activityNode, array_merge($defaultRights, $workspaceRights), true, false);
+
+            $referencesNode = $resourceNodeRepo->findOneBy([
+                'name' => "References",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $documentType->getId()
+            ]);
+            if (empty($referencesNode)) {
                 // - A references "document"
                 $referencesNode = new ResourceNode();
                 $referencesNode->setName("References");
@@ -638,7 +840,45 @@ class SidptDataLoadCommand extends Command
                 $referencesDocument->setName("References");
                 $this->om->persist($referencesNode);
                 $this->om->persist($referencesDocument);
+
+                $this->resourceManager->createRights($referencesNode, array_merge($defaultRights, $workspaceRights), true, false);
                 
+
+                $referencesWidget = new ResourceWidget();
+                $referencesWidget->setResourceNode($referencesNode);
+                $referencesWidgetInstance = new WidgetInstance();
+                $referencesWidgetInstance->setWidget($widgetType);
+                $referencesWidgetInstance->setDataSource($resourceDataSource);
+                $referencesWidget->setWidgetInstance($referencesWidgetInstance);
+                $referencesWidgetInstanceConfig = new WidgetInstanceConfig();
+                $referencesWidgetInstanceConfig->setType("resource");
+                $referencesWidgetInstanceConfig->setWidgetInstance($referencesWidgetInstance);
+                $referencesWidgetContainer = new WidgetContainer();
+                $referencesWidgetContainer->addInstance($referencesWidgetInstance);
+                $referencesWidgetInstance->setContainer($referencesWidgetContainer);
+                $referencesWidgetContainerConfig = new WidgetContainerConfig();
+                $referencesWidgetContainerConfig->setName("references");
+                $referencesWidgetContainerConfig->setBackgroundType("color");
+                $referencesWidgetContainerConfig->setBackground("#ffffff");
+                $referencesWidgetContainerConfig->setPosition(0);
+                $referencesWidgetContainerConfig->setLayout(array(1));
+                $referencesWidgetContainerConfig->setWidgetContainer($referencesWidgetContainer);
+                $this->om->persist($referencesWidget);
+                $this->om->persist($referencesWidgetInstance);
+                $this->om->persist($referencesWidgetContainer);
+
+                $learningUnitDocument->addWidgetContainer($referencesWidgetContainer);
+            } else {
+                $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
+            }
+
+            $externalReferencesNode = $resourceNodeRepo->findOneBy([
+                'name' => "External references",
+                'parent'=>$referencesNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $textType->getId()
+            ]);
+            if (empty($externalReferencesNode)) {
                 //  This references document should hold
                 //  - a widget rendering a simple page of links to external resources
                 $externalReferencesNode = new ResourceNode();
@@ -680,145 +920,9 @@ class SidptDataLoadCommand extends Command
 
                 $referencesDocument->addWidgetContainer($externalReferencesWidgetContainer);
                 $this->om->persist($referencesDocument);
-                
-                // Preparing widgets for the learning unit document
-                $practiceWidget = new ResourceWidget();
-                $practiceWidget->setResourceNode($practiceNode);
-                $practiceWidgetInstance = new WidgetInstance();
-                $practiceWidgetInstance->setWidget($widgetType);
-                $practiceWidgetInstance->setDataSource($resourceDataSource);
-                $practiceWidget->setWidgetInstance($practiceWidgetInstance);
-                $practiceWidgetInstanceConfig = new WidgetInstanceConfig();
-                $practiceWidgetInstanceConfig->setType("resource");
-                $practiceWidgetInstanceConfig->setWidgetInstance($practiceWidgetInstance);
-                $practiceWidgetContainer = new WidgetContainer();
-                $practiceWidgetContainer->addInstance($practiceWidgetInstance);
-                $practiceWidgetInstance->setContainer($practiceWidgetContainer);
-                $practiceWidgetContainerConfig = new WidgetContainerConfig();
-                $practiceWidgetContainerConfig->setName("Practice");
-                $practiceWidgetContainerConfig->setBackgroundType("color");
-                $practiceWidgetContainerConfig->setBackground("#ffffff");
-                $practiceWidgetContainerConfig->setPosition(0);
-                $practiceWidgetContainerConfig->setLayout(array(1));
-                $practiceWidgetContainerConfig->setWidgetContainer($practiceWidgetContainer);
-                $this->om->persist($practiceWidget);
-                $this->om->persist($practiceWidgetInstance);
-                $this->om->persist($practiceWidgetContainer);
-
-                $learningUnitDocument->addWidgetContainer($practiceWidgetContainer);
-
-                $theoryWidget = new ResourceWidget();
-                $theoryWidget->setResourceNode($theoryNode);
-                $theoryWidgetInstance = new WidgetInstance();
-                $theoryWidgetInstance->setWidget($widgetType);
-                $theoryWidgetInstance->setDataSource($resourceDataSource);
-                $theoryWidget->setWidgetInstance($theoryWidgetInstance);
-                $theoryWidgetInstanceConfig = new WidgetInstanceConfig();
-                $theoryWidgetInstanceConfig->setType("resource");
-                $theoryWidgetInstanceConfig->setWidgetInstance($theoryWidgetInstance);
-                $theoryWidgetContainer = new WidgetContainer();
-                $theoryWidgetContainer->addInstance($theoryWidgetInstance);
-                $theoryWidgetInstance->setContainer($theoryWidgetContainer);
-                $theoryWidgetContainerConfig = new WidgetContainerConfig();
-                $theoryWidgetContainerConfig->setName("Theory");
-                $theoryWidgetContainerConfig->setBackgroundType("color");
-                $theoryWidgetContainerConfig->setBackground("#ffffff");
-                $theoryWidgetContainerConfig->setPosition(0);
-                $theoryWidgetContainerConfig->setLayout(array(1));
-                $theoryWidgetContainerConfig->setWidgetContainer($theoryWidgetContainer);
-                $this->om->persist($theoryWidget);
-                $this->om->persist($theoryWidgetInstance);
-                $this->om->persist($theoryWidgetContainer);
-
-                $learningUnitDocument->addWidgetContainer($theoryWidgetContainer);
-
-                $assessmentWidget = new ResourceWidget();
-                $assessmentWidget->setResourceNode($assessmentNode);
-                $assessmentWidgetInstance = new WidgetInstance();
-                $assessmentWidgetInstance->setWidget($widgetType);
-                $assessmentWidgetInstance->setDataSource($resourceDataSource);
-                $assessmentWidget->setWidgetInstance($assessmentWidgetInstance);
-                $assessmentWidgetInstanceConfig = new WidgetInstanceConfig();
-                $assessmentWidgetInstanceConfig->setType("resource");
-                $assessmentWidgetInstanceConfig->setWidgetInstance($assessmentWidgetInstance);
-                $assessmentWidgetContainer = new WidgetContainer();
-                $assessmentWidgetContainer->addInstance($assessmentWidgetInstance);
-                $assessmentWidgetInstance->setContainer($assessmentWidgetContainer);
-                $assessmentWidgetContainerConfig = new WidgetContainerConfig();
-                $assessmentWidgetContainerConfig->setName("Assessment");
-                $assessmentWidgetContainerConfig->setBackgroundType("color");
-                $assessmentWidgetContainerConfig->setBackground("#ffffff");
-                $assessmentWidgetContainerConfig->setPosition(0);
-                $assessmentWidgetContainerConfig->setLayout(array(1));
-                $assessmentWidgetContainerConfig->setWidgetContainer($assessmentWidgetContainer);
-                $this->om->persist($assessmentWidget);
-                $this->om->persist($assessmentWidgetInstance);
-                $this->om->persist($assessmentWidgetContainer);
-
-                $learningUnitDocument->addWidgetContainer($assessmentWidgetContainer);
-
-                $activityWidget = new ResourceWidget();
-                $activityWidget->setResourceNode($activityNode);
-                $activityWidgetInstance = new WidgetInstance();
-                $activityWidgetInstance->setWidget($widgetType);
-                $activityWidgetInstance->setDataSource($resourceDataSource);
-                $activityWidget->setWidgetInstance($activityWidgetInstance);
-                $activityWidgetInstanceConfig = new WidgetInstanceConfig();
-                $activityWidgetInstanceConfig->setType("resource");
-                $activityWidgetInstanceConfig->setWidgetInstance($activityWidgetInstance);
-                $activityWidgetContainer = new WidgetContainer();
-                $activityWidgetContainer->addInstance($activityWidgetInstance);
-                $activityWidgetInstance->setContainer($activityWidgetContainer);
-                $activityWidgetContainerConfig = new WidgetContainerConfig();
-                $activityWidgetContainerConfig->setName("activity");
-                $activityWidgetContainerConfig->setBackgroundType("color");
-                $activityWidgetContainerConfig->setBackground("#ffffff");
-                $activityWidgetContainerConfig->setPosition(0);
-                $activityWidgetContainerConfig->setLayout(array(1));
-                $activityWidgetContainerConfig->setWidgetContainer($activityWidgetContainer);
-                $this->om->persist($activityWidget);
-                $this->om->persist($activityWidgetInstance);
-                $this->om->persist($activityWidgetContainer);
-
-                $learningUnitDocument->addWidgetContainer($activityWidgetContainer);
-
-                $referencesWidget = new ResourceWidget();
-                $referencesWidget->setResourceNode($referencesNode);
-                $referencesWidgetInstance = new WidgetInstance();
-                $referencesWidgetInstance->setWidget($widgetType);
-                $referencesWidgetInstance->setDataSource($resourceDataSource);
-                $referencesWidget->setWidgetInstance($referencesWidgetInstance);
-                $referencesWidgetInstanceConfig = new WidgetInstanceConfig();
-                $referencesWidgetInstanceConfig->setType("resource");
-                $referencesWidgetInstanceConfig->setWidgetInstance($referencesWidgetInstance);
-                $referencesWidgetContainer = new WidgetContainer();
-                $referencesWidgetContainer->addInstance($referencesWidgetInstance);
-                $referencesWidgetInstance->setContainer($referencesWidgetContainer);
-                $referencesWidgetContainerConfig = new WidgetContainerConfig();
-                $referencesWidgetContainerConfig->setName("references");
-                $referencesWidgetContainerConfig->setBackgroundType("color");
-                $referencesWidgetContainerConfig->setBackground("#ffffff");
-                $referencesWidgetContainerConfig->setPosition(0);
-                $referencesWidgetContainerConfig->setLayout(array(1));
-                $referencesWidgetContainerConfig->setWidgetContainer($referencesWidgetContainer);
-                $this->om->persist($referencesWidget);
-                $this->om->persist($referencesWidgetInstance);
-                $this->om->persist($referencesWidgetContainer);
-
-                $learningUnitDocument->addWidgetContainer($referencesWidgetContainer);
-
-                $this->om->persist($learningUnitDocument);
-                
-                // Add the learning unit to the module binder
-                $learningUnitTab = new BinderTab();
-                $learningUnitTab->setDocument($learningUnitDocument);
-                $learningUnitTab->setOwner($moduleBinder);
-                $moduleBinder->addBinderTab($learningUnitTab);
-                
-                $this->om->persist($learningUnitTab);
-                $this->om->persist($moduleBinder);
-                $this->om->flush();
             }
+            $this->resourceManager->createRights($externalReferencesNode, array_merge($defaultRights, $workspaceRights), true, false);
+
         }
 
 

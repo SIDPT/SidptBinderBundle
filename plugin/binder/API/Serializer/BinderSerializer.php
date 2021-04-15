@@ -123,6 +123,7 @@ class BinderSerializer
  
         $content = null;
         $resourceNode = null ;
+        $slug = $tab->getUuId();
 
         if ($tab->getType() === BinderTab::TYPE_BINDER) {
             $resourceNode = $tab->getBinder()->getResourceNode();
