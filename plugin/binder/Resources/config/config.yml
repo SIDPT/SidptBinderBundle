@@ -6,6 +6,7 @@ plugin:
           class: Sidpt\BinderBundle\Entity\Document
           tags: [content]
           exportable: false
+          folder: true
           actions:
               - name: add
                 decoder: create
@@ -16,6 +17,7 @@ plugin:
           class: Sidpt\BinderBundle\Entity\Binder
           tags: [content]
           exportable: false
+          folder: true
           actions:
               - name: add
                 decoder: create
