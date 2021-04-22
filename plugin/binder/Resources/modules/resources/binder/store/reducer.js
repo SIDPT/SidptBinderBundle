@@ -55,10 +55,10 @@ function replaceDirectory(directories, newDir) {
 const reducer = combineReducers({
   binder: makeFormReducer(selectors.FORM_NAME, {}, {
     data: makeReducer({}, {
-      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.binder
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
     }),
     originalData: makeReducer({}, {
-      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.binder
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
     })
   }),
   directory: makeReducer({}, {

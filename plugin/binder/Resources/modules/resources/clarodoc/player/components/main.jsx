@@ -9,9 +9,9 @@ import {Widget} from '#/main/core/widget/player/components/widget'
 
 class DocumentPlayerMain extends Component {
   constructor(props) {
-    
     super(props);
-    const translations = this.props.clarodoc.translations;
+
+    const translations = this.props.document.translations;
     if(translations.length > 0){
       for(const field of translations){
         for(const locale in field.locales){
@@ -19,7 +19,7 @@ class DocumentPlayerMain extends Component {
             Translator.add(
               field.path,
               field.locales[locale],
-              `${this.props.clarodoc.id}`,
+              `${this.props.document.id}`,
               locale);
           }
         }
@@ -28,11 +28,11 @@ class DocumentPlayerMain extends Component {
 
   }
   render(){
-    let visibleWidgets = this.props.clarodoc.widgets.filter(
+    let visibleWidgets = this.props.document.widgets.filter(
         widget => widget.visible === true
       ).map((widget,index)=>{
         let temp = Object.assign({}, widget);
-        let existingTranslation = trans(`widgets[${index}].name`,{},`${this.props.clarodoc.id}`);
+        let existingTranslation = trans(`widgets[${index}].name`,{},`${this.props.document.id}`);
         if(existingTranslation && 
               existingTranslation.length > 0 && 
               existingTranslation !== `widgets[${index}].name`){
@@ -43,8 +43,8 @@ class DocumentPlayerMain extends Component {
 
       return (
         <Fragment>
-          <header className={this.props.clarodoc.centerTitle ? "text-center" : ''}> 
-            <h1 className="page-title">{this.props.clarodoc.longTitle}</h1>
+          <header className={this.props.document.centerTitle ? "text-center" : ''}> 
+            <h1 className="page-title">{this.props.document.longTitle}</h1>
           </header>
           {0 === visibleWidgets.length &&
               <ContentPlaceholder
@@ -72,7 +72,7 @@ class DocumentPlayerMain extends Component {
 
 
 DocumentPlayerMain.propTypes = {
-  clarodoc:T.object.isRequired,
+  document:T.object.isRequired,
   currentContext:T.object.isRequired
 }
 

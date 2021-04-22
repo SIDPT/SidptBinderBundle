@@ -13,7 +13,7 @@ import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/st
 const BinderEditorMain = withRouter(
   connect(
     (state) => ({
-      binder: formSelect.data(formSelect.form(state, selectors.FORM_NAME)),
+      data: formSelect.data(formSelect.form(state, selectors.FORM_NAME)),
       path: resourcesSelectors.path(state),
       currentContext: {
         type:"workspace",

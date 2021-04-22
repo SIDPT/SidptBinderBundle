@@ -19,7 +19,7 @@ import {PlayerMain as DirectoryPlayerMainComponent} from '#/main/core/resources/
 const DocumentPlayerMain = withRouter(
   connect(
     (state) => ({
-      clarodoc: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)),
+      document: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).clarodoc,
       currentContext: {
         type:"workspace",
         data:resourcesSelectors.workspace(state)

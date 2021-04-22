@@ -27,12 +27,12 @@ class BinderPlayerMain extends Component {
       do {
         let tab = tabLookingQueue.shift();
         let slug = tab.slug;
-        if(tab.metadata.type === 'binder'){
-          tabLookingQueue.push(...tab.content.binder.tabs);
-        } else {
+        if(tab.metadata.type === "document"){
           content = tab.content
           displayedSlug = tab.slug;
-        };
+        } else if(tab.metadata.type === 'binder'){
+          tabLookingQueue.push(...tab.content.binder.tabs);
+        }
       } while(content === undefined && tabLookingQueue.length > 0);
     }
     
@@ -52,7 +52,7 @@ class BinderPlayerMain extends Component {
   }
 
   render(){
-    console.log(this.state)
+    
     return (
       <Fragment>
         <BinderNavigator 
@@ -70,7 +70,7 @@ class BinderPlayerMain extends Component {
         }
         {this.state.contentToDisplay && 
           <DocumentPlayerMain 
-              clarodoc={this.state.contentToDisplay.clarodoc}
+              document={this.state.contentToDisplay.clarodoc}
               currentContext={this.props.currentContext} />
         }
       </Fragment>

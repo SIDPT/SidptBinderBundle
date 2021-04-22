@@ -81,8 +81,7 @@ const DocumentResource = (props) => {
 DocumentResource.propTypes = {
   resourceNode:T.object,
   path:T.string,
-  editable: T.bool.isRequired,
-  clarodoc:T.object
+  editable: T.bool.isRequired
 }
 
 export {

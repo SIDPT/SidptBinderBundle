@@ -124,7 +124,6 @@ class BinderNavigator extends Component {
 			}
 		)
 		
-
 		return (
 			<Fragment>
 				{tabsCrumb.length > 0 &&
@@ -145,18 +144,19 @@ class BinderNavigator extends Component {
 								if( tab.display.visible && 
 										(tab.title || 
 											(tab.resourceNode && tab.resourceNode.name))){
-									let style = this.props.selectedSlugPath === tab.slug ?
-										{
+									let style = this.props.selectedSlug === tab.slug ?
+										{} : {
 											backgroundColor: get(tab, 'display.backgroundColor'),
 											borderColor: get(tab, 'display.borderColor'),
 											color: get(tab, 'display.textColor')
-										} : {};
+										};
 									
 									return (
 										<CallbackButton
 												key={tab.id}
 												className={classes('nav-tab', {
-													'nav-tab-hidden': !get(tab, 'display.visible')
+													'nav-tab-hidden': !get(tab, 'display.visible'),
+													'active': this.props.selectedSlug === tab.slug
 												})}
 												style={style}
 												callback={()=>{this.selectingDisplayedTab(tab,index)}}>

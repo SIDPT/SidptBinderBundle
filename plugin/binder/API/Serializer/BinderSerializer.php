@@ -296,6 +296,7 @@ class BinderSerializer
         
         // For now i limit a single binder to a maximum of 6 computed levels
         $data = [
+            'id'=>$binder->getUuid(),
             'binder' => [
                 'id' => $binder->getUuid(),
                 'title' => $binder->getResourceNode()->getName(),
@@ -366,13 +367,13 @@ class BinderSerializer
         if (empty($binder)) {
             $binder = new Binder();
         }
-        
-        if (isset($data['tabs'])) {
+        $binderData = $data['binder'];
+        if (isset($binderData) && isset($binderData['tabs'])) {
             $currentTabs = $binder->getBinderTabs()->toArray();
             $tabsIds = [];
 
             // update containers
-            foreach ($data['tabs'] as $position => $tabsData) {
+            foreach ($binderData['tabs'] as $position => $tabsData) {
                 $binderTab = isset($tabsData['id']) ?
                     $binder->getBinderTab($tabsData['id']) :
                     null;

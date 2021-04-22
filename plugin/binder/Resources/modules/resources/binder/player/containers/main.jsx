@@ -19,7 +19,7 @@ import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/st
 const BinderPlayerMain = withRouter(
   connect(
     (state) => ({
-      binder: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)),
+      binder: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).binder,
       currentContext: {
         type:"workspace",
         data:resourceSelectors.workspace(state)

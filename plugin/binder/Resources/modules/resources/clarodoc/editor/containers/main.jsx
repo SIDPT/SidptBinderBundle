@@ -18,7 +18,7 @@ import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/
 const DocumentEditorMain = withRouter(
   connect(
     (state) => ({
-      clarodoc: formSelect.data(formSelect.form(state, selectors.FORM_NAME)),
+      data:formSelect.data(formSelect.form(state, selectors.FORM_NAME)),
       path: resourcesSelectors.path(state),
       currentContext: {
         type:"workspace",

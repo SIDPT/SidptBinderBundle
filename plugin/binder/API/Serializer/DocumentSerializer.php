@@ -137,6 +137,7 @@ class DocumentSerializer
         }
 
         $data = [
+            'id'=>$document->getUuid(),
             'clarodoc' => [
                 'id' => $document->getUuid(),
                 'resourceName' => $resourceName,
@@ -252,12 +253,12 @@ class DocumentSerializer
         }
 
 
-        $this->sipe('longTitle', 'setLongTitle', $data, $document);
-        $this->sipe('centerTitle', 'setCenterTitle', $data, $document);
-        $this->sipe('translations', 'setTranslations', $data, $document);
+        $this->sipe('clarodoc.longTitle', 'setLongTitle', $data, $document);
+        $this->sipe('clarodoc.centerTitle', 'setCenterTitle', $data, $document);
+        $this->sipe('clarodoc.translations', 'setTranslations', $data, $document);
 
-        if (isset($data['widgets'])) {
-            $this->deserializeWidgets($data['widgets'], $document, $options);
+        if (isset($data['clarodoc']['widgets'])) {
+            $this->deserializeWidgets($data['clarodoc']['widgets'], $document, $options);
         }
 
         $this->sipe('directory.list.count', 'setCount', $data, $document);

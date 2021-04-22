@@ -47,10 +47,10 @@ function replaceDirectory(directories, newDir) {
 const reducer = combineReducers({
   clarodoc: makeFormReducer(selectors.FORM_NAME, {}, {
     data: makeReducer({}, {
-      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.clarodoc
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
     }),
     originalData: makeReducer({}, {
-      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.clarodoc
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
     })
   }),
   directory: makeReducer({}, {

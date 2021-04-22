@@ -22,8 +22,7 @@ const DocumentResource = withRouter(
       (state) => ({
         editable: hasPermission('edit', resourceSelectors.resourceNode(state)),
         resourceNode:resourceSelectors.resourceNode(state),
-        path: resourceSelectors.basePath(state),
-        clarodoc: formSelect.data(formSelect.form(state, selectors.FORM_NAME))
+        path: resourceSelectors.basePath(state)
       }),
     (dispatch) => ({
       reload() {

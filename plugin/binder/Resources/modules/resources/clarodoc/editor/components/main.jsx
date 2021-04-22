@@ -24,7 +24,7 @@ class DocumentEditorMain extends Component {
   constructor(props) {
     super(props)
 
-    const translations = this.props.clarodoc.translations;
+    const translations = this.props.data.clarodoc.translations;
     if(translations.length > 0){
       for(const field of translations){
         for(const locale in field.locales){
@@ -32,7 +32,7 @@ class DocumentEditorMain extends Component {
             Translator.add(
               field.path,
               field.locales[locale],
-              `${this.props.clarodoc.id}`,
+              `${this.props.data.clarodoc.id}`,
               locale);
           }
         }
@@ -53,13 +53,12 @@ class DocumentEditorMain extends Component {
   }
 
   render() {
-
-    const widgets = this.props.clarodoc.widgets;
+    const widgets = this.props.data.clarodoc.widgets;
     
     const defaultValues = {};
-    if(this.props.clarodoc.translations){
-      for(const field of this.props.clarodoc.translations){
-        defaultValues[field.path] = get(this.props.clarodoc,`${field.path}`,'');
+    if(this.props.data.clarodoc.translations){
+      for(const field of this.props.data.clarodoc.translations){
+        defaultValues[field.path] = get(this.props.data.clarodoc,`${field.path}`,'');
       }
     }
     
@@ -71,7 +70,9 @@ class DocumentEditorMain extends Component {
             name={selectors.FORM_NAME}
             buttons={true}
             disabled={false}
-            target={(clarodoc) => ['sidpt_document_update', {id: clarodoc.id}]}
+            target={(data) => {
+              return ['sidpt_document_update', {id: data.clarodoc.id}]}
+            }
             cancel={{
                 type: LINK_BUTTON,
                 target: this.props.path,
@@ -84,12 +85,12 @@ class DocumentEditorMain extends Component {
                 primary: true,
                 fields: [
                   {
-                    name: 'longTitle',
+                    name: 'clarodoc.longTitle',
                     type: 'string',
                     label: trans('longTitle', {}, 'clarodoc'),
                     required: true
                   },{
-                    name: 'centerTitle',
+                    name: 'clarodoc.centerTitle',
                     type: 'boolean',
                     label: trans('center_title',  {}, 'clarodoc')
                   }
@@ -101,7 +102,7 @@ class DocumentEditorMain extends Component {
               type={MODAL_BUTTON}
               label={trans('translations')}
               modal={[MODAL_TRANSLATIONS, {
-                translations:this.props.clarodoc.translations,
+                translations:this.props.data.clarodoc.translations,
                 defaultValues:defaultValues,
                 fieldDomain:`clarodoc`,
                 updateTranslations: (translations) => this.props.update(
@@ -112,7 +113,7 @@ class DocumentEditorMain extends Component {
             />
 
           <div className="widgets-grid">
-          { widgets.map((widgetContainer, index) => {
+          { widgets && widgets.map((widgetContainer, index) => {
 
             return (
               <WidgetEditor
@@ -130,10 +131,10 @@ class DocumentEditorMain extends Component {
                   //let oldParentId = null
                   let oldParent = null
 
-                  this.props.clarodoc.widgets.forEach(widget => {
+                  this.props.data.clarodoc.widgets.forEach(widget => {
                       if (widget.contents.findIndex(content => content && content.id === movingContentId) > -1) {
-                        oldWidgets = this.props.clarodoc.widgets;
-                        //oldParentId = this.props.clarodoc.id;
+                        oldWidgets = this.props.data.clarodoc.widgets;
+                        //oldParentId = this.props.id;
                         movingContentIndex = widget.contents.findIndex(content => content && content.id === movingContentId)
                       }
                     });
@@ -156,7 +157,7 @@ class DocumentEditorMain extends Component {
                     // removes the content to delete and replace by null
                     oldParent.contents[movingContentIndex] = null
 
-                    this.props.update('widgets', newWidgets)
+                    this.props.update('clarodoc.widgets', newWidgets)
                     //this.props.update('widgets', oldWidgets, oldParentId)
                   }
 
@@ -168,7 +169,7 @@ class DocumentEditorMain extends Component {
                   // replace modified widget
                   newWidgets[index] = widget
                   // propagate change
-                  this.props.update('widgets', newWidgets)
+                  this.props.update('clarodoc.widgets', newWidgets)
                 }}
                 actions={[
                   {
@@ -183,7 +184,7 @@ class DocumentEditorMain extends Component {
                         newWidgets.splice(index, 0, widget) // insert element
 
                         // propagate change
-                        this.props.update('widgets', newWidgets)
+                        this.props.update('clarodoc.widgets', newWidgets)
                       }
                     }]
                   }, {
@@ -200,7 +201,7 @@ class DocumentEditorMain extends Component {
                       newWidgets[index] = newWidgets[index - 1]
                       newWidgets[index - 1] = movedWidget
                       // propagate change
-                      this.props.update('widgets', newWidgets)
+                      this.props.update('clarodoc.widgets', newWidgets)
                     }
                   }, {
                     type: CALLBACK_BUTTON,
@@ -217,7 +218,7 @@ class DocumentEditorMain extends Component {
                       newWidgets[index + 1] = movedWidget
 
                       // propagate change
-                      this.props.update('widgets', newWidgets)
+                      this.props.update('clarodoc.widgets', newWidgets)
                     }
                   }, {
                     type: MODAL_BUTTON,
@@ -231,7 +232,7 @@ class DocumentEditorMain extends Component {
                         // replace modified widget
                         newWidgets[index] = widget
                         // propagate change
-                        this.props.update('widgets', newWidgets)
+                        this.props.update('clarodoc.widgets', newWidgets)
                       }
                     }]
                   }, {
@@ -247,7 +248,7 @@ class DocumentEditorMain extends Component {
                     callback: () => {
                       const newWidgets = widgets.slice(0) // copy array
                       newWidgets.splice(index, 1) // remove element
-                      this.props.update('widgets', newWidgets)
+                      this.props.update('clarodoc.widgets', newWidgets)
                     }
                   }
                 ]}
@@ -255,7 +256,7 @@ class DocumentEditorMain extends Component {
             )
           })}
 
-          {0 === widgets.length &&
+          { (widgets === undefined || 0 === widgets.length) &&
             <ContentPlaceholder
               size="lg"
               icon="fa fa-frown-o"
@@ -268,7 +269,7 @@ class DocumentEditorMain extends Component {
               type={MODAL_BUTTON}
               label={trans('add_section')}
               modal={[MODAL_WIDGET_CREATION, {
-                create: (widget) => this.props.update('widgets',
+                create: (widget) => this.props.update('clarodoc.widgets',
                   widgets.concat([widget]) // copy array & append element
                 )
               }]}
@@ -285,7 +286,7 @@ class DocumentEditorMain extends Component {
 
 DocumentEditorMain.propTypes = {
   path: T.string.isRequired,
-  clarodoc: T.object.isRequired,
+  data:T.object.isRequired,
   currentContext: T.object.isRequired,
   update: T.func.isRequired
 }

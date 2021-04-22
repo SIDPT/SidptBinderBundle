@@ -38,17 +38,18 @@ class TabsList extends Component{
 				{this.props.tabs.length > 0 && this.props.tabs.map(
 					(tab,index) => {
 						const style = this.state.currentTab === index ? 
-							{
+							{ }:{
 								backgroundColor: get(tab, 'display.backgroundColor'),
 								borderColor: get(tab, 'display.borderColor'),
 								color: get(tab, 'display.textColor')
-							}:{};
+							};
 
 						return (
 							<CallbackButton
 									key={tab.id || 'new_tab'}
 									className={classes('nav-tab', {
-										'nav-tab-hidden': get(tab, 'restrictions.hidden')
+										'nav-tab-hidden': get(tab, 'restrictions.hidden'),
+										'active': this.state.currentTab === index
 									})}
 									style={style}
 									callback={()=>{this.changeTab(index)}}>
