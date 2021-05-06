@@ -2,10 +2,11 @@
 
 namespace Sidpt\BinderBundle;
 
-use Claroline\CoreBundle\Library\DistributionPluginBundle;
+use Claroline\KernelBundle\Bundle\ExternalPluginBundle;
+
 use Sidpt\BinderBundle\Installation\AdditionalInstaller;
 
-class SidptBinderBundle extends DistributionPluginBundle
+class SidptBinderBundle extends ExternalPluginBundle
 {
     public function getAdditionalInstaller()
     {

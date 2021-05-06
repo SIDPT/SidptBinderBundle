@@ -1,6 +1,4 @@
 plugin:
-    has_options: false
-
     resources:
         - name: sidpt_document
           class: Sidpt\BinderBundle\Entity\Document
