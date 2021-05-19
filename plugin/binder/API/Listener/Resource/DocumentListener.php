@@ -11,6 +11,7 @@ use Claroline\CoreBundle\Event\ExportObjectEvent;
 use Claroline\CoreBundle\Event\ImportObjectEvent;
 use Claroline\CoreBundle\Event\Resource\CopyResourceEvent;
 use Claroline\CoreBundle\Event\Resource\LoadResourceEvent;
+use Claroline\CoreBundle\Event\Resource\DeleteResourceEvent;
 use Claroline\CoreBundle\Event\Resource\ResourceActionEvent;
 use Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler;
 use Sidpt\BinderBundle\Entity\Binder;
@@ -166,5 +167,6 @@ class DocumentListener
             )
         );
     }
+
 
 }

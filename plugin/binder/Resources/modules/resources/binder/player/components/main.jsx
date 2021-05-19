@@ -18,59 +18,29 @@ class BinderPlayerMain extends Component {
   constructor(props){
     super(props);
     
-    // Try to open the first document in the binder
-    let displayedSlug = undefined;
-    let content = undefined;
-    if(this.props.binder.tabs.length > 0){
-      let tabLookingQueue = this.props.binder.tabs.slice();
-      let slug = '';
-      do {
-        let tab = tabLookingQueue.shift();
-        let slug = tab.slug;
-        if(tab.metadata.type === "document"){
-          content = tab.content
-          displayedSlug = tab.slug;
-        } else if(tab.metadata.type === 'binder'){
-          tabLookingQueue.push(...tab.content.binder.tabs);
-        }
-      } while(content === undefined && tabLookingQueue.length > 0);
-    }
-    
-    this.state = {
-      contentToDisplay:content,
-      displayedSlug:displayedSlug
-    }
-
-    this.changeContentToDisplay = this.changeContentToDisplay.bind(this);
   }
-
-  changeContentToDisplay(content, slug){
-    this.setState({
-      contentToDisplay:content,
-      displayedSlug:slug
-    })
-  }
-
+  
   render(){
-    
     return (
       <Fragment>
         <BinderNavigator 
             binder={this.props.binder}
-            selectedSlug={this.state.displayedSlug}
-            onContentSelected={this.changeContentToDisplay}
+            displayedTabs={this.props.displayedTabs}
+            displayedContentSlug={this.props.displayedDocument.slug}
+            onTabSelected={this.props.getBinderTabContent}
+            onBinderSelected={this.props.resetBinder}
         />
         
-        {this.state.contentToDisplay === undefined &&
+        {this.props.displayedDocument === undefined &&
           <ContentPlaceholder
             size="lg"
             icon="fa fa-frown-o"
             title={trans('no_section')}
           />
         }
-        {this.state.contentToDisplay && 
+        {this.props.displayedDocument && 
           <DocumentPlayerMain 
-              document={this.state.contentToDisplay.clarodoc}
+              document={this.props.displayedDocument.clarodoc}
               currentContext={this.props.currentContext} />
         }
       </Fragment>
@@ -80,6 +50,10 @@ class BinderPlayerMain extends Component {
 
 BinderPlayerMain.propTypes = {
   binder:T.object.isRequired,
+  displayedDocument:T.object,
+  displayedTabs:T.arrayOf(T.object),
+  getBinderTabContent:T.func,
+  resetBinder:T.func,
   selectedTabPath:T.string,
   currentContext:T.object.isRequired
 }

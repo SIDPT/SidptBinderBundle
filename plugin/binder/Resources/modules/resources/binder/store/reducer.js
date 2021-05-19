@@ -9,6 +9,11 @@ import {constants as listConst} from '#/main/app/content/list/constants'
 
 import {RESOURCE_LOAD} from '#/main/core/resource/store/actions'
 
+import {
+  BINDER_TAB_LOAD,
+  BINDER_LOAD,
+  DOCUMENT_LOAD
+} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/actions'
 import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/selectors'
 
 
@@ -53,6 +58,7 @@ function replaceDirectory(directories, newDir) {
  * 
  */
 const reducer = combineReducers({
+  // For the binder edition
   binder: makeFormReducer(selectors.FORM_NAME, {}, {
     data: makeReducer({}, {
       [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
@@ -61,6 +67,21 @@ const reducer = combineReducers({
       [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
     })
   }),
+  displayedTabs:makeReducer([], {
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.binder.tabs,
+      [BINDER_LOAD]: (state, action) => {
+        return action.response.binder.tabs
+      }
+  }),
+  displayedDocument:makeReducer(null, {
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => {
+        return action.resourceData.displayedDocument
+      },
+      [DOCUMENT_LOAD]: (state, action) => {
+        return action.response
+      }
+  }),
+  // From directory reducer
   directory: makeReducer({}, {
     [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.directory
   }),

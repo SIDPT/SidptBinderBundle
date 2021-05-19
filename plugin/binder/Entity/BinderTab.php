@@ -462,4 +462,10 @@ class BinderTab
         $this->binder = null;
         $this->setType(BinderTab::TYPE_UNDEFINED);
     }
+
+    public function getSlug()
+    {
+        $linkedRessource = $this->document ?? $this->binder ?? null;
+        return empty($linkedRessource) ? $this->getUuid() : $linkedRessource->getResourceNode()->getSlug();
+    }
 }

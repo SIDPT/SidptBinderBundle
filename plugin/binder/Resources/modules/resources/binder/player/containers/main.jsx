@@ -13,16 +13,25 @@ import {PlayerMain as DirectoryPlayerMainComponent} from '#/main/core/resources/
 
 import {BinderPlayerMain as BinderPlayerMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/components/main'
 
-
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {actions, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
 
 const BinderPlayerMain = withRouter(
   connect(
     (state) => ({
       binder: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).binder,
+      displayedTabs:selectors.displayedTabs(state),
+      displayedDocument:selectors.displayedDocument(state),
       currentContext: {
         type:"workspace",
         data:resourceSelectors.workspace(state)
+      }
+    }),
+    (dispatch) => ({
+      getBinderTabContent(tab) {
+        dispatch(actions.getBinderTabContent(tab))
+      },
+      resetBinder(binder){
+        dispatch(actions.reset(binder))
       }
     })
   )(BinderPlayerMainComponent)

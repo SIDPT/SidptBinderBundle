@@ -10,6 +10,7 @@ use Claroline\CoreBundle\Event\ImportObjectEvent;
 use Claroline\CoreBundle\Event\Resource\CopyResourceEvent;
 use Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler;
 use Sidpt\BinderBundle\Entity\Binder;
+use Sidpt\BinderBundle\Entity\BinderTab;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 use Claroline\AppBundle\API\Crud;
@@ -103,7 +104,11 @@ class BinderListener
     }
 
     /**
-     * [onLoad description]
+     * RESOURCE_LOAD redux action callback
+     * TODO : remove content from the tab tree
+     * instead : 
+     * Build the tab tree using the binder serialization
+     * 
      *
      * @param LoadResourceEvent $event [description]
      *
@@ -113,11 +118,31 @@ class BinderListener
     {
         /**
          * [$document description]
-         *
+         * 
          * @var [type]
          */
         $binder = $event->getResource();
         $binderData = $this->serializer->serialize($binder);
+
+        $sortedTabs = $binder->getBinderTabs()->toArray();
+        usort(
+            $sortedTabs,
+            function (BinderTab $a, BinderTab $b) {
+                return $a->getPosition() <=> $b->getPosition();
+            }
+        );
+        $content = null;
+        if (count($sortedTabs) > 0) {
+            if ($sortedTabs[0]->getType() == BinderTab::TYPE_DOCUMENT) {
+                $content = $this->serializer->serialize($sortedTabs[0]->getDocument());
+                $resourceNode = $sortedTabs[0]->getDocument()->getResourceNode();
+                $slug = $resourceNode ?
+                    $resourceNode->getSlug() :
+                    $sortedTabs[0]->getUuId();
+                $content['slug'] = $slug;
+            }
+        }
+        $binderData['displayedDocument'] = $content;
 
         $event->setData($binderData);
         $event->stopPropagation();

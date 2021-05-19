@@ -93,4 +93,23 @@ class DocumentController implements LoggerAwareInterface
             $this->serializer->serialize($object)
         );
     }
+
+    /**
+     * [desc]
+     *
+     * @Route("/document/{id}", name="sidpt_get_document", methods={"GET"})
+     * @EXT\ParamConverter(
+     *     "document",
+     *     class="SidptBinderBundle:Document",
+     *     options={"mapping": {"id": "uuid"}})
+     *
+     */
+    public function getDocument(Document $document, Request $request): JsonResponse
+    {
+        return new JsonResponse(
+            $this->serializer->serialize($document)
+        );
+    }
+
+
 }

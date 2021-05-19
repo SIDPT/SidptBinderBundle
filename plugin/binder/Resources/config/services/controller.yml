@@ -19,6 +19,7 @@ services:
           - '@Claroline\AppBundle\Persistence\ObjectManager'
           - '@Claroline\AppBundle\API\Crud'
           - '@Claroline\AppBundle\API\SerializerProvider'
+          - '@Sidpt\BinderBundle\API\Serializer\BinderSerializer'
         calls:
             - setLogger: [ '@logger' ]
 

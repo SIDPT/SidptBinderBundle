@@ -9,7 +9,14 @@ const LIST_NAME = `${STORE_NAME}.resources`
 const resource = (state) => state[STORE_NAME]
 
 
-
+const displayedTabs = createSelector(
+  [resource],
+  (resource) => resource.displayedTabs
+)
+const displayedDocument = createSelector(
+  [resource],
+  (resource) => resource.displayedDocument
+)
 
 const binder = createSelector(
   [resource],
@@ -71,6 +78,8 @@ export const selectors = {
   FORM_NAME,
   LIST_NAME,
   resource,
+  displayedTabs,
+  displayedDocument,
   directories,
   binder,
   directory,

@@ -23,7 +23,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 // the bundle new entity and serializer
 use Sidpt\BinderBundle\Entity\Binder;
-use Sidpt\BinderBundle\Serializer\BinderSerializer;
+use Sidpt\BinderBundle\Entity\BinderTab;
+
+use Sidpt\BinderBundle\API\Serializer\BinderSerializer;
 
 // logging for debug
 use Claroline\AppBundle\Log\LoggableTrait;
@@ -72,12 +74,14 @@ class BinderController implements LoggerAwareInterface
         AuthorizationCheckerInterface $authorization,
         ObjectManager $om,
         Crud $crud,
-        SerializerProvider $serializer
+        SerializerProvider $serializer,
+        BinderSerializer $binderSerializer
     ) {
         $this->authorization = $authorization;
         $this->om = $om;
         $this->crud = $crud;
         $this->serializer = $serializer;
+        $this->binderSerializer = $binderSerializer;
     }
 
     /**
@@ -113,20 +117,83 @@ class BinderController implements LoggerAwareInterface
      *
      * @return JsonResponse [<description>]
      *
-     * @Route("/binder/{id}", name="sidpt_binder_load", methods={"GET"})
+     * @Route("/binder/{id}", name="sidpt_get_binder", methods={"GET"})
      * @EXT\ParamConverter(
      *     "binder",
      *     class="SidptBinderBundle:Binder",
-     *     options={"mapping": {"id": "uuid"}})
+     *     options={"mapping": {"id": "uuid"}}
+     * )
      */
-    public function binderLoad(Binder $binder, Request $request): JsonResponse
+    public function getBinder(Binder $binder, Request $request): JsonResponse
     {
         return new JsonResponse(
-            $this->serializer->serialize($binder)
+            $this->binderSerializer->serialize($binder)
         );
     }
 
+    /**
+     * Load a tab resource
+     *
+     * @param Binder  $binder  [description]
+     * @param Request $request [description]
+     *
+     * @return JsonResponse [<description>]
+     *
+     * @Route("/binder/tab/{id}", name="sidpt_get_binder_tab_content", methods={"GET"})
+     * @EXT\ParamConverter(
+     *     "tab",
+     *     class="SidptBinderBundle:BinderTab",
+     *     options={"mapping": {"id": "uuid"}})
+     */
+    public function getBinderTabContent(BinderTab $tab, Request $request): JsonResponse
+    {
 
-
+        $response = null;
+        $resourceNode = null ;
+        $slug = $tab->getUuId();
+        $options = [];
+        
+        if ($tab->getType() === BinderTab::TYPE_BINDER) {
+            $resourceNode = $tab->getBinder()->getResourceNode();
+            $slug = $resourceNode ?
+                $resourceNode->getSlug() :
+                $tab->getUuId();
+            $options["slug_prefix"] = $slug;
+            $response = $this->binderSerializer->serialize($tab->getBinder(), $options);
+            
+            // If the binder first tab contains a document, add it in the response
+            $sortedTabs = $tab->getBinder()->getBinderTabs()->toArray();
+            usort(
+                $sortedTabs,
+                function (BinderTab $a, BinderTab $b) {
+                    return $a->getPosition() <=> $b->getPosition();
+                }
+            );
+            if (count($sortedTabs) > 0 && $sortedTabs[0]->getType() == BinderTab::TYPE_DOCUMENT) {
+                $response['displayedDocument'] = $this->serializer->serialize($sortedTabs[0]->getDocument());
+                $resourceNode = $sortedTabs[0]->getDocument()->getResourceNode();
+                $slug = $resourceNode ?
+                    $resourceNode->getSlug() :
+                    $sortedTabs[0]->getUuId();
+                $response['displayedDocument']['slug'] = $slug;
+            }
+        } else if ($tab->getType() === BinderTab::TYPE_DOCUMENT) {
+            $resourceNode = $tab->getDocument()->getResourceNode();
+            $slug = $resourceNode ?
+                $resourceNode->getSlug() :
+                $tab->getUuId();
+            if (isset($options["slug_prefix"])) {
+                $slug = $options["slug_prefix"]."/".$slug;
+            }
+            $options["slug_prefix"] = $slug;
+            $response = $this->serializer->serialize(
+                $tab->getDocument(),
+                $options
+            );
+            $response['slug'] = $slug;
+        }
+        
+        return new JsonResponse($response);
+    }
     
 }

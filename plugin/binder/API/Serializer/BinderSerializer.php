@@ -66,7 +66,7 @@ class BinderSerializer
      * @param ObjectManager       $om                  desc
      * @param DocumentSerializer  $documentSerializer  desc
      * @param RoleSerializer  $documentSerializer  desc
-     * 
+     *
      */
     public function __construct(
         ObjectManager $om,
@@ -120,7 +120,6 @@ class BinderSerializer
      */
     public function serializeTab(BinderTab $tab, array $options = []): array
     {
- 
         $content = null;
         $resourceNode = null ;
         $slug = $tab->getUuId();
@@ -134,8 +133,10 @@ class BinderSerializer
                 $slug = $options["slug_prefix"]."/".$slug;
             }
             $options["slug_prefix"] = $slug;
-
+            // if (!isset($options["tree_only"])) {
             $content = $this->serialize($tab->getBinder(), $options);
+            // }
+            
 
         } else if ($tab->getType() === BinderTab::TYPE_DOCUMENT) {
             $resourceNode = $tab->getDocument()->getResourceNode();
@@ -146,12 +147,14 @@ class BinderSerializer
                 $slug = $options["slug_prefix"]."/".$slug;
             }
             $options["slug_prefix"] = $slug;
-
-            $content = $this->documentSerializer
-                ->serialize(
-                    $tab->getDocument(),
-                    $options
-                );
+            // To render the binder tree, deactive document serialization
+            // if (!isset($options["tree_only"])) {
+            //     $content = $this->documentSerializer
+            //         ->serialize(
+            //             $tab->getDocument(),
+            //             $options
+            //         );
+            // }
         }
 
         
@@ -162,6 +165,8 @@ class BinderSerializer
         } else if ($resourceNode) {
             $title = $resourceNode->getName();
         }
+
+
         
         $data = [
             'id' => $tab->getUuid(),
@@ -178,7 +183,7 @@ class BinderSerializer
             'metadata' => [
                 'details'=> $tab->getDetails(),
                 'type' => $tab->getType(),
-                'roles' => array_map(
+                'roles' => array_map( // TODO : maybe not useful for subbinder tabs
                     function ($role) use ($options) {
                         return $this->roleSerializer
                             ->serialize($role, $options);
@@ -186,7 +191,7 @@ class BinderSerializer
                     $tab->getRoles()->toArray()
                 )
             ],
-            'resourceNode' => $resourceNode ?
+            'resourceNode' => $resourceNode && $options["depth"] == 0 ? // Only query toplevel tabs resource node for editor
                 $this->resourceNodeSerializer->serialize($resourceNode) :
                 null,
             'content' => $content
@@ -293,56 +298,78 @@ class BinderSerializer
             $options["depth"] = 0;
         }
         $depth = $options["depth"];
+
+        // Default to 3 depth level (that is, only the current binder tabs)
+        if (!isset($options["maxdepth"])) {
+            $options["maxdepth"] = 3;
+        }
+        $maxdepth = $options["maxdepth"];
+
         
-        // For now i limit a single binder to a maximum of 6 computed levels
-        $data = [
-            'id'=>$binder->getUuid(),
-            'binder' => [
+        if ($depth > 0) { // subbinder minimal serialization
+            $data = [
                 'id' => $binder->getUuid(),
                 'title' => $binder->getResourceNode()->getName(),
-                'tabs' =>  $depth < 6 ?
+                'tabs' => (count($sortedTabs) > 0 && $depth < $maxdepth) ?
                     array_map(
                         function (BinderTab $tab) use ($options) {
                                 return $this->serializeTab($tab, $options);
                         },
                         $sortedTabs
                     ) : []
-            ],
-            'directory' => [
-                'id' => $binder->getId(),
-                'list' => [
-                    'actions' => $binder->hasActions(),
-                    'count' => $binder->hasCount(),
-                    // display feature
-                    'display' => $binder->getDisplay(),
-                    'availableDisplays' => $binder->getAvailableDisplays(),
-
-                    // sort feature
-                    'sorting' => $binder->getSortBy(),
-                    'availableSort' => $binder->getAvailableSort(),
-
-                    // filter feature
-                    'searchMode' => $binder->getSearchMode(),
-                    'filters' => $binder->getFilters(),
-                    'availableFilters' => $binder->getAvailableFilters(),
-
-                    // pagination feature
-                    'paginated' => $binder->isPaginated(),
-                    'pageSize' => $binder->getPageSize(),
-                    'availablePageSizes' => $binder->getAvailablePageSizes(),
-
-                    // table config
-                    'columns' => $binder->getDisplayedColumns(),
-                    'availableColumns' => $binder->getAvailableColumns(),
-
-                    // grid config
-                    'card' => [
-                        'display' => $binder->getCard(),
-                        'mapping' => [], // TODO
-                    ],
+            ];
+        } else { // root binder full data
+            $data = [
+                'id'=>$binder->getUuid(),
+                'binder' => [
+                    'id' => $binder->getUuid(),
+                    'title' => $binder->getResourceNode()->getName(),
+                    'tabs' => count($sortedTabs) > 0 ?
+                        array_map(
+                            function (BinderTab $tab) use ($options) {
+                                    return $this->serializeTab($tab, $options);
+                            },
+                            $sortedTabs
+                        ) : []
                 ],
-            ]
-        ];
+                // only query the directory informations
+                // for the top level requested binder :
+                'directory' => [
+                    'id' => $binder->getId(),
+                    'list' => [
+                        'actions' => $binder->hasActions(),
+                        'count' => $binder->hasCount(),
+                        // display feature
+                        'display' => $binder->getDisplay(),
+                        'availableDisplays' => $binder->getAvailableDisplays(),
+
+                        // sort feature
+                        'sorting' => $binder->getSortBy(),
+                        'availableSort' => $binder->getAvailableSort(),
+
+                        // filter feature
+                        'searchMode' => $binder->getSearchMode(),
+                        'filters' => $binder->getFilters(),
+                        'availableFilters' => $binder->getAvailableFilters(),
+
+                        // pagination feature
+                        'paginated' => $binder->isPaginated(),
+                        'pageSize' => $binder->getPageSize(),
+                        'availablePageSizes' => $binder->getAvailablePageSizes(),
+
+                        // table config
+                        'columns' => $binder->getDisplayedColumns(),
+                        'availableColumns' => $binder->getAvailableColumns(),
+
+                        // grid config
+                        'card' => [
+                            'display' => $binder->getCard(),
+                            'mapping' => [], // TODO
+                        ],
+                    ],
+                ]
+            ];
+        }
 
         return $data;
     }

@@ -355,7 +355,7 @@ class BinderEditorMain extends Component {
                     this.props.update('binder.tabs',tabs);
                     this.setState({currentTabIndex:this.state.currentTabIndex-1})
                   }}
-                >{trans('delete')}</Button>
+                />
             </FormData> }
 
         
