@@ -59,8 +59,13 @@ use Sidpt\BinderBundle\Entity\Document;
 
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
+/**
+ *
+ */
 class GenerateContent extends AbstractAction
 {
+
+    // Class parameters
     private $om;
     private $crud;
     private $serializer;
@@ -73,6 +78,23 @@ class GenerateContent extends AbstractAction
     private $tokenStorage;
 
 
+    // Class variables for execute function (hoping it can be help performances)
+    private $workspaceRepo;
+    private $resourceNodeRepo;
+    private $homeTabsRepo;
+    private $binderType;
+    private $documentType;
+    private $directoryType;
+    private $lessonType;
+    private $exerciseType;
+    private $textType;
+    private $resourceDataSource;
+    private $widgetType;
+    private $nodeSeralizer;
+
+    /**
+     *
+     */
     public function __construct(
         ObjectManager $om,
         Crud $crud,
@@ -95,58 +117,57 @@ class GenerateContent extends AbstractAction
         $this->workspaceManager = $workspaceManager;
         $this->resourceManager = $resourceManager;
         $this->tokenStorage = $tokenStorage;
+
+        $this->workspaceRepo = $this->om->getRepository(Workspace::class);
+        $this->resourceNodeRepo = $this->om->getRepository(ResourceNode::class);
+        $this->homeTabsRepo = $this->om->getRepository(HomeTab::class);
+        
+        
+        $widgetsTypeRepo = $this->om->getRepository(Widget::class);
+        $dataSourceRepo = $this->om->getRepository(DataSource::class);
+        $typesRepo = $this->om->getRepository(ResourceType::class);
+
+        $this->binderType = $typesRepo->findOneBy(
+            [ 'name' => 'sidpt_binder' ]
+        );
+        $this->documentType = $typesRepo->findOneBy(
+            [ 'name' => 'sidpt_document' ]
+        );
+
+        $this->directoryType = $typesRepo->findOneBy(
+            [ 'name' => 'directory' ]
+        );
+
+        $this->lessonType = $typesRepo->findOneBy(
+            [ 'name' => 'icap_lesson' ]
+        );
+
+        $this->exerciseType = $typesRepo->findOneBy(
+            [ 'name' => 'ujm_exercise' ]
+        );
+
+        $this->textType = $typesRepo->findOneBy(
+            [ 'name' => 'text' ]
+        );
+
+        $this->resourceDataSource = $dataSourceRepo->findOneBy(
+            ['name' => 'resource']
+        );
+
+        $this->widgetType = $widgetsTypeRepo->findOneBy(
+            [ 'name' => 'resource' ]
+        );
+        $this->nodeSeralizer = $this->serializer->get(ResourceNode::class);
     }
 
 
+    /**
+     *
+     */
     public function execute(array $data, &$successData = [])
     {
-        $workspaceRepo = $this->om->getRepository(Workspace::class);
-        $tagsRepo = $this->om->getRepository(Tag::class);
-        $taggedObjectsRepo = $this->om->getRepository(TaggedObject::class);
-        $resourceNodeRepo = $this->om->getRepository(ResourceNode::class);
-        $binderRepo = $this->om->getRepository(Binder::class);
-        $documentRepo = $this->om->getRepository(Document::class);
-        $typesRepo = $this->om->getRepository(ResourceType::class);
-        $homeTabsRepo = $this->om->getRepository(HomeTab::class);
-        $dataSourceRepo = $this->om->getRepository(DataSource::class);
-        $widgetsTypeRepo = $this->om->getRepository(Widget::class);
-
-
-        $binderType = $typesRepo->findOneBy([
-            'name' => 'sidpt_binder'
-        ]);
-        $documentType = $typesRepo->findOneBy([
-            'name' => 'sidpt_document'
-        ]);
-
-        $directoryType = $typesRepo->findOneBy([
-            'name' => 'directory'
-        ]);
-
-        $lessonType = $typesRepo->findOneBy([
-            'name' => 'icap_lesson'
-        ]);
-
-        $exerciseType = $typesRepo->findOneBy([
-            'name' => 'ujm_exercise'
-        ]);
-
-        $textType = $typesRepo->findOneBy([
-            'name' => 'text'
-        ]);
-
-        $types = array_map(function (ResourceType $type) {
-            return [ "name" => $type->getName() ];
-        }, $this->om->getRepository(ResourceType::class)->findAll());
-
-        $documentSeralizer = $this->serializer->get(Document::class);
-        $nodeSeralizer = $this->serializer->get(ResourceNode::class);
-
-        $user = $this->tokenStorage->getToken()->getUser();
         
-        $resourceDataSource = $dataSourceRepo->findOneBy(['name' => 'resource']);
-        $widgetType = $widgetsTypeRepo->findOneBy(['name' => 'resource']);
-
+        $user = $this->tokenStorage->getToken()->getUser();
 
         $curriculum = trim($data['curriculum']);
         $course = trim($data['course']);
@@ -154,8 +175,17 @@ class GenerateContent extends AbstractAction
         $learningUnit = trim($data['learning_unit']);
             
         ///// WORKSPACE / CURRICULUM
+        // for line with empty curriculum, stop right here
+        if (empty($curriculum)) {
+            $successData['generate_ipip_content'][] = [
+                'data' => $data,
+                'log' => "Line found with no curriculum provided, passing over",
+            ];
+            return;
+        }
+        
         // Check if curriculum exist
-        $workspace = $workspaceRepo->findOneBy(['name' => $curriculum]);
+        $workspace = $this->workspaceRepo->findOneBy(['name' => $curriculum]);
         // Create it if not
         if (empty($workspace)) {
             $workspaceCode = str_replace(" ", "_", strtolower($curriculum));
@@ -198,11 +228,13 @@ class GenerateContent extends AbstractAction
                 ]
             ];
         
-            // From workspace manager (seems mandatory to do it this way for default rights ?)
+            // From workspace manager
+            // (seems mandatory to do it this way for default rights)
             $workspace = $this->crud->create(Workspace::class, $data);
             $model = $workspace->getWorkspaceModel();
             $workspace = $this->workspaceManager->copy($model, $workspace, false);
-            $workspace = $this->serializer->get(Workspace::class)->deserialize($data, $workspace);
+            $workspace = $this->serializer->get(Workspace::class)
+                ->deserialize($data, $workspace);
 
             $workspace->setCreator($user);
             $this->om->persist($workspace);
@@ -218,11 +250,13 @@ class GenerateContent extends AbstractAction
         );
         
         // Workspace root directory
-        $curriculumNode = $resourceNodeRepo->findOneBy([
-            'parent' => null,
-            'workspace' => $workspace->getId()
-        ]);
-        $curriculumNodeData = $nodeSeralizer->serialize($curriculumNode);
+        $curriculumNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'parent' => null,
+                'workspace' => $workspace->getId()
+            ]
+        );
+        $curriculumNodeData = $this->nodeSeralizer->serialize($curriculumNode);
         
         $wscollaborator = $this->roleManager->getCollaboratorRole($workspace);
         foreach ($curriculumNodeData["rights"] as $key => $right) {
@@ -234,20 +268,22 @@ class GenerateContent extends AbstractAction
             }
         }
         // Update root node rights
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $curriculumNode);
+        $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $curriculumNode);
 
 
-        $curriculumSummaryNode = $resourceNodeRepo->findOneBy([
-            'name' => "Summary",
-            'parent' => $curriculumNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $documentType->getId(),
-        ]);
+        $curriculumSummaryNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Summary",
+                'parent' => $curriculumNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->documentType->getId(),
+            ]
+        );
         if (empty($curriculumSummaryNode)) {
             $curriculumSummaryNode = new ResourceNode();
             $curriculumSummaryNode->setName("Summary");
             $curriculumSummaryNode->setWorkspace($workspace);
-            $curriculumSummaryNode->setResourceType($documentType);
+            $curriculumSummaryNode->setResourceType($this->documentType);
             $curriculumSummaryNode->setCreator($user);
             $curriculumSummaryNode->setParent($curriculumNode);
             $curriculumSummaryNode->setMimeType("custom/sidpt_document");
@@ -301,23 +337,35 @@ class GenerateContent extends AbstractAction
             $tab = $this->serializer->deserialize($summaryTab, new HomeTab());
             $this->om->persist($tab);
             $this->om->flush();
+
+            $successData['generate_ipip_content'][] = [
+                'data' => $data,
+                'log' => "Created the summary document of {$curriculum}",
+            ];
         }
         
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $curriculumSummaryNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $curriculumSummaryNode
+        );
 
+        if (empty($course)) { // No course provided, ending the treatment
+            return;
+        }
 
-
-        $courseNode = $resourceNodeRepo->findOneBy([
-            'name' => $course,
-            'parent'=> $curriculumNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $binderType->getId()
-        ]);
+        $courseNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => $course,
+                'parent'=> $curriculumNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->binderType->getId()
+            ]
+        );
         if (empty($courseNode)) {
             $courseNode = new ResourceNode();
             $courseNode->setName($course);
             $courseNode->setWorkspace($workspace);
-            $courseNode->setResourceType($binderType);
+            $courseNode->setResourceType($this->binderType);
             $courseNode->setParent($curriculumNode);
             $courseNode->setCreator($user);
             $courseNode->setMimeType("custom/sidpt_binder");
@@ -332,16 +380,19 @@ class GenerateContent extends AbstractAction
             $this->tagManager->tagData(
                 ['Course',$curriculum, $course],
                 [ 0 => [
-                        'id'=> $courseNode->getUuid(),
-                        'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    'id'=> $courseNode->getUuid(),
+                    'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
+                    'name' => "{$curriculum}|{$course}"
                 ]]
             );
 
 
-            $tabs = $homeTabsRepo->findBy([
-                'workspace' => $workspace->getUuid(),
-                'parent' => null
-            ]);
+            $tabs = $this->homeTabsRepo->findBy(
+                [
+                    'workspace' => $workspace->getUuid(),
+                    'parent' => null
+                ]
+            );
 
             $newPosition = count($tabs) + 1;
             // Add a new tab the curriculum workspace, and add the course node to it
@@ -386,26 +437,25 @@ class GenerateContent extends AbstractAction
             $tab = $this->serializer->deserialize($binderTab, new HomeTab());
             $this->om->persist($tab);
             $this->om->flush();
-
         } else {
             $courseBinder = $this->resourceManager->getResourceFromNode($courseNode);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $courseNode);
+        $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $courseNode);
 
 
-        
-
-        $courseSummaryNode = $resourceNodeRepo->findOneBy([
-            'name' => "Summary",
-            'parent'=> $courseNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $documentType->getId()
-        ]);
+        $courseSummaryNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Summary",
+                'parent'=> $courseNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->documentType->getId()
+            ]
+        );
         if (empty($courseSummaryNode)) {
             $courseSummaryNode = new ResourceNode();
             $courseSummaryNode->setName("Summary");
             $courseSummaryNode->setWorkspace($workspace);
-            $courseSummaryNode->setResourceType($documentType);
+            $courseSummaryNode->setResourceType($this->documentType);
             $courseSummaryNode->setCreator($user);
             $courseSummaryNode->setParent($courseNode);
             $courseSummaryNode->setMimeType("custom/sidpt_document");
@@ -425,24 +475,32 @@ class GenerateContent extends AbstractAction
             $this->om->persist($courseSummaryTab);
             $this->om->persist($courseBinder);
             $this->om->flush();
-
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $courseSummaryNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $courseSummaryNode
+        );
 
+        // No module provided, ending the treatment
+        if (empty($module)) {
+            return;
+        }
         // Check if module exist in the course
         // module is also a binder
         
-        $moduleNode = $resourceNodeRepo->findOneBy([
-            'name' => $module,
-            'parent'=>$courseNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $binderType->getId()
-        ]);
+        $moduleNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => $module,
+                'parent'=>$courseNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->binderType->getId()
+            ]
+        );
         if (empty($moduleNode)) {
             $moduleNode = new ResourceNode();
             $moduleNode->setName($module);
             $moduleNode->setWorkspace($workspace);
-            $moduleNode->setResourceType($binderType);
+            $moduleNode->setResourceType($this->binderType);
             $moduleNode->setParent($courseNode);
             $moduleNode->setCreator($user);
             $moduleNode->setMimeType("custom/sidpt_binder");
@@ -457,8 +515,9 @@ class GenerateContent extends AbstractAction
             $this->tagManager->tagData(
                 ['Module', $curriculum, $course, $module],
                 [ 0 => [
-                        'id'=> $moduleNode->getUuid(),
-                        'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    'id'=> $moduleNode->getUuid(),
+                    'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
+                    'name' => "{$curriculum}|{$course}|{$module}"
                 ]]
             );
 
@@ -474,19 +533,24 @@ class GenerateContent extends AbstractAction
         } else {
             $moduleBinder = $this->resourceManager->getResourceFromNode($moduleNode);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $moduleNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $moduleNode
+        );
 
-        $moduleSummaryNode = $resourceNodeRepo->findOneBy([
-            'name' => "Summary",
-            'parent'=> $moduleNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $documentType->getId()
-        ]);
+        $moduleSummaryNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Summary",
+                'parent'=> $moduleNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->documentType->getId()
+            ]
+        );
         if (empty($moduleSummaryNode)) {
             $moduleSummaryNode = new ResourceNode();
             $moduleSummaryNode->setName("Summary");
             $moduleSummaryNode->setWorkspace($workspace);
-            $moduleSummaryNode->setResourceType($documentType);
+            $moduleSummaryNode->setResourceType($this->documentType);
             $moduleSummaryNode->setCreator($user);
             $moduleSummaryNode->setParent($moduleNode);
             $moduleSummaryNode->setMimeType("custom/sidpt_document");
@@ -507,23 +571,32 @@ class GenerateContent extends AbstractAction
             $this->om->persist($moduleSummaryTab);
             $this->om->persist($moduleBinder);
             $this->om->flush();
-
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $moduleSummaryNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $moduleSummaryNode
+        );
+
+        // No learning unit provided, ending the treatment
+        if (empty($learningUnit)) {
+            return;
+        }
 
         // Check if learning unit exist within the module
         // a learning unit is a document
-        $learningUnitNode = $resourceNodeRepo->findOneBy([
-            'name' => $learningUnit,
-            'parent'=>$moduleNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $documentType->getId()
-        ]);
+        $learningUnitNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => $learningUnit,
+                'parent'=>$moduleNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->documentType->getId()
+            ]
+        );
         if (empty($learningUnitNode)) {
             $learningUnitNode = new ResourceNode();
             $learningUnitNode->setName($learningUnit);
             $learningUnitNode->setWorkspace($workspace);
-            $learningUnitNode->setResourceType($documentType);
+            $learningUnitNode->setResourceType($this->documentType);
             $learningUnitNode->setParent($moduleNode);
             $learningUnitNode->setCreator($user);
             $learningUnitNode->setMimeType("custom/sidpt_document");
@@ -538,8 +611,9 @@ class GenerateContent extends AbstractAction
             $this->tagManager->tagData(
                 ['Learning unit',$curriculum, $course, $module, $learningUnit],
                 [ 0 => [
-                        'id'=> $learningUnitNode->getUuid(),
-                        'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode"
+                    'id'=> $learningUnitNode->getUuid(),
+                    'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
+                    'name' => "{$curriculum}|{$course}|{$module}|{$learningUnit}"
                 ]]
             );
 
@@ -555,24 +629,34 @@ class GenerateContent extends AbstractAction
             $this->om->persist($moduleBinder);
             $this->om->flush();
         } else {
-            $learningUnitDocument = $this->resourceManager->getResourceFromNode($learningUnitNode);
+            $learningUnitDocument = $this->resourceManager
+                ->getResourceFromNode($learningUnitNode);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $learningUnitNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $learningUnitNode
+        );
 
         // for each learning unit, pre-creating the default resources and widget
         // that is :
+        // - a description section with 2 column :
+        //   - one for a simple text (simple widget or resource)
+        //   - and one for a "requirements" directory
+        
         // - a practice "exercise":
-        $practiceNode = $resourceNodeRepo->findOneBy([
-            'name' => "Practice",
-            'parent'=>$learningUnitNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $exerciseType->getId()
-        ]);
+        $practiceNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Practice",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->exerciseType->getId()
+            ]
+        );
         if (empty($practiceNode)) {
             $practiceNode = new ResourceNode();
             $practiceNode->setName("Practice");
             $practiceNode->setWorkspace($workspace);
-            $practiceNode->setResourceType($exerciseType);
+            $practiceNode->setResourceType($this->exerciseType);
             $practiceNode->setParent($learningUnitNode);
             $practiceNode->setCreator($user);
             $practiceNode->setMimeType("custom/ujm_exercise");
@@ -587,44 +671,52 @@ class GenerateContent extends AbstractAction
             // Preparing widgets for the learning unit document
             $practiceWidget = new ResourceWidget();
             $practiceWidget->setResourceNode($practiceNode);
+            $practiceWidget->setShowResourceHeader(true);
             $practiceWidgetInstance = new WidgetInstance();
-            $practiceWidgetInstance->setWidget($widgetType);
-            $practiceWidgetInstance->setDataSource($resourceDataSource);
+            $practiceWidgetInstance->setWidget($this->widgetType);
+            $practiceWidgetInstance->setDataSource($this->resourceDataSource);
             $practiceWidget->setWidgetInstance($practiceWidgetInstance);
             $practiceWidgetInstanceConfig = new WidgetInstanceConfig();
             $practiceWidgetInstanceConfig->setType("resource");
-            $practiceWidgetInstanceConfig->setWidgetInstance($practiceWidgetInstance);
+            $practiceWidgetInstanceConfig->setWidgetInstance(
+                $practiceWidgetInstance
+            );
             $practiceWidgetContainer = new WidgetContainer();
             $practiceWidgetContainer->addInstance($practiceWidgetInstance);
             $practiceWidgetInstance->setContainer($practiceWidgetContainer);
             $practiceWidgetContainerConfig = new WidgetContainerConfig();
-            $practiceWidgetContainerConfig->setName("Practice");
             $practiceWidgetContainerConfig->setBackgroundType("color");
             $practiceWidgetContainerConfig->setBackground("#ffffff");
             $practiceWidgetContainerConfig->setPosition(0);
             $practiceWidgetContainerConfig->setLayout(array(1));
-            $practiceWidgetContainerConfig->setWidgetContainer($practiceWidgetContainer);
+            $practiceWidgetContainerConfig->setWidgetContainer(
+                $practiceWidgetContainer
+            );
             $this->om->persist($practiceWidget);
             $this->om->persist($practiceWidgetInstance);
             $this->om->persist($practiceWidgetContainer);
 
             $learningUnitDocument->addWidgetContainer($practiceWidgetContainer);
-
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $practiceNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $practiceNode
+        );
 
-        $theoryNode = $resourceNodeRepo->findOneBy([
-            'name' => "Theory",
-            'parent'=>$learningUnitNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $lessonType->getId()
-        ]);
+        $theoryNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Theory",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->lessonType->getId()
+            ]
+        );
         if (empty($theoryNode)) {
             // - a theory "lesson":
             $theoryNode = new ResourceNode();
             $theoryNode->setName("Theory");
             $theoryNode->setWorkspace($workspace);
-            $theoryNode->setResourceType($lessonType);
+            $theoryNode->setResourceType($this->lessonType);
             $theoryNode->setParent($learningUnitNode);
             $theoryNode->setCreator($user);
             $theoryNode->setMimeType("custom/icap_lesson");
@@ -636,9 +728,10 @@ class GenerateContent extends AbstractAction
 
             $theoryWidget = new ResourceWidget();
             $theoryWidget->setResourceNode($theoryNode);
+            $theoryWidget->setShowResourceHeader(true);
             $theoryWidgetInstance = new WidgetInstance();
-            $theoryWidgetInstance->setWidget($widgetType);
-            $theoryWidgetInstance->setDataSource($resourceDataSource);
+            $theoryWidgetInstance->setWidget($this->widgetType);
+            $theoryWidgetInstance->setDataSource($this->resourceDataSource);
             $theoryWidget->setWidgetInstance($theoryWidgetInstance);
             $theoryWidgetInstanceConfig = new WidgetInstanceConfig();
             $theoryWidgetInstanceConfig->setType("resource");
@@ -647,7 +740,6 @@ class GenerateContent extends AbstractAction
             $theoryWidgetContainer->addInstance($theoryWidgetInstance);
             $theoryWidgetInstance->setContainer($theoryWidgetContainer);
             $theoryWidgetContainerConfig = new WidgetContainerConfig();
-            $theoryWidgetContainerConfig->setName("Theory");
             $theoryWidgetContainerConfig->setBackgroundType("color");
             $theoryWidgetContainerConfig->setBackground("#ffffff");
             $theoryWidgetContainerConfig->setPosition(0);
@@ -658,22 +750,26 @@ class GenerateContent extends AbstractAction
             $this->om->persist($theoryWidgetContainer);
 
             $learningUnitDocument->addWidgetContainer($theoryWidgetContainer);
-
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $theoryNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $theoryNode
+        );
 
-        $assessmentNode = $resourceNodeRepo->findOneBy([
-            'name' => "Assessment",
-            'parent'=>$learningUnitNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $exerciseType->getId()
-        ]);
+        $assessmentNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Assessment",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->exerciseType->getId()
+            ]
+        );
         if (empty($assessmentNode)) {
              // - an assessment "Exercise":
             $assessmentNode = new ResourceNode();
             $assessmentNode->setName("Assessment");
             $assessmentNode->setWorkspace($workspace);
-            $assessmentNode->setResourceType($exerciseType);
+            $assessmentNode->setResourceType($this->exerciseType);
             $assessmentNode->setParent($learningUnitNode);
             $assessmentNode->setCreator($user);
             $assessmentNode->setMimeType("custom/ujm_exercise");
@@ -686,44 +782,53 @@ class GenerateContent extends AbstractAction
 
             $assessmentWidget = new ResourceWidget();
             $assessmentWidget->setResourceNode($assessmentNode);
+            $assessmentWidget->setShowResourceHeader(true);
             $assessmentWidgetInstance = new WidgetInstance();
-            $assessmentWidgetInstance->setWidget($widgetType);
-            $assessmentWidgetInstance->setDataSource($resourceDataSource);
+            $assessmentWidgetInstance->setWidget($this->widgetType);
+            $assessmentWidgetInstance->setDataSource($this->resourceDataSource);
             $assessmentWidget->setWidgetInstance($assessmentWidgetInstance);
             $assessmentWidgetInstanceConfig = new WidgetInstanceConfig();
             $assessmentWidgetInstanceConfig->setType("resource");
-            $assessmentWidgetInstanceConfig->setWidgetInstance($assessmentWidgetInstance);
+            $assessmentWidgetInstanceConfig->setWidgetInstance(
+                $assessmentWidgetInstance
+            );
             $assessmentWidgetContainer = new WidgetContainer();
             $assessmentWidgetContainer->addInstance($assessmentWidgetInstance);
             $assessmentWidgetInstance->setContainer($assessmentWidgetContainer);
             $assessmentWidgetContainerConfig = new WidgetContainerConfig();
-            $assessmentWidgetContainerConfig->setName("Assessment");
             $assessmentWidgetContainerConfig->setBackgroundType("color");
             $assessmentWidgetContainerConfig->setBackground("#ffffff");
             $assessmentWidgetContainerConfig->setPosition(0);
             $assessmentWidgetContainerConfig->setLayout(array(1));
-            $assessmentWidgetContainerConfig->setWidgetContainer($assessmentWidgetContainer);
+            $assessmentWidgetContainerConfig->setWidgetContainer(
+                $assessmentWidgetContainer
+            );
             $this->om->persist($assessmentWidget);
             $this->om->persist($assessmentWidgetInstance);
             $this->om->persist($assessmentWidgetContainer);
 
             $learningUnitDocument->addWidgetContainer($assessmentWidgetContainer);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $assessmentNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $assessmentNode
+        );
 
 
-        $activityNode = $resourceNodeRepo->findOneBy([
-            'name' => "Activity",
-            'parent'=>$learningUnitNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $textType->getId()
-        ]);
+        $activityNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "Activity",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->textType->getId()
+            ]
+        );
         if (empty($activityNode)) {
             // - an activity "text":
             $activityNode = new ResourceNode();
             $activityNode->setName("Activity");
             $activityNode->setWorkspace($workspace);
-            $activityNode->setResourceType($textType);
+            $activityNode->setResourceType($this->textType);
             $activityNode->setParent($learningUnitNode);
             $activityNode->setCreator($user);
             $activityNode->setMimeType("custom/text");
@@ -735,43 +840,52 @@ class GenerateContent extends AbstractAction
 
             $activityWidget = new ResourceWidget();
             $activityWidget->setResourceNode($activityNode);
+            $activityWidget->setShowResourceHeader(true);
             $activityWidgetInstance = new WidgetInstance();
-            $activityWidgetInstance->setWidget($widgetType);
-            $activityWidgetInstance->setDataSource($resourceDataSource);
+            $activityWidgetInstance->setWidget($this->widgetType);
+            $activityWidgetInstance->setDataSource($this->resourceDataSource);
             $activityWidget->setWidgetInstance($activityWidgetInstance);
             $activityWidgetInstanceConfig = new WidgetInstanceConfig();
             $activityWidgetInstanceConfig->setType("resource");
-            $activityWidgetInstanceConfig->setWidgetInstance($activityWidgetInstance);
+            $activityWidgetInstanceConfig->setWidgetInstance(
+                $activityWidgetInstance
+            );
             $activityWidgetContainer = new WidgetContainer();
             $activityWidgetContainer->addInstance($activityWidgetInstance);
             $activityWidgetInstance->setContainer($activityWidgetContainer);
             $activityWidgetContainerConfig = new WidgetContainerConfig();
-            $activityWidgetContainerConfig->setName("activity");
             $activityWidgetContainerConfig->setBackgroundType("color");
             $activityWidgetContainerConfig->setBackground("#ffffff");
             $activityWidgetContainerConfig->setPosition(0);
             $activityWidgetContainerConfig->setLayout(array(1));
-            $activityWidgetContainerConfig->setWidgetContainer($activityWidgetContainer);
+            $activityWidgetContainerConfig->setWidgetContainer(
+                $activityWidgetContainer
+            );
             $this->om->persist($activityWidget);
             $this->om->persist($activityWidgetInstance);
             $this->om->persist($activityWidgetContainer);
 
             $learningUnitDocument->addWidgetContainer($activityWidgetContainer);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $activityNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $activityNode
+        );
 
-        $referencesNode = $resourceNodeRepo->findOneBy([
-            'name' => "References",
-            'parent'=>$learningUnitNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $documentType->getId()
-        ]);
+        $referencesNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "References",
+                'parent'=>$learningUnitNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->documentType->getId()
+            ]
+        );
         if (empty($referencesNode)) {
             // - A references "document"
             $referencesNode = new ResourceNode();
             $referencesNode->setName("References");
             $referencesNode->setWorkspace($workspace);
-            $referencesNode->setResourceType($documentType);
+            $referencesNode->setResourceType($this->documentType);
             $referencesNode->setParent($learningUnitNode);
             $referencesNode->setCreator($user);
             $referencesNode->setMimeType("custom/sidpt_document");
@@ -781,13 +895,14 @@ class GenerateContent extends AbstractAction
             $this->om->persist($referencesNode);
             $this->om->persist($referencesDocument);
 
-            $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $referencesNode);
+            $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $referencesNode);
 
             $referencesWidget = new ResourceWidget();
             $referencesWidget->setResourceNode($referencesNode);
+            $referencesWidget->setShowResourceHeader(true);
             $referencesWidgetInstance = new WidgetInstance();
-            $referencesWidgetInstance->setWidget($widgetType);
-            $referencesWidgetInstance->setDataSource($resourceDataSource);
+            $referencesWidgetInstance->setWidget($this->widgetType);
+            $referencesWidgetInstance->setDataSource($this->resourceDataSource);
             $referencesWidget->setWidgetInstance($referencesWidgetInstance);
             $referencesWidgetInstanceConfig = new WidgetInstanceConfig();
             $referencesWidgetInstanceConfig->setType("resource");
@@ -796,7 +911,6 @@ class GenerateContent extends AbstractAction
             $referencesWidgetContainer->addInstance($referencesWidgetInstance);
             $referencesWidgetInstance->setContainer($referencesWidgetContainer);
             $referencesWidgetContainerConfig = new WidgetContainerConfig();
-            $referencesWidgetContainerConfig->setName("references");
             $referencesWidgetContainerConfig->setBackgroundType("color");
             $referencesWidgetContainerConfig->setBackground("#ffffff");
             $referencesWidgetContainerConfig->setPosition(0);
@@ -811,19 +925,21 @@ class GenerateContent extends AbstractAction
             $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
         }
 
-        $externalReferencesNode = $resourceNodeRepo->findOneBy([
-            'name' => "External references",
-            'parent'=>$referencesNode->getId(),
-            'workspace' => $workspace->getId(),
-            'resourceType' => $textType->getId()
-        ]);
+        $externalReferencesNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => "External references",
+                'parent'=>$referencesNode->getId(),
+                'workspace' => $workspace->getId(),
+                'resourceType' => $this->textType->getId()
+            ]
+        );
         if (empty($externalReferencesNode)) {
             //  This references document should hold
             //  - a widget rendering a simple page of links to external resources
             $externalReferencesNode = new ResourceNode();
             $externalReferencesNode->setName("External references");
             $externalReferencesNode->setWorkspace($workspace);
-            $externalReferencesNode->setResourceType($textType);
+            $externalReferencesNode->setResourceType($this->textType);
             $externalReferencesNode->setParent($referencesNode);
             $externalReferencesNode->setCreator($user);
             $externalReferencesNode->setMimeType("custom/text");
@@ -836,9 +952,10 @@ class GenerateContent extends AbstractAction
             // Preparing widgets for the document
             $externalReferencesWidget = new ResourceWidget();
             $externalReferencesWidget->setResourceNode($externalReferencesNode);
+            $externalReferencesWidget->setShowResourceHeader(true);
             $externalReferencesWidgetInstance = new WidgetInstance();
-            $externalReferencesWidgetInstance->setWidget($widgetType);
-            $externalReferencesWidgetInstance->setDataSource($resourceDataSource);
+            $externalReferencesWidgetInstance->setWidget($this->widgetType);
+            $externalReferencesWidgetInstance->setDataSource($this->resourceDataSource);
             $externalReferencesWidget->setWidgetInstance($externalReferencesWidgetInstance);
             $externalReferencesWidgetInstanceConfig = new WidgetInstanceConfig();
             $externalReferencesWidgetInstanceConfig->setType("resource");
@@ -847,7 +964,6 @@ class GenerateContent extends AbstractAction
             $externalReferencesWidgetContainer->addInstance($externalReferencesWidgetInstance);
             $externalReferencesWidgetInstance->setContainer($externalReferencesWidgetContainer);
             $externalReferencesWidgetContainerConfig = new WidgetContainerConfig();
-            $externalReferencesWidgetContainerConfig->setName("External references");
             $externalReferencesWidgetContainerConfig->setBackgroundType("color");
             $externalReferencesWidgetContainerConfig->setBackground("#ffffff");
             $externalReferencesWidgetContainerConfig->setPosition(0);
@@ -860,26 +976,36 @@ class GenerateContent extends AbstractAction
             $referencesDocument->addWidgetContainer($externalReferencesWidgetContainer);
             $this->om->persist($referencesDocument);
         }
-        $nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $externalReferencesNode);
+        $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $externalReferencesNode);
         // */
 
         $successData['generate_ipip_content'][] = [
             'data' => $data,
-            'log' => "learning unit {$data['learning_unit']} created with rights {$rightsToDisplay}",
+            'log' => "learning unit {$learningUnit} created",
         ];
-
     }
 
+
+
+    /**
+     *
+     */
     public function getClass()
     {
         return Workspace::class;
     }
 
+    /**
+     *
+     */
     public function getAction()
     {
         return ['workspace', 'generate_ipip_content'];
     }
 
+    /**
+     *
+     */
     public function getSchema(array $options = [], array $extra = [])
     {
         $learning_unit = [
@@ -912,10 +1038,12 @@ class GenerateContent extends AbstractAction
         ];
     }
 
+    /**
+     *
+     */
     public function getOptions()
     {
         //in an ideal world this should be removed but for now it's an easy fix
         return [Options::FORCE_FLUSH];
     }
-
 }
