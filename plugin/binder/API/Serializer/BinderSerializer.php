@@ -394,13 +394,12 @@ class BinderSerializer
         if (empty($binder)) {
             $binder = new Binder();
         }
-        $binderData = $data['binder'];
-        if (isset($binderData) && isset($binderData['tabs'])) {
+        if (isset($data['binder']) && isset($data['binder']['tabs'])) {
             $currentTabs = $binder->getBinderTabs()->toArray();
             $tabsIds = [];
 
             // update containers
-            foreach ($binderData['tabs'] as $position => $tabsData) {
+            foreach ($data['binder']['tabs'] as $position => $tabsData) {
                 $binderTab = isset($tabsData['id']) ?
                     $binder->getBinderTab($tabsData['id']) :
                     null;

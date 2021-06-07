@@ -11,9 +11,7 @@ services:
             - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
             - '@Claroline\AppBundle\API\SerializerProvider'
             - '@Claroline\AppBundle\API\Crud'
-            - '@Claroline\CoreBundle\Manager\ResourceManager'
-            - '@Claroline\CoreBundle\Manager\Resource\ResourceActionManager'
-            - '@Claroline\CoreBundle\Manager\Resource\RightsManager'
+            - '@Claroline\CoreBundle\Listener\Resource\Types\DirectoryListener'
         tags:
             - { name: kernel.event_listener, event: resource.sidpt_document.load, method: onLoad }
             - { name: kernel.event_listener, event: resource.sidpt_document.copy, method: onCopy }
@@ -28,9 +26,7 @@ services:
             - '@Claroline\CoreBundle\Library\Configuration\PlatformConfigurationHandler'
             - '@Claroline\AppBundle\API\SerializerProvider'
             - '@Claroline\AppBundle\API\Crud'
-            - '@Claroline\CoreBundle\Manager\ResourceManager'
-            - '@Claroline\CoreBundle\Manager\Resource\ResourceActionManager'
-            - '@Claroline\CoreBundle\Manager\Resource\RightsManager'
+            - '@Claroline\CoreBundle\Listener\Resource\Types\DirectoryListener'
         tags:
             - { name: kernel.event_listener, event: resource.sidpt_binder.load, method: onLoad }
             - { name: kernel.event_listener, event: resource.sidpt_binder.add, method: onAdd }

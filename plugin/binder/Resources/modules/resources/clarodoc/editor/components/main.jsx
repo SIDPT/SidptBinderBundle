@@ -88,7 +88,7 @@ class DocumentEditorMain extends Component {
                     name: 'clarodoc.longTitle',
                     type: 'string',
                     label: trans('longTitle', {}, 'clarodoc'),
-                    required: true
+                    required: false
                   },{
                     name: 'clarodoc.centerTitle',
                     type: 'boolean',

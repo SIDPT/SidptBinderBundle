@@ -122,19 +122,18 @@ class DocumentSerializer
         $resourceName = $document->getResourceNode()->getName();
         $longTitle = $document->getLongTitle();
 
-        foreach ($document->getTranslations() as $translation) {
-            switch ($translation["path"]) {
-                case 'resourceName':
-                    # code...
-                    break;
-                case 'longTitle':
-                    # code...
-                    break;
-                
-                default:
-                    break;
-            }
-        }
+        // foreach ($document->getTranslations() as $translation) {
+        //     switch ($translation["path"]) {
+        //         case 'resourceName':
+        //             # code...
+        //             break;
+        //         case 'longTitle':
+        //             # code...
+        //             break;
+        //         default:
+        //             break;
+        //     }
+        // }
 
         $data = [
             'id'=>$document->getUuid(),
@@ -257,7 +256,7 @@ class DocumentSerializer
         $this->sipe('clarodoc.centerTitle', 'setCenterTitle', $data, $document);
         $this->sipe('clarodoc.translations', 'setTranslations', $data, $document);
 
-        if (isset($data['clarodoc']['widgets'])) {
+        if (isset($data['clarodoc']) && isset($data['clarodoc']['widgets'])) {
             $this->deserializeWidgets($data['clarodoc']['widgets'], $document, $options);
         }
 

@@ -18,6 +18,8 @@ use Sidpt\BinderBundle\Entity\Binder;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 
+use Claroline\CoreBundle\Listener\Resource\Types\DirectoryListener;
+
 use Claroline\CoreBundle\API\Serializer\ParametersSerializer;
 use Claroline\CoreBundle\Entity\Resource\AbstractResource;
 use Claroline\CoreBundle\Entity\Resource\Directory;
@@ -48,18 +50,14 @@ class DocumentListener
         PlatformConfigurationHandler $config,
         SerializerProvider $serializer,
         Crud $crud,
-        ResourceManager $resourceManager,
-        ResourceActionManager $actionManager,
-        RightsManager $rightsManager
+        DirectoryListener $directoryListener
     ) {
         $this->authorization = $authorization;
         $this->om = $om;
         $this->config = $config;
         $this->serializer = $serializer;
         $this->crud = $crud;
-        $this->resourceManager = $resourceManager;
-        $this->rightsManager = $rightsManager;
-        $this->actionManager = $actionManager;
+        $this->directoryListener = $directoryListener;
     }
 
     public function onLoad(LoadResourceEvent $event)
@@ -103,69 +101,11 @@ class DocumentListener
     }
 
     /**
-     * From the directory listener : add a resource in a binder
+     * Adds a new resource inside a directory.
      */
     public function onAdd(ResourceActionEvent $event)
     {
-        $data = $event->getData();
-        $parent = $event->getResourceNode();
-
-        $add = $this->actionManager->get($parent, 'add');
-
-        // checks if the current user can add
-        $collection = new ResourceCollection([$parent], ['type' => $data['resourceNode']['meta']['type']]);
-        if (!$this->actionManager->hasPermission($add, $collection)) {
-            throw new AccessDeniedException($collection->getErrorsForDisplay());
-        }
-
-        $options = $event->getOptions();
-
-        // create the resource node
-
-        /** @var ResourceNode $resourceNode */
-        $resourceNode = $this->crud->create(ResourceNode::class, $data['resourceNode'], $options);
-        $resourceNode->setParent($parent);
-        $resourceNode->setWorkspace($parent->getWorkspace());
-
-        // initialize custom resource Entity
-        $resourceClass = $resourceNode->getResourceType()->getClass();
-
-        /** @var AbstractResource $resource */
-        $resource = $this->crud->create($resourceClass, !empty($data['resource']) ? $data['resource'] : [], $options);
-        $resource->setResourceNode($resourceNode);
-
-        // maybe do it in the serializer (if it can be done without intermediate flush)
-        if (!empty($data['resourceNode']['rights'])) {
-            foreach ($data['resourceNode']['rights'] as $rights) {
-                /** @var Role $role */
-                $role = $this->om->getRepository(Role::class)->findOneBy(['name' => $rights['name']]);
-
-                $creation = [];
-                if (!empty($rights['permissions']['create']) && $resource instanceof Directory) {
-                    // only forward creation rights to resource which can handle it (only directories atm)
-                    $creation = $rights['permissions']['create'];
-                }
-                $this->rightsManager->editPerms($rights['permissions'], $role, $resourceNode, false, $creation);
-            }
-        } else {
-            // todo : initialize default rights
-        }
-
-        $this->om->persist($resource);
-        $this->om->persist($resourceNode);
-
-        $this->om->flush();
-
-        // todo : dispatch get/load action instead
-        $event->setResponse(
-            new JsonResponse(
-                [
-                    'resourceNode' => $this->serializer->serialize($resourceNode),
-                    'resource' => $this->serializer->serialize($resource),
-                ],
-                201
-            )
-        );
+        $this->directoryListener->onAdd($event);
     }
 
 
