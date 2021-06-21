@@ -12,8 +12,14 @@ import {DocumentEditorMain as DocumentEditorMainComponent} from '~/sidpt/binder-
 
 import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
 
+import {displayDate} from '#/main/app/intl/date'
 
-
+const getUpdateDate = (resourceNode)=>{
+  if(resourceNode && resourceNode.meta && resourceNode.meta.updated){
+    return displayDate(resourceNode.meta.updated, false, true)
+  }
+  return "";
+}
 
 const DocumentEditorMain = withRouter(
   connect(
@@ -22,7 +28,9 @@ const DocumentEditorMain = withRouter(
       path: resourcesSelectors.path(state),
       currentContext: {
         type:"workspace",
-        data:resourcesSelectors.workspace(state)
+        data:resourcesSelectors.workspace(state),
+        resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
+        lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
       }
     }),
     (dispatch) => ({

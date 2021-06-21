@@ -16,13 +16,24 @@ import {selectors as resourcesToolSelectors} from '#/main/core/tools/resources/s
 
 import {PlayerMain as DirectoryPlayerMainComponent} from '#/main/core/resources/directory/player/components/main'
 
+import {displayDate} from '#/main/app/intl/date'
+
+const getUpdateDate = (resourceNode)=>{
+  if(resourceNode && resourceNode.meta && resourceNode.meta.updated){
+    return displayDate(resourceNode.meta.updated, false, true)
+  }
+  return "";
+}
+
 const DocumentPlayerMain = withRouter(
   connect(
     (state) => ({
       document: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).clarodoc,
       currentContext: {
         type:"workspace",
-        data:resourcesSelectors.workspace(state)
+        data:resourcesSelectors.workspace(state),
+        resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
+        lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
       }
     })
   )(DocumentPlayerMainComponent)
