@@ -160,6 +160,17 @@ class BinderTab
      */
     private $visible = true;
 
+
+    /**
+     * When true, the tab used as "cover" page of the binder instead of a sub section
+     * in the menu
+     *
+     * @ORM\Column(type="boolean", name="is_cover")
+     *
+     * @var bool
+     */
+    private $cover = false;
+
     /**
      * @ORM\Column(type="json_array", nullable=true)
      *
@@ -467,5 +478,13 @@ class BinderTab
     {
         $linkedRessource = $this->document ?? $this->binder ?? null;
         return empty($linkedRessource) ? $this->getUuid() : $linkedRessource->getResourceNode()->getSlug();
+    }
+
+    public function isCover($newState = null)
+    {
+        if (!empty($newState)) {
+            $this->cover = $newState;
+        }
+        return $this->cover;
     }
 }

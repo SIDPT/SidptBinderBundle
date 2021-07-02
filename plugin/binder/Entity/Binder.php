@@ -38,6 +38,15 @@ class Binder extends AbstractResource
      */
     protected $binderTabs;
 
+
+    /**
+     * When true, activate the tab-based navigation
+     *
+     * @ORM\Column(type="boolean", name="display_tabs")
+     * @var [type]
+     */
+    private $displayTabs = false;
+
     
     /**
      * Document constructor.

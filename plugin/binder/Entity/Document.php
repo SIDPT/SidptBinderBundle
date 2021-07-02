@@ -20,8 +20,6 @@ use Claroline\AppBundle\Entity\Parameters\ListParameters;
 class Document extends AbstractResource
 {
     use Uuid;
-
-
     use ListParameters;
     
     /**
@@ -34,6 +32,34 @@ class Document extends AbstractResource
      * @ORM\Column(name="center_title", type="boolean")
      */
     private $centerTitle = false;
+
+
+    /**
+     * ResourceNode holding the tree of
+     * required/recommended resource to have read before
+     *
+     * @ORM\ManyToOne(
+     *     targetEntity="Claroline\CoreBundle\Entity\Resource\ResourceNode"
+     * )
+     * @ORM\JoinColumn(
+     *     name="requirements_node_id",
+     *     referencedColumnName="id",
+     *     onDelete="SET NULL"
+     * )
+     *
+     * @var ResourceNode
+     */
+    private $requiredResourceNodeTreeRoot = null;
+
+    /**
+     * @ORM\Column(name="overview", type="boolean")
+     */
+    private $showOverview = false;
+
+    /**
+     * @ORM\Column(name="widgets_pagination", type="boolean")
+     */
+    private $widgetsPagination = false;
 
     /**
      * Widgets of a document
@@ -49,8 +75,13 @@ class Document extends AbstractResource
      *      },
      *      inverseJoinColumns={
      *          @ORM\JoinColumn(
-     *          name="widget_container_id",
-     *         referencedColumnName="id", unique=true)})
+     *              name="widget_container_id",
+     *              referencedColumnName="id",
+     *              unique=true,
+     *              onDelete="CASCADE"
+     *         )
+     *      }
+     *  )
      *
      * @var WidgetContainer[]|ArrayCollection
      */
@@ -74,7 +105,7 @@ class Document extends AbstractResource
      *      }
      *  } ...
      * }]
-     * 
+     *
      *
      * @ORM\Column(type="json", nullable=true)
      *
@@ -234,6 +265,7 @@ class Document extends AbstractResource
     }
 
     
+    
     /**
      * [getPreviousVersion description]
      * @return [type] [description]
@@ -242,8 +274,62 @@ class Document extends AbstractResource
     {
         $this->locale = $locale;
     }
+
+    /**
+     * [setrequiredResourceNodeTreeRoot description]
+     * @param [type] $resourceNode [description]
+     */
+    public function setRequiredResourceNodeTreeRoot($resourceNode = null)
+    {
+        $this->requiredResourceNodeTreeRoot = $resourceNode;
+    }
     
-    
+    /**
+     * [getrequiredResourceNodeTreeRoot description]
+     * @return [type] [description]
+     */
+    public function getRequiredResourceNodeTreeRoot()
+    {
+        return $this->requiredResourceNodeTreeRoot;
+    }
+
+
+    /**
+     * [setShowOverview description]
+     * @return [type] [description]
+     */
+    public function setShowOverview(bool $showOverview)
+    {
+        $this->showOverview = $showOverview;
+    }
+
+    /**
+     * [getShowOverview description]
+     * @return [type] [description]
+     */
+    public function getShowOverview()
+    {
+        return $this->showOverview;
+    }
+
+     /**
+     * [getShowOverview description]
+     * @return [type] [description]
+     */
+    public function getWidgetsPagination()
+    {
+        return $this->widgetsPagination;
+    }
+
+    /**
+     * [setwidgetsPagination description]
+     * @return [type] [description]
+     */
+    public function setWidgetsPagination(bool $widgetsPagination)
+    {
+        $this->widgetsPagination = $widgetsPagination;
+    }
+
 
     public function __toString()
     {
@@ -272,5 +358,4 @@ class Document extends AbstractResource
             $this->widgetContainers = $containersClone;
         }
     }
-
 }

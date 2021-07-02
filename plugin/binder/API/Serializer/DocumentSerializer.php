@@ -8,7 +8,9 @@ use Claroline\AppBundle\API\Serializer\SerializerTrait;
 use Claroline\AppBundle\Persistence\ObjectManager;
 
 use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 use Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer;
+use Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer;
 
 use Sidpt\BinderBundle\Entity\Document;
 
@@ -40,6 +42,12 @@ class DocumentSerializer
     private $widgetContainerSerializer;
 
     /**
+     * [$resourceNodeSerializer description]
+     * @var [type]
+     */
+    private $resourceNodeSerializer;
+
+    /**
      * DocumentSerializer constructor.
      *
      * @param ObjectManager             $om                        desc
@@ -47,10 +55,12 @@ class DocumentSerializer
      */
     public function __construct(
         ObjectManager $om,
-        WidgetContainerSerializer $widgetContainerSerializer
+        WidgetContainerSerializer $widgetContainerSerializer,
+        ResourceNodeSerializer $resourceNodeSerializer
     ) {
         $this->om = $om;
         $this->widgetContainerSerializer = $widgetContainerSerializer;
+        $this->resourceNodeSerializer = $resourceNodeSerializer;
     }
 
     /**
@@ -135,6 +145,7 @@ class DocumentSerializer
         //     }
         // }
 
+        $resourceNode = $document->getRequiredResourceNodeTreeRoot();
         $data = [
             'id'=>$document->getUuid(),
             'clarodoc' => [
@@ -142,6 +153,8 @@ class DocumentSerializer
                 'resourceName' => $resourceName,
                 'longTitle' => $longTitle,
                 'centerTitle' => $document->isCenterTitle(),
+                'showOverview' => $document->getShowOverview(),
+                'widgetsPagination' => $document->getWidgetsPagination(),
                 'widgets' => array_map(
                     function ($container) use ($options) {
                         return $this->widgetContainerSerializer
@@ -149,6 +162,9 @@ class DocumentSerializer
                     },
                     $containers
                 ),
+                'requiredResourceNodeTreeRoot' => $resourceNode ?
+                    $this->resourceNodeSerializer->serialize($resourceNode) :
+                    null,
                 'translations' => $document->getTranslations()
             ],
             'directory' => [
@@ -256,10 +272,21 @@ class DocumentSerializer
 
         $this->sipe('clarodoc.longTitle', 'setLongTitle', $data, $document);
         $this->sipe('clarodoc.centerTitle', 'setCenterTitle', $data, $document);
+        $this->sipe('clarodoc.showOverview', 'setShowOverview', $data, $document);
+        $this->sipe('clarodoc.widgetsPagination', 'setWidgetsPagination', $data, $document);
         $this->sipe('clarodoc.translations', 'setTranslations', $data, $document);
 
         if (isset($data['clarodoc']) && isset($data['clarodoc']['widgets'])) {
             $this->deserializeWidgets($data['clarodoc']['widgets'], $document, $options);
+        }
+        if (isset($data['clarodoc']) && isset($data['clarodoc']['requiredResourceNodeTreeRoot'])) {
+            $resourceNode = $this->om->getRepository(ResourceNode::class)
+                ->findOneBy(['uuid' => $data['clarodoc']['requiredResourceNodeTreeRoot']['id']]);
+            if (!empty($resourceNode)) {
+                $document->setRequiredResourceNodeTreeRoot($resourceNode);
+            }
+        } else {
+            $document->setRequiredResourceNodeTreeRoot(null);
         }
 
         $this->sipe('directory.list.count', 'setCount', $data, $document);

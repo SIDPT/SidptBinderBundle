@@ -93,6 +93,19 @@ class DocumentEditorMain extends Component {
                     name: 'clarodoc.centerTitle',
                     type: 'boolean',
                     label: trans('center_title',  {}, 'clarodoc')
+                  },{
+                    name: 'clarodoc.showOverview',
+                    type: 'boolean',
+                    label: trans('show_overview',  {}, 'clarodoc')
+                  },{
+                    name: 'clarodoc.widgetsPagination',
+                    type: 'boolean',
+                    label: trans('split_sections_in_pages',  {}, 'clarodoc')
+                  },{
+                    name: `clarodoc.requiredResourceNodeTreeRoot`,
+                    label: trans('required_resource_directory'),
+                    type: 'resource',
+                    required: false
                   }
                 ]
               }

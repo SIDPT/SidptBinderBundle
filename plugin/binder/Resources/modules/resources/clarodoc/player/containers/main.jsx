@@ -29,6 +29,8 @@ const DocumentPlayerMain = withRouter(
   connect(
     (state) => ({
       document: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).clarodoc,
+      resource: state['resource'],
+      path: resourceSelectors.basePath(state),
       currentContext: {
         type:"workspace",
         data:resourcesSelectors.workspace(state),

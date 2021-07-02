@@ -10,6 +10,7 @@ services:
       arguments:
          - '@Claroline\AppBundle\Persistence\ObjectManager'
          - '@Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer'
+         - '@Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer'
       # calls:
       #    - setLogger: [ '@logger' ]
 
