@@ -410,6 +410,7 @@ class GenerateContent extends AbstractAction
 
             $courseNode->setResourceType($this->documentType);
             $courseNode->setMimeType("custom/sidpt_document");
+            $this->om->persist($courseNode);
 
         } else {
             // check if resource is binder
@@ -494,6 +495,7 @@ class GenerateContent extends AbstractAction
 
             $moduleNode->setResourceType($this->documentType);
             $moduleNode->setMimeType("custom/sidpt_document");
+            $this->om->persist($moduleNode);
 
         } else {
             // check if resource is binder
@@ -583,6 +585,7 @@ class GenerateContent extends AbstractAction
             $learningUnitNode->setParent($moduleNode);
             $learningUnitNode->setCreator($user);
             $learningUnitNode->setMimeType("custom/sidpt_document");
+            $this->om->persist($learningUnitNode);
 
             $learningUnitDocument = new Document();
             $learningUnitDocument->setResourceNode($learningUnitNode);
@@ -769,19 +772,23 @@ HTML);
         $newWidget = new ResourceWidget();
         $newWidget->setResourceNode($resourceNode);
         $newWidget->setShowResourceHeader(false);
+        $this->om->persist($newWidget);
 
         $newWidgetInstance = new WidgetInstance();
         $newWidgetInstance->setWidget($this->resourceWidgetType);
         $newWidgetInstance->setDataSource($this->resourceDataSource);
+        $this->om->persist($newWidgetInstance);
         $newWidget->setWidgetInstance($newWidgetInstance);
 
         $newWidgetInstanceConfig = new WidgetInstanceConfig();
         $newWidgetInstanceConfig->setType("resource");
         $newWidgetInstanceConfig->setWidgetInstance($newWidgetInstance);
+        $this->om->persist($newWidgetInstanceConfig);
 
         $newWidgetContainer = new WidgetContainer();
         $newWidgetContainer->addInstance($newWidgetInstance);
         $newWidgetInstance->setContainer($newWidgetContainer);
+        $this->om->persist($newWidgetContainer);
 
         $newWidgetContainerConfig = new WidgetContainerConfig();
         $newWidgetContainerConfig->setName($name);
@@ -790,10 +797,9 @@ HTML);
         $newWidgetContainerConfig->setPosition(0);
         $newWidgetContainerConfig->setLayout(array(1));
         $newWidgetContainerConfig->setWidgetContainer($newWidgetContainer);
-
-        $this->om->persist($newWidget);
-        $this->om->persist($newWidgetInstance);
-        $this->om->persist($newWidgetContainer);
+        $this->om->persist($newWidgetContainerConfig);
+        
+        
 
         $document->addWidgetContainer($newWidgetContainer);
         $this->om->persist($document);
@@ -822,6 +828,7 @@ HTML);
             $subNode->setParent($documentNode);
             $subNode->setCreator($user);
             $subNode->setMimeType("custom/".$resourceType->getName());
+            $this->om->persist($subNode);
 
             $resourceclass = $resourceType->getClass();
             $subResource = new $resourceclass();
@@ -836,8 +843,8 @@ HTML);
                 }
             }
             
-            $this->om->persist($subNode);
             $this->om->persist($subResource);
+            
             $this->om->persist($document);
 
             $this->addResourceWidget($document, $subNode, $nodeName);
