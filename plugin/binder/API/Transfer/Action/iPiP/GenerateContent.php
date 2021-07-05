@@ -503,7 +503,7 @@ class GenerateContent extends AbstractAction
             // check if existing resource is binder
             if ($moduleNode->getResourceType()->getId() == $this->binderType->getId()) {
                 // Replace by document
-                
+                $moduleBinder = $this->resourceManager->getResourceFromNode($moduleNode);
                 
                 $moduleNode->setResourceType($this->documentType);
                 $moduleNode->setMimeType("custom/sidpt_document");
