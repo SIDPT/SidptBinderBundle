@@ -400,6 +400,7 @@ class GenerateContent extends AbstractAction
                 'workspace' => $workspace->getId()
             ]
         );
+        $courseDocument = null;
         if (empty($courseNode)) {
             $courseNode = new ResourceNode();
             $courseNode->setName($course);
@@ -410,9 +411,6 @@ class GenerateContent extends AbstractAction
             $courseNode->setResourceType($this->documentType);
             $courseNode->setMimeType("custom/sidpt_document");
 
-            $courseDocument = new Document();
-            $courseDocument->setResourceNode($courseNode);
-
         } else {
             // check if resource is binder
             if ($courseNode->getResourceType()->getId() == $this->binderType->getId()) {
@@ -421,16 +419,16 @@ class GenerateContent extends AbstractAction
                 
                 $courseNode->setResourceType($this->documentType);
                 $courseNode->setMimeType("custom/sidpt_document");
-
-                $courseDocument = new Document();
-                $courseDocument->setResourceNode($courseNode);
                 
                 $this->om->remove($courseBinder);
             } else {
                 $courseDocument = $this->resourceManager->getResourceFromNode($courseNode);
             }
         }
-
+        if (empty($courseDocument)) {
+            $courseDocument = new Document();
+            $courseDocument->setResourceNode($courseNode);
+        }
         $courseDocument->setName($course);
         $this->addOrUpdateResourceListWidget($courseDocument, $courseNode, "Modules");
         $this->om->persist($courseDocument);
@@ -486,42 +484,39 @@ class GenerateContent extends AbstractAction
                 'workspace' => $workspace->getId()
             ]
         );
+        $moduleDocument = null;
         if (empty($moduleNode)) {
             $moduleNode = new ResourceNode();
             $moduleNode->setName($module);
             $moduleNode->setWorkspace($workspace);
-            $moduleNode->setParent($courseNode);
+            $moduleNode->setParent($curriculumNode);
             $moduleNode->setCreator($user);
 
             $moduleNode->setResourceType($this->documentType);
             $moduleNode->setMimeType("custom/sidpt_document");
 
-            $moduleDocument = new Document();
-            $moduleDocument->setResourceNode($moduleNode);
-
         } else {
-            // check if existing resource is binder
+            // check if resource is binder
             if ($moduleNode->getResourceType()->getId() == $this->binderType->getId()) {
                 // Replace by document
                 $moduleBinder = $this->resourceManager->getResourceFromNode($moduleNode);
                 
                 $moduleNode->setResourceType($this->documentType);
                 $moduleNode->setMimeType("custom/sidpt_document");
-
-                $moduleDocument = new Document();
-                $moduleDocument->setResourceNode($moduleNode);
-                
                 
                 $this->om->remove($moduleBinder);
             } else {
                 $moduleDocument = $this->resourceManager->getResourceFromNode($moduleNode);
             }
         }
-
+        if (empty($moduleDocument)) {
+            $moduleDocument = new Document();
+            $moduleDocument->setResourceNode($moduleNode);
+        }
         $moduleDocument->setName($module);
         $this->addOrUpdateResourceListWidget($moduleDocument, $moduleNode, "Learning units");
-        $this->om->persist($moduleNode);
         $this->om->persist($moduleDocument);
+        $this->om->persist($moduleNode);
         $this->om->flush();
 
         $this->tagManager->tagData(
