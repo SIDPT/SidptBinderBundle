@@ -279,15 +279,20 @@ class GenerateContent extends AbstractAction
         }
 
 
-
-
+        // make the curriculum tag
+        $curriculumTag = $this->tagManager->getOnePlatformTagByName($curriculum);
+        if (empty($curriculumTag)) {
+            $curriculumTag = new Tag();
+            $curriculumTag->setName($curriculum);
+            $this->om->persist($curriculumTag);
+        }
         // Tag the workspace (if not already done)
         $this->tagManager->tagObject(
-            ['Curriculum',$curriculum],
+            ['Content level/Curriculum',$curriculumTag->getPath()],
             $workspace
         );
         // retrieve tag for next usage
-        $curriculumTag = $this->tagManager->getOnePlatformTagByName($curriculum);
+        
         
         // Workspace root directory
         $curriculumNode = $this->resourceNodeRepo->findOneBy(
@@ -436,20 +441,22 @@ class GenerateContent extends AbstractAction
         $this->om->persist($courseNode);
         $this->om->flush();
 
+        // Get or create the the course tag (on the plateforme)
+        $courseTag = $this->tagManager->getOnePlatformTagByName($course, $curriculumTag);
+        if (empty($courseTag)) {
+            $courseTag = new Tag();
+            $courseTag->setName($course);
+            $courseTag->setParent($curriculumTag);
+            $this->om->persist($courseTag);
+        }
         $this->tagManager->tagData(
-            ['Course', $course],
+            ['Content level/Course', $courseTag->getPath()],
             [ 0 => [
                 'id'=> $courseNode->getUuid(),
                 'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
-                'name' => "{$curriculum}|{$course}"
+                'name' => "{$curriculum}/{$course}"
             ]]
         );
-
-        // Add the course tag under the curriculum tag
-        $courseTag = $this->tagManager->getOnePlatformTagByName($course);
-        $curriculumTag->addLinkedTag($courseTag);
-        $this->om->persist($curriculumTag);
-        $this->om->persist($courseTag);
         $this->om->flush();
 
         $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $courseNode);
@@ -521,19 +528,22 @@ class GenerateContent extends AbstractAction
         $this->om->persist($moduleNode);
         $this->om->flush();
 
+        // Get or create the the module tag (plateforme tags)
+        $moduleTag = $this->tagManager->getOnePlatformTagByName($module, $courseTag);
+        if (empty($moduleTag)) {
+            $moduleTag = new Tag();
+            $moduleTag->setName($module);
+            $moduleTag->setParent($courseTag);
+            $this->om->persist($moduleTag);
+        }
         $this->tagManager->tagData(
-            ['Module', $module],
+            ['Content level/Module', $moduleTag->getPath()],
             [ 0 => [
                 'id'=> $moduleNode->getUuid(),
                 'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
-                'name' => "{$curriculum}|{$course}|{$module}"
+                'name' => "{$curriculum}/{$course}/{$module}"
             ]]
         );
-        // Add the module tag under the course tag
-        $moduleTag = $this->tagManager->getOnePlatformTagByName($module);
-        $courseTag->addLinkedTag($moduleTag);
-        $this->om->persist($courseTag);
-        $this->om->persist($moduleTag);
         $this->om->flush();
 
         $this->nodeSeralizer->deserializeRights(
@@ -645,19 +655,22 @@ HTML);
         $this->om->persist($learningUnitDocument);
         $this->om->flush();
 
+        // Get or create the the module tag (plateforme tags)
+        $learningUnitTag = $this->tagManager->getOnePlatformTagByName($learningUnit, $moduleTag);
+        if (empty($learningUnitTag)) {
+            $learningUnitTag = new Tag();
+            $learningUnitTag->setName($learningUnit);
+            $learningUnitTag->setParent($moduleTag);
+            $this->om->persist($learningUnitTag);
+        }
         $this->tagManager->tagData(
-            ['Learning unit', $learningUnit],
+            ['Content level/Learning unit', $learningUnitTag->getPath()],
             [ 0 => [
                 'id'=> $learningUnitNode->getUuid(),
                 'class' => "Claroline\CoreBundle\Entity\Resource\ResourceNode",
-                'name' => "{$curriculum}|{$course}|{$module}|{$learningUnit}"
+                'name' => "{$curriculum}/{$course}/{$module}/${learningUnit}"
             ]]
         );
-        // Add the learningUnit tag under the module tag
-        $learningUnitTag = $this->tagManager->getOnePlatformTagByName($learningUnit);
-        $moduleTag->addLinkedTag($learningUnitTag);
-        $this->om->persist($moduleTag);
-        $this->om->persist($learningUnitTag);
         $this->om->flush();
 
         $this->nodeSeralizer->deserializeRights(
