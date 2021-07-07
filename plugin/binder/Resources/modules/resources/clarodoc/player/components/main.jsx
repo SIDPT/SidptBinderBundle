@@ -71,7 +71,7 @@ class DocumentPlayerMain extends Component {
       const backButtonLabel = 
         this.props.document.showOverview && this.state.selectedPage <= 1 ? 
           trans('overview') :
-          ( visibleWidgets[this.state.selectedPage - 2].name ?
+          ( this.state.selectedPage > 2 && visibleWidgets[this.state.selectedPage - 2].name ?
             visibleWidgets[this.state.selectedPage - 2].name : 
             trans('back')
           )
