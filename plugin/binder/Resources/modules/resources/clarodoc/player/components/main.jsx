@@ -48,6 +48,7 @@ class DocumentPlayerMain extends Component {
     // TODO document parameter to be stored
     
 
+
     let visibleWidgets = this.props.document.widgets.filter(
         widget => widget.visible === true
       ).map((widget,index)=>{
@@ -60,6 +61,20 @@ class DocumentPlayerMain extends Component {
         }
         return temp;
       });
+
+      const nextButtonLabel = ( 
+        this.props.document.widgetsPagination && 
+          visibleWidgets.length > this.state.selectedPage && 
+          visibleWidgets[this.state.selectedPage].name != null
+      ) ? visibleWidgets[this.state.selectedPage].name : trans('next')
+
+      const backButtonLabel = 
+        this.props.document.showOverview && this.state.selectedPage <= 1 ? 
+          trans('overview') :
+          ( visibleWidgets[this.state.selectedPage - 2].name ?
+            visibleWidgets[this.state.selectedPage - 2].name : 
+            trans('back')
+          )
 
       return (
         <Fragment>
@@ -92,22 +107,26 @@ class DocumentPlayerMain extends Component {
                     <Button
                       className="btn btn-emphasis component-container pull-left"
                       type={CALLBACK_BUTTON}
-                      label={trans('back')}
                       callback={() => {
                         this.selectPage(this.state.selectedPage - 1);
                       }}
                       primary={true}
-                    />
+                    > 
+                      <span className="fa fa-angle-double-left icon-with-text-right" />
+                      {backButtonLabel}  
+                    </Button>
                     {visibleWidgets.length > this.state.selectedPage &&
                         <Button
                           className="btn btn-emphasis component-container pull-right"
                           type={CALLBACK_BUTTON}
-                          label={trans('next')}
                           callback={() => {
                             this.selectPage(this.state.selectedPage + 1);
                           }}
                           primary={true}
-                        />
+                        >
+                        {nextButtonLabel}
+                        <span className="fa fa-angle-double-right icon-with-text-left" />
+                        </Button>
                     }
                   </div>
                 </div>
@@ -137,12 +156,14 @@ class DocumentPlayerMain extends Component {
                       <Button
                         className="btn btn-emphasis component-container pull-left"
                         type={CALLBACK_BUTTON}
-                        label={trans('back')}
                         callback={() => {
                           this.selectPage(this.state.selectedPage - 1);
                         }}
                         primary={true}
-                      />
+                      > 
+                        <span className="fa fa-angle-double-left icon-with-text-right" />
+                        {backButtonLabel}  
+                      </Button>
                     </div>
                   }
                 </div>
