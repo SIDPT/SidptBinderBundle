@@ -70,8 +70,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
  * with a specified template
  * (or maybe use the resource description for it?
  *  just in case, also set the node description with the same template for now)
- *  
- * 
+ *
+ *
  */
 class GenerateContent extends AbstractAction
 {
@@ -276,6 +276,9 @@ class GenerateContent extends AbstractAction
             $this->om->persist($workspace);
 
             $this->om->flush();
+        } else {
+            // Update workspace :
+            // Set to open the "summary" document instead of the tab view ?
         }
 
 
@@ -291,9 +294,7 @@ class GenerateContent extends AbstractAction
             ['Content level/Curriculum',$curriculumTag->getPath()],
             $workspace
         );
-        // retrieve tag for next usage
-        
-        
+                
         // Workspace root directory
         $curriculumNode = $this->resourceNodeRepo->findOneBy(
             [
@@ -313,8 +314,12 @@ class GenerateContent extends AbstractAction
             }
         }
         // Update root node rights
-        $this->nodeSeralizer->deserializeRights($curriculumNodeData['rights'], $curriculumNode);
+        $this->nodeSeralizer->deserializeRights(
+            $curriculumNodeData['rights'],
+            $curriculumNode
+        );
 
+        /* TODO : make manual updates of summaries
 
         $curriculumSummaryNode = $this->resourceNodeRepo->findOneBy(
             [
@@ -387,12 +392,14 @@ class GenerateContent extends AbstractAction
                 'data' => $data,
                 'log' => "Created the summary document of {$curriculum}",
             ];
+        } else {
+            // Updating the summary document
         }
-        
         $this->nodeSeralizer->deserializeRights(
             $curriculumNodeData['rights'],
             $curriculumSummaryNode
         );
+        */
 
         if (empty($course)) { // No course provided, ending the treatment
             return;
@@ -416,7 +423,6 @@ class GenerateContent extends AbstractAction
             $courseNode->setResourceType($this->documentType);
             $courseNode->setMimeType("custom/sidpt_document");
             $this->om->persist($courseNode);
-
         } else {
             // check if resource is binder
             if ($courseNode->getResourceType()->getId() == $this->binderType->getId()) {
@@ -503,7 +509,6 @@ class GenerateContent extends AbstractAction
             $moduleNode->setResourceType($this->documentType);
             $moduleNode->setMimeType("custom/sidpt_document");
             $this->om->persist($moduleNode);
-
         } else {
             // check if resource is binder
             if ($moduleNode->getResourceType()->getId() == $this->binderType->getId()) {
@@ -584,7 +589,7 @@ class GenerateContent extends AbstractAction
         );
         $learningOutcomeContent = $learningOutcome ??
                 <<<HTML
-                    <p><span style="color: #ff0000;"><strong>Author please fill this section</strong></span></p>
+                    <p><span style="color: #ff0000;"><strong>Author, please fill this section</strong></span></p>
                 HTML;
 
         if (empty($learningUnitNode)) {
@@ -599,7 +604,6 @@ class GenerateContent extends AbstractAction
 
             $learningUnitDocument = new Document();
             $learningUnitDocument->setResourceNode($learningUnitNode);
-
         } else {
             $learningUnitDocument = $this->resourceManager
                 ->getResourceFromNode($learningUnitNode);
@@ -609,7 +613,7 @@ class GenerateContent extends AbstractAction
         $learningUnitDocument->setShowOverview(true);
         $learningUnitDocument->setWidgetsPagination(true);
         $learningUnitNode->setDescription(
-<<<HTML
+            <<<HTML
 <table class="table table-striped table-hover table-condensed data-table" style="height: 133px; width: 100%; border-collapse: collapse; margin-left: auto; margin-right: auto;" border="1" cellspacing="5px" cellpadding="20px">
 <tbody>
 <tr style="height: 19px;">
@@ -626,15 +630,15 @@ class GenerateContent extends AbstractAction
 </tr>
 <tr style="height: 19px;">
 <td style="width: 50%; height: 19px;">Who is it for?</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["Professional profile"]}}{{keys}}{{/resource.resourceNode.tags["Professional profile"]}}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
 </tr>
 <tr style="height: 19px;">
 <td style="width: 50%; height: 19px;">What is included?</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["Included resource type"]}}{{keys}}{{/resource.resourceNode.tags["Included resource type"]}}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
 </tr>
 <tr style="height: 19px;">
 <td style="width: 50%; height: 19px;">How long will it take?</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["Time frame"]}}{{keys}}{{/resource.resourceNode.tags["Time frame"]}}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
 </tr>
 <tr style="height: 19px;">
 <td style="width: 50%; height: 19px;">Last updated</td>
@@ -644,11 +648,12 @@ class GenerateContent extends AbstractAction
 </table>
 <h3>Learning outcome</h3>
 <p>{$learningOutcomeContent}</p>
-<p>{{#resource.resourceNode.tags["Disclaimer"] }}</p>
+<p>{{#resource.resourceNode.tags["disclaimer"] }}</p>
 <h3>Disclaimer</h3>
 <p class="p1">This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.</p>
-<p>{{/resource.resourceNode.tags["Disclaimer"] }}</p>
-HTML);
+<p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
+HTML //end of document
+        );
 
         
         $this->om->persist($learningUnitNode);
@@ -851,8 +856,10 @@ HTML);
             if ($resourceType->getName() == "ujm_exercise") {
                 if ($nodeName == "Practice") {
                     $subResource->setType(ExerciseType::CONCEPTUALIZATION);
+                    $subResource->setScoreRule(json_encode(["type" => "none"]));
                 } else if ($nodeName == "Assessment") {
                     $subResource->setType(ExerciseType::SUMMATIVE);
+                    $subResource->setScoreRule(json_encode(["type" => "sum"]));
                 }
             }
             
@@ -861,8 +868,25 @@ HTML);
             $this->om->persist($document);
 
             $this->addResourceWidget($document, $subNode, $nodeName);
-
         } else { // Update the document or node
+            // Update the underlying resource
+            $subResource = $this->resourceManager->getResourceFromNode($subNode);
+            if ($subResource->getMimeType() == "custom/ujm_exercise") {
+                if ($subResource->getType() == ExerciseType::SUMMATIVE) {
+                    if (empty($subResource->getScoreRule())) {
+                        $subResource->setScoreRule(
+                            json_encode(["type" => "none"])
+                        );
+                    }
+                } else if ($subResource->getType() == ExerciseType::SUMMATIVE) {
+                    if (empty($subResource->getScoreRule())) {
+                        $subResource->setScoreRule(
+                            json_encode(["type" => "sum"])
+                        );
+                    }
+                }
+            }
+            // update the widget
             $subNodeWidgets = $this->resourceWidgetsRepo->findBy(
                 [
                     'resourceNode' => $subNode->getId()
@@ -932,7 +956,6 @@ HTML);
             $this->om->persist($newWidgetContainer);
 
             $document->addWidgetContainer($newWidgetContainer);
-
         } else {
             $container = $document->getWidgetContainers()->first();
             $containerConfig = $container->getWidgetContainerConfigs()->first();
@@ -975,7 +998,7 @@ HTML);
      */
     public function getClass()
     {
-        return Workspace::class;
+        return ResourceNode::class;
     }
 
     /**
@@ -983,7 +1006,8 @@ HTML);
      */
     public function getAction()
     {
-        return ['workspace', 'generate_ipip_content'];
+        return ['content', 'generate_ipip_content'];
+        //return ['workspace', 'generate_ipip_content'];
     }
 
     /**
