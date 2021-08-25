@@ -64,7 +64,7 @@ class DocumentListener
     {
         /** @var Binder $document */
         $document = $event->getResource();
-        $documentData = $this->serializer->serialize($document);
+        $documentData = $this->serializer->serialize($document, ['translated']);
         $event->setData($documentData);
         $event->stopPropagation();
     }
