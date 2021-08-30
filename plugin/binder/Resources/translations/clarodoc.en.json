@@ -1,5 +1,24 @@
 {
-	"resourceName": "Resource (header) title",
+	"resourceName":"Resource (header) title",
 	"longTitle":"Extended title of the document",
-	"center_title":"Center the title on page"
+	"center_title":"Center the title on page",
+
+	"Learning unit":"Learning unit",
+	"Module":"Module",
+	"Course":"Course",
+	"Who is it for?":"Who is it for?",
+	"What is included?":"What is included?",
+	"How long will it take?":"How long will it take?",
+	"Last updated":"Last updated",
+	"Learning outcome":"Learning outcome",
+	"Disclaimer":"Disclaimer",
+	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.",
+
+	"Practice":"Practice",
+	"Theory":"Theory",
+	"Assessment":"Assessment",
+	"Activity":"Activity",
+	"References": "References",
+	"External references": "External references",
+	"IPIP references": "IPIP references"
 }

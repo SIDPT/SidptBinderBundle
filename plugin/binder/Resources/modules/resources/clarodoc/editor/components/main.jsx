@@ -61,7 +61,22 @@ class DocumentEditorMain extends Component {
         defaultValues[field.path] = get(this.props.data.clarodoc,`${field.path}`,'');
       }
     }
-    
+    /*
+    <Button
+              className="btn btn-block btn-emphasis component-container"
+              type={MODAL_BUTTON}
+              label={trans('translations')}
+              modal={[MODAL_TRANSLATIONS, {
+                translations:this.props.data.clarodoc.translations,
+                defaultValues:defaultValues,
+                fieldDomain:`clarodoc`,
+                updateTranslations: (translations) => this.props.update(
+                    "translations",
+                    translations)
+              }]}
+              primary={true}
+            />
+     */
 
     return (
       <Fragment>
@@ -110,20 +125,7 @@ class DocumentEditorMain extends Component {
                 ]
               }
             ]} > 
-          <Button
-              className="btn btn-block btn-emphasis component-container"
-              type={MODAL_BUTTON}
-              label={trans('translations')}
-              modal={[MODAL_TRANSLATIONS, {
-                translations:this.props.data.clarodoc.translations,
-                defaultValues:defaultValues,
-                fieldDomain:`clarodoc`,
-                updateTranslations: (translations) => this.props.update(
-                    "translations",
-                    translations)
-              }]}
-              primary={true}
-            />
+          
 
           <div className="widgets-grid">
           { widgets && widgets.map((widgetContainer, index) => {

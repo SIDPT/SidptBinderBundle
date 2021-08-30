@@ -589,7 +589,7 @@ class GenerateContent extends AbstractAction
         );
         $learningOutcomeContent = $learningOutcome ??
                 <<<HTML
-                    <p><span style="color: #ff0000;"><strong>Author, please fill this section</strong></span></p>
+                    <span style="color: #ff0000;"><strong>Author, please fill this section</strong></span>
                 HTML;
 
         if (empty($learningUnitNode)) {

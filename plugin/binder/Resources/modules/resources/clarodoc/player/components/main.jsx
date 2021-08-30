@@ -15,21 +15,6 @@ class DocumentPlayerMain extends Component {
   constructor(props) {
     super(props);
 
-    const translations = this.props.document.translations;
-    if(translations.length > 0){
-      for(const field of translations){
-        for(const locale in field.locales){
-          if(field.locales[locale].length > 0){
-            Translator.add(
-              field.path,
-              field.locales[locale],
-              `${this.props.document.id}`,
-              locale);
-          }
-        }
-      }
-    }
-
     this.state = {
       selectedPage:this.props.document.showOverview ? 0 : 1
     }
@@ -47,18 +32,11 @@ class DocumentPlayerMain extends Component {
   render(){
     // TODO document parameter to be stored
     
-
-
     let visibleWidgets = this.props.document.widgets.filter(
         widget => widget.visible === true
       ).map((widget,index)=>{
         let temp = Object.assign({}, widget);
-        let existingTranslation = trans(`widgets[${index}].name`,{},`${this.props.document.id}`);
-        if(existingTranslation && 
-              existingTranslation.length > 0 && 
-              existingTranslation !== `widgets[${index}].name`){
-          temp.name = existingTranslation;
-        }
+        temp.name = trans(widget.name,{},'clarodoc');
         return temp;
       });
 

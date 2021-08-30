@@ -1,5 +1,24 @@
 {
 	"resourceName": "Titre (Entête) de la resource",
 	"longTitle":"Titre étendu du document",
-	"center_title":"Centrer le titre sur la page"
+	"center_title":"Centrer le titre sur la page",
+
+	"Learning unit":"Unité d'enseignement",
+	"Module":"Module",
+	"Course":"Cours",
+	"Who is it for?":"Who is it for?",
+	"What is included?":"What is included?",
+	"How long will it take?":"How long will it take?",
+	"Last updated":"Last updated",
+	"Learning outcome":"Learning outcome",
+	"Disclaimer":"Disclaimer",
+	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.",
+
+	"Practice":"Entrainement",
+	"Theory":"Théorie",
+	"Assessment":"Évaluation",
+	"Activity":"Activité",
+	"References": "Références",
+	"External references": "External references",
+	"IPIP references": "IPIP references"
 }
