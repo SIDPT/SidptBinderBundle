@@ -80,16 +80,17 @@ const DocumentOverview = (props) => {
                 <h3 className="h2">{trans('summary')}</h3>
                 <ContentSummary
                   className="component-container"
-                  links={props.widgets.map((widget, index) => {
-                    return {
-                      type: CALLBACK_BUTTON,
-                      label: widget.name,
-                      disabled:!props.authorizeSummaryLinks,
-                      callback: () => {
-                        props.selectPage(props.paginated ? index+1 : 1)
-                      }
-                    }
-                  })}
+                  links={props.widgets.filter(widget => widget.name && widget.name !== "")
+                    .map((widget, index) => {
+                        return {
+                          type: CALLBACK_BUTTON,
+                          label: widget.name,
+                          disabled:!props.authorizeSummaryLinks,
+                          callback: () => {
+                            props.selectPage(props.paginated ? index+1 : 1)
+                          }
+                        }
+                      })}
                 />
           </section>
         </ResourceOverview>
