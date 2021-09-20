@@ -6,17 +6,13 @@ namespace Sidpt\BinderBundle\API\Serializer;
 
 use Claroline\AppBundle\API\Serializer\SerializerTrait;
 use Claroline\AppBundle\Persistence\ObjectManager;
-
-use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
-use Claroline\CoreBundle\Entity\Resource\ResourceNode;
-use Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer;
 use Claroline\CoreBundle\API\Serializer\Resource\ResourceNodeSerializer;
-
-use Sidpt\BinderBundle\Entity\Document;
+use Claroline\CoreBundle\API\Serializer\Widget\WidgetContainerSerializer;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
+use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
 
 // logging for debug
-use Claroline\AppBundle\Log\LoggableTrait;
-use Psr\Log\LoggerAwareInterface;
+use Sidpt\BinderBundle\Entity\Document;
 
 /**
  *
@@ -33,7 +29,7 @@ class DocumentSerializer
      * @var [type]
      */
     private $om;
-    
+
     /**
      * [$widgetContainerSerializer description]
      *
@@ -128,32 +124,23 @@ class DocumentSerializer
         ksort($containers);
         $containers = array_values($containers);
 
-        // TODO check for translations based on user local
+        // TODO : use minimal serializer instead
         $resourceName = $document->getResourceNode()->getName();
         $longTitle = $document->getLongTitle();
 
-        // foreach ($document->getTranslations() as $translation) {
-        //     switch ($translation["path"]) {
-        //         case 'resourceName':
-        //             # code...
-        //             break;
-        //         case 'longTitle':
-        //             # code...
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // }
-
         $resourceNode = $document->getRequiredResourceNodeTreeRoot();
         $data = [
-            'id'=>$document->getUuid(),
+            'id' => $document->getUuid(),
             'clarodoc' => [
                 'id' => $document->getUuid(),
                 'resourceName' => $resourceName,
                 'longTitle' => $longTitle,
                 'centerTitle' => $document->isCenterTitle(),
                 'showOverview' => $document->getShowOverview(),
+                'overviewMessage' => $document->getOverviewMessage(),
+                'disclaimer' => $document->getDisclaimer(),
+                'showDescription' => $document->getShowDescription(),
+                'descriptionTitle' => $document->getDescriptionTitle(),
                 'widgetsPagination' => $document->getWidgetsPagination(),
                 'widgets' => array_map(
                     function ($container) use ($options) {
@@ -163,9 +150,9 @@ class DocumentSerializer
                     $containers
                 ),
                 'requiredResourceNodeTreeRoot' => $resourceNode ?
-                    $this->resourceNodeSerializer->serialize($resourceNode) :
-                    null,
-                'translations' => $document->getTranslations()
+                $this->resourceNodeSerializer->serialize($resourceNode) :
+                null,
+                'translations' => $document->getTranslations(),
             ],
             'directory' => [
                 'id' => $document->getId(),
@@ -199,10 +186,9 @@ class DocumentSerializer
                         'display' => $document->getCard(),
                         'mapping' => [], // TODO
                     ],
-                ]
-            ]
+                ],
+            ],
         ];
-
 
         return $data;
     }
@@ -275,6 +261,10 @@ class DocumentSerializer
         $this->sipe('clarodoc.showOverview', 'setShowOverview', $data, $document);
         $this->sipe('clarodoc.widgetsPagination', 'setWidgetsPagination', $data, $document);
         $this->sipe('clarodoc.translations', 'setTranslations', $data, $document);
+        $this->sipe('clarodoc.overviewMessage', 'setOverviewMessage', $data, $document);
+        $this->sipe('clarodoc.disclaimer', 'setDisclaimer', $data, $document);
+        $this->sipe('clarodoc.showDescription', 'setShowDescription', $data, $document);
+        $this->sipe('clarodoc.descriptionTitle', 'setDescriptionTitle', $data, $document);
 
         if (isset($data['clarodoc']) && isset($data['clarodoc']['widgets'])) {
             $this->deserializeWidgets($data['clarodoc']['widgets'], $document, $options);

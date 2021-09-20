@@ -63,6 +63,10 @@ class DocumentPlayerMain extends Component {
               <DocumentOverview
                 authorizeSummaryLinks={false}
                 resource={this.props.resource}
+                showDescription={this.props.document.showDescription}
+                descriptionTitle={this.props.document.descriptionTitle}
+                overviewMessage={this.props.document.overviewMessage}
+                disclaimer={this.props.document.disclaimer}
                 path={this.props.path}
                 widgets={visibleWidgets}
                 paginated={this.props.document.widgetsPagination}

@@ -1,16 +1,13 @@
 <?php
 
-
 namespace Sidpt\BinderBundle\Entity;
 
+use Claroline\AppBundle\Entity\Identifier\Uuid;
+use Claroline\AppBundle\Entity\Parameters\ListParameters;
+use Claroline\CoreBundle\Entity\Resource\AbstractResource;
 use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
 use Doctrine\Common\Collections\ArrayCollection;
-
-use Claroline\AppBundle\Entity\Identifier\Uuid;
-use Claroline\CoreBundle\Entity\Resource\AbstractResource;
-use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Mapping as ORM;
-use Claroline\AppBundle\Entity\Parameters\ListParameters;
 
 /**
  *
@@ -21,18 +18,41 @@ class Document extends AbstractResource
 {
     use Uuid;
     use ListParameters;
-    
+
     /**
      * @ORM\Column(name="long_title", nullable=true, type="text")
      */
     private $longTitle = '';
-
 
     /**
      * @ORM\Column(name="center_title", type="boolean")
      */
     private $centerTitle = false;
 
+    // adding an
+    // - overview message
+    // - disclaimer message
+    // - showDescriptionInOverview flag
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $overviewMessage = null;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $disclaimer = null;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $showDescription = true;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $descriptionTitle = null;
 
     /**
      * ResourceNode holding the tree of
@@ -86,8 +106,6 @@ class Document extends AbstractResource
      * @var WidgetContainer[]|ArrayCollection
      */
     private $widgetContainers;
-
-    
 
     /**
      * Translations of document level fields
@@ -150,8 +168,8 @@ class Document extends AbstractResource
                 $tempArray[] = [
                     "path" => $value,
                     "locales" => [
-                        'en' => ''
-                    ]
+                        'en' => '',
+                    ],
                 ];
             }
             $this->translations = $tempArray;
@@ -164,9 +182,9 @@ class Document extends AbstractResource
         $translatableFields = array();
         $translatableFields[] = 'resourceName';
         $translatableFields[] = 'longTitle';
-        
+
         foreach ($this->getWidgetContainers()->toArray() as $index => $widgetContainer) {
-            $translatableFields[] = "widgets[".$index."].name";
+            $translatableFields[] = "widgets[" . $index . "].name";
         }
         return $translatableFields;
     }
@@ -264,8 +282,6 @@ class Document extends AbstractResource
         return $this->locale;
     }
 
-    
-    
     /**
      * [getPreviousVersion description]
      * @return [type] [description]
@@ -283,7 +299,7 @@ class Document extends AbstractResource
     {
         $this->requiredResourceNodeTreeRoot = $resourceNode;
     }
-    
+
     /**
      * [getrequiredResourceNodeTreeRoot description]
      * @return [type] [description]
@@ -292,7 +308,6 @@ class Document extends AbstractResource
     {
         return $this->requiredResourceNodeTreeRoot;
     }
-
 
     /**
      * [setShowOverview description]
@@ -312,7 +327,7 @@ class Document extends AbstractResource
         return $this->showOverview;
     }
 
-     /**
+    /**
      * [getShowOverview description]
      * @return [type] [description]
      */
@@ -330,6 +345,45 @@ class Document extends AbstractResource
         $this->widgetsPagination = $widgetsPagination;
     }
 
+    public function setOverviewMessage($overviewMessage)
+    {
+        $this->overviewMessage = $overviewMessage;
+    }
+
+    public function getOverviewMessage()
+    {
+        return $this->overviewMessage;
+    }
+
+    public function setDisclaimer($disclaimer)
+    {
+        $this->disclaimer = $disclaimer;
+    }
+
+    public function getDisclaimer()
+    {
+        return $this->disclaimer;
+    }
+
+    public function setShowDescription($showDescription)
+    {
+        $this->showDescription = $showDescription;
+    }
+
+    public function getShowDescription()
+    {
+        return $this->showDescription;
+    }
+
+    public function setDescriptionTitle($descriptionTitle)
+    {
+        $this->descriptionTitle = $descriptionTitle;
+    }
+
+    public function getDescriptionTitle()
+    {
+        return $this->descriptionTitle;
+    }
 
     public function __toString()
     {

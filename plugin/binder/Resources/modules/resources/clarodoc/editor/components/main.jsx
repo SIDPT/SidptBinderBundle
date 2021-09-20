@@ -113,6 +113,22 @@ class DocumentEditorMain extends Component {
                     type: 'boolean',
                     label: trans('show_overview',  {}, 'clarodoc')
                   },{
+                    name: 'clarodoc.overviewMessage',
+                    type: 'html',
+                    label: trans('overview_message',  {}, 'clarodoc')
+                  },{
+                    name: 'clarodoc.disclaimer',
+                    type: 'html',
+                    label: trans('disclaimer_message',  {}, 'clarodoc')
+                  },{
+                    name: 'clarodoc.showDescription',
+                    type: 'boolean',
+                    label: trans('show_description',  {}, 'clarodoc')
+                  },{
+                    name: 'clarodoc.descriptionTitle',
+                    type: 'html',
+                    label: trans('description_title',  {}, 'clarodoc')
+                  },{
                     name: 'clarodoc.widgetsPagination',
                     type: 'boolean',
                     label: trans('split_sections_in_pages',  {}, 'clarodoc')

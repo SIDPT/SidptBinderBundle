@@ -21,19 +21,23 @@ const getUpdateDate = (resourceNode)=>{
 }
 
 const DocumentOverview = (props) => {
+    const overviewContent = [];
+    overviewContent.push(
+        props.overviewMessage ? props.overviewMessage : "",
+        (props.showDescription && props.descriptionTitle) ? props.descriptionTitle : "",
+        props.showDescription ? props.resource.resourceNode.meta.description : "",
+        props.disclaimer ? props.disclaimer : ""
+    )
     
     return (
         <ResourceOverview
             contentText={
-                <Fragment>
-                    <ContentHtmlComponent
-                        store={{
-                            resource:props.resource
-                        }}>
-                        {props.resource.resourceNode.meta.description}
-                    </ContentHtmlComponent>
-                    
-                </Fragment>
+                <ContentHtmlComponent
+                    store={{
+                        resource:props.resource
+                    }}>
+                    {overviewContent}
+                </ContentHtmlComponent>
             }
             actions={[
             { // TODO : implement continue and restart
@@ -99,6 +103,9 @@ const DocumentOverview = (props) => {
 
 DocumentOverview.propTypes = {
     description:T.string,
+    overviewMessage:T.string,
+    disclaimer:T.string,
+    showDescription:T.boolean,
     currentContext: T.object,
     resource:T.object,
     requirementResource:T.object,
