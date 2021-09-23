@@ -254,7 +254,9 @@ class DocumentSerializer
         }
 
         // Also update the updated date of the resource node
-        $document->getResourceNode()->setModificationDate(new \DateTime());
+        if (!empty($document->getResourceNode())) {
+            $document->getResourceNode()->setModificationDate(new \DateTime());
+        }
 
         $this->sipe('clarodoc.longTitle', 'setLongTitle', $data, $document);
         $this->sipe('clarodoc.centerTitle', 'setCenterTitle', $data, $document);
