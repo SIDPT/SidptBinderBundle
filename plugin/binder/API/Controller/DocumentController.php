@@ -24,6 +24,7 @@ use Symfony\Component\Routing\Annotation\Route;
 // the bundle new entity and serializer
 use Sidpt\BinderBundle\Entity\Document;
 use Sidpt\BinderBundle\Serializer\DocumentSerializer;
+use Sidpt\BinderBundle\API\Manager\DocumentManager;
 
 // logging for debug
 use Claroline\AppBundle\Log\LoggableTrait;
@@ -61,34 +62,48 @@ class DocumentController implements LoggerAwareInterface
      */
     private $serializer;
 
+    private $manager;
+
 
     public function __construct(
         AuthorizationCheckerInterface $authorization,
         ObjectManager $om,
         Crud $crud,
-        SerializerProvider $serializer
+        SerializerProvider $serializer,
+        DocumentManager $manager
     ) {
         $this->authorization = $authorization;
         $this->om = $om;
         $this->crud = $crud;
         $this->serializer = $serializer;
+        $this->manager = $manager;
     }
 
     /**
      * [desc]
      *
-     * @Route("/document/{id}", name="sidpt_document_update", methods={"PUT"})
+     * @Route("/document/{id}/{templateName}", name="sidpt_document_update", methods={"PUT"})
      * @EXT\ParamConverter(
      *     "document",
      *     class="SidptBinderBundle:Document",
      *     options={"mapping": {"id": "uuid"}})
      *
      */
-    public function updateAction(Document $document, Request $request): JsonResponse
+    public function updateAction(Document $document, Request $request, string $templateName = "default"): JsonResponse
     {
         $this->checkPermission('EDIT', $document->getResourceNode(), [], true);
         $data = $this->decodeRequest($request);
         $object = $this->crud->update(Document::class, $data);
+
+        switch (templateName) {
+          case 'learningUnit':
+            $this->manager->configureAsLearningUnit($object);
+            break;
+
+          default:
+            // code...
+            break;
+        }
         return new JsonResponse(
             $this->serializer->serialize($object)
         );
@@ -110,6 +125,7 @@ class DocumentController implements LoggerAwareInterface
             $this->serializer->serialize($document)
         );
     }
+
 
 
 }
