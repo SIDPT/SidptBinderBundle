@@ -95,7 +95,7 @@ class DocumentController implements LoggerAwareInterface
         $data = $this->decodeRequest($request);
         $object = $this->crud->update(Document::class, $data);
 
-        switch (templateName) {
+        switch ($templateName) {
           case 'learningUnit':
             $this->manager->configureAsLearningUnit($object);
             break;

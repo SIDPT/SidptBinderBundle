@@ -9,7 +9,7 @@ import {FormData} from '#/main/app/content/form/containers/data'
 import {makeId} from '#/main/core/scaffolding/id'
 import {Translator, trans} from '#/main/app/intl/translation'
 import {Button} from '#/main/app/action/components/button'
-import {CALLBACK_BUTTON, MODAL_BUTTON, CallbackButton} from '#/main/app/buttons'
+import {CALLBACK_BUTTON, MODAL_BUTTON, CallbackButton, AsyncButton} from '#/main/app/buttons'
 import {ContentPlaceholder} from '#/main/app/content/components/placeholder'
 
 import {WidgetEditor} from '#/main/core/widget/editor/components/widget'
@@ -54,7 +54,7 @@ class DocumentEditorMain extends Component {
 
   render() {
     const widgets = this.props.data.clarodoc.widgets;
-    
+
     const defaultValues = {};
     if(this.props.data.clarodoc.translations){
       for(const field of this.props.data.clarodoc.translations){
@@ -80,6 +80,7 @@ class DocumentEditorMain extends Component {
 
     return (
       <Fragment>
+
         <FormData
             level={2}
             name={selectors.FORM_NAME}
@@ -111,23 +112,26 @@ class DocumentEditorMain extends Component {
                   },{
                     name: 'clarodoc.showOverview',
                     type: 'boolean',
-                    label: trans('show_overview',  {}, 'clarodoc')
-                  },{
-                    name: 'clarodoc.overviewMessage',
-                    type: 'html',
-                    label: trans('overview_message',  {}, 'clarodoc')
-                  },{
-                    name: 'clarodoc.disclaimer',
-                    type: 'html',
-                    label: trans('disclaimer_message',  {}, 'clarodoc')
-                  },{
-                    name: 'clarodoc.showDescription',
-                    type: 'boolean',
-                    label: trans('show_description',  {}, 'clarodoc')
-                  },{
-                    name: 'clarodoc.descriptionTitle',
-                    type: 'html',
-                    label: trans('description_title',  {}, 'clarodoc')
+                    label: trans('show_overview',  {}, 'clarodoc'),
+                    linked:[
+                      {
+                        name: 'clarodoc.overviewMessage',
+                        type: 'html',
+                        label: trans('overview_message',  {}, 'clarodoc')
+                      },{
+                        name: 'clarodoc.disclaimer',
+                        type: 'html',
+                        label: trans('disclaimer_message',  {}, 'clarodoc')
+                      },{
+                        name: 'clarodoc.showDescription',
+                        type: 'boolean',
+                        label: trans('show_description',  {}, 'clarodoc')
+                      },{
+                        name: 'clarodoc.descriptionTitle',
+                        type: 'html',
+                        label: trans('description_title',  {}, 'clarodoc')
+                      }
+                    ]
                   },{
                     name: 'clarodoc.widgetsPagination',
                     type: 'boolean',
@@ -140,8 +144,26 @@ class DocumentEditorMain extends Component {
                   }
                 ]
               }
-            ]} > 
-          
+            ]} >
+            <div>
+            <label className="control-label">{trans('load_document_templates')}</label>
+            <AsyncButton
+                className="btn btn-danger default"
+                request={{
+                  url: ['sidpt_document_update', {id: this.props.data.clarodoc.id, templateName:'learningUnit'}],
+                  request: {
+                    method: 'PUT',
+                    body: JSON.stringify(this.props.data)
+                  },
+                  success: (data) => {
+                    // reload form
+                    this.props.update('clarodoc', data.clarodoc)
+                  }
+                }}
+              >
+                <span className="action-label">{trans('load_learning_unit_template', {}, 'clarodoc')}</span>
+            </AsyncButton>
+            </div>
 
           <div className="widgets-grid">
           { widgets && widgets.map((widgetContainer, index) => {
@@ -172,13 +194,13 @@ class DocumentEditorMain extends Component {
 
                   if (oldWidgets && -1 !== movingContentIndex) {
                     oldWidgets = newWidgets
-                    
+
                     oldWidgets.forEach(widget => {
                       if (widget.contents.findIndex(content => content && content.id === movingContentId) > -1) {
                         oldParent = widget;
                       }
                     });
-                   
+
                     const newParent = newWidgets.find(widget => widget.id === newParentId)
                     // generate a new id for moved content for save simplicity
                     const newContent = cloneDeep(oldParent.contents[movingContentIndex]);
@@ -309,10 +331,10 @@ class DocumentEditorMain extends Component {
           </div>
         </FormData>
       </Fragment> )
-  
+
   }
 }
-    
+
 
 
 DocumentEditorMain.propTypes = {
@@ -327,5 +349,5 @@ export {
 }
 
 /**
- * 
+ *
  */

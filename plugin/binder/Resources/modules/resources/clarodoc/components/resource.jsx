@@ -33,32 +33,30 @@ const DocumentResource = (props) => {
  //  	if(translations[fieldKey].path === "resourceName"){
  //  		let newName = trans('resourceName', {}, `${props.clarodoc.id}`);
  //  		if(newName.length > 0 && newName != "resourceName"){
- //  			resourceNode.name = newName;			
+ //  			resourceNode.name = newName;
  //  		}
  //  	}
  //  }
+ //
+	const actions = [{
+		name: 'display_folder',
+		type: LINK_BUTTON,
+		icon: 'fa fa-fw fa-folder',
+		label: trans('display_folder', {}, 'actions'),
+		primary: true,
+		target: `${props.path}/${props.resourceNode.slug}/resources`
+	},
+	{
+		name: 'display_binder',
+		type: LINK_BUTTON,
+		icon: 'fa fa-fw fa-folder',
+		label: trans('display_document', {}, 'actions'),
+		target: `${props.path}/${props.resourceNode.slug}`
 
+	}]
 	return (
 		<ResourcePage
-      customActions={
-        [{
-          name: 'display_folder',
-          type: LINK_BUTTON,
-          icon: 'fa fa-fw fa-folder',
-          label: trans('display_folder', {}, 'actions'),
-          primary: true,
-          target: `${props.path}/${props.resourceNode.slug}/resources`
-        },
-        {
-          name: 'display_binder',
-          type: LINK_BUTTON,
-          icon: 'fa fa-fw fa-folder',
-          label: trans('display_document', {}, 'actions'),
-          primary: true,
-          target: `${props.path}/${props.resourceNode.slug}`
-
-        }]
-      }
+      customActions={ actions }
 	    routes={[
 			  {
 	        path: '/edit',
@@ -75,7 +73,7 @@ const DocumentResource = (props) => {
 	      }
 		  ]} />
   	);
-} 
+}
 
 
 DocumentResource.propTypes = {

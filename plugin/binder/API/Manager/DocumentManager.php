@@ -32,12 +32,15 @@ use Sidpt\BinderBundle\Entity\Document;
 
 use UJM\ExoBundle\Library\Options\ExerciseType;
 
+// logging for debug
+use Claroline\AppBundle\Log\LoggableTrait;
+use Psr\Log\LoggerAwareInterface;
 
 
 class DocumentManager implements LoggerAwareInterface
 {
   use LoggableTrait;
-  
+
   // Class parameters
   private $om;
   private $crud;
@@ -283,6 +286,64 @@ class DocumentManager implements LoggerAwareInterface
 
     $learningUnitDocument->setRequiredResourceNodeTreeRoot($requiredKnowledgeNode);
 
+    // - a practice exercise:
+    $practiceNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $learningUnitNode,
+        "Practice",
+        $this->exerciseType
+    );
+    // - A theroy lesson
+    $theoryNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $learningUnitNode,
+        "Theory",
+        $this->lessonType
+    );
+
+    // - An assessment exercice
+    $assessmentNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $learningUnitNode,
+        "Assessment",
+        $this->exerciseType
+    );
+
+
+    // - An activity text
+    $activityNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $learningUnitNode,
+        "Activity",
+        $this->textType
+    );
+
+    // - A references document
+    $referencesNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $learningUnitNode,
+        "References",
+        $this->documentType
+    );
+    $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
+    $this->om->flush();
+    // The reference document contains 2 sections :
+    // - an external reference textual section
+    $externalReferencesNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $referencesNode,
+        "External references",
+        $this->textType
+    );
+    // - an internal reference folder, to store a hierarchy of shortcuts
+    $internalReferencesNode = $this->addOrUpdateDocumentSubObject(
+        $user,
+        $referencesNode,
+        "IPIP references",
+        $this->directoryType
+    );
+    // */
+
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
     $this->om->flush();
@@ -415,7 +476,7 @@ class DocumentManager implements LoggerAwareInterface
               $this->addResourceWidget($document, $subNode, $subnodeName);
           }
       }
-      $this->om->flush();
+      //$this->om->flush();
       return $subNode;
   }
 
@@ -575,7 +636,7 @@ class DocumentManager implements LoggerAwareInterface
           $this->om->persist($containerConfig);
       }
       $this->om->persist($document);
-      $this->om->flush();
+      //$this->om->flush();
   }
 
   /**
