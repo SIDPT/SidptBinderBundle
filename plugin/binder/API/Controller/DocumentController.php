@@ -99,6 +99,12 @@ class DocumentController implements LoggerAwareInterface
           case 'learningUnit':
             $this->manager->configureAsLearningUnit($object);
             break;
+          case 'module':
+            $this->manager->configureAsModule($object);
+            break;
+          case 'course':
+            $this->manager->configureAsCourse($object);
+            break;
 
           default:
             // code...

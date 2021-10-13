@@ -163,6 +163,38 @@ class DocumentEditorMain extends Component {
               >
                 <span className="action-label">{trans('load_learning_unit_template', {}, 'clarodoc')}</span>
             </AsyncButton>
+            <AsyncButton
+                className="btn btn-danger default"
+                request={{
+                  url: ['sidpt_document_update', {id: this.props.data.clarodoc.id, templateName:'module'}],
+                  request: {
+                    method: 'PUT',
+                    body: JSON.stringify(this.props.data)
+                  },
+                  success: (data) => {
+                    // reload form
+                    this.props.update('clarodoc', data.clarodoc)
+                  }
+                }}
+              >
+                <span className="action-label">{trans('load_module_template', {}, 'clarodoc')}</span>
+            </AsyncButton>
+            <AsyncButton
+                className="btn btn-danger default"
+                request={{
+                  url: ['sidpt_document_update', {id: this.props.data.clarodoc.id, templateName:'course'}],
+                  request: {
+                    method: 'PUT',
+                    body: JSON.stringify(this.props.data)
+                  },
+                  success: (data) => {
+                    // reload form
+                    this.props.update('clarodoc', data.clarodoc)
+                  }
+                }}
+              >
+                <span className="action-label">{trans('load_course_template', {}, 'clarodoc')}</span>
+            </AsyncButton>
             </div>
 
           <div className="widgets-grid">

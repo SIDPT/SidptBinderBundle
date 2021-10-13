@@ -3,3 +3,33 @@
 
 // Plugin vars
 @import "../variables";
+
+.lu-table {
+  border:0;
+  border-spacing: 0 5px;
+  border-collapse: separate;
+  font-weight: bold;
+  width: 100%;
+
+  tr {
+    height:70px;
+
+    td:first-child {
+      background: lighten(lightgrey, 10%);
+      padding-left: 20px;
+    }
+
+    td {
+      border: 1px solid lightgrey;
+      padding: 10px;
+      margin: 5px;
+      ul {
+        list-style-type:none;
+        padding-left:0;
+        margin:0px;
+      }
+    }
+  }
+
+
+}

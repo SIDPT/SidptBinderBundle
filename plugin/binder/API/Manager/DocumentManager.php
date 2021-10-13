@@ -157,64 +157,66 @@ class DocumentManager implements LoggerAwareInterface
   }
 
 
+
   public function configureAsLearningUnit(Document $learningUnitDocument){
     $learningUnitNode = $learningUnitDocument->getResourceNode();
     $learningUnitDocument->setShowOverview(true);
     $learningUnitDocument->setWidgetsPagination(true);
 
-    $learningUnitDocument->setOverviewMessage(
-        <<<HTML
-    <table class="table table-striped table-hover table-condensed data-table" style="height: 133px; width: 100%; border-collapse: collapse; margin-left: auto; margin-right: auto;" border="1" cellspacing="5px" cellpadding="20px">
-    <tbody>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('Learning unit','clarodoc')}</td>
-    <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('Module','clarodoc')}</td>
-    <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-2].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('Course','clarodoc')}</td>
-    <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-3].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('Who is it for?','clarodoc')}</td>
-    <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('What is included?','clarodoc')}</td>
-    <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('How long will it take?','clarodoc')}</td>
-    <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
-    </tr>
-    <tr style="height: 19px;">
-    <td style="width: 50%; height: 19px;">{trans('Last updated','clarodoc')}</td>
-    <td style="width: 50%; height: 19px;">{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
-    </tr>
-    </tbody>
-    </table>
-    HTML
-    );
+    $learningUnitDocument->setOverviewMessage(null);
+    /* Previous template that is now by default in the UI component to ease mockup
+    even if thats mean its less customizable :
+    <<<HTML
+<table class="table table-striped table-hover table-condensed data-table" style="height: 133px; width: 100%; border-collapse: collapse; margin-left: auto; margin-right: auto;" border="1" cellspacing="5px" cellpadding="20px">
+<tbody>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('Learning unit','clarodoc')}</td>
+<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('Module','clarodoc')}</td>
+<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-2].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('Course','clarodoc')}</td>
+<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-3].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('Who is it for?','clarodoc')}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('What is included?','clarodoc')}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('How long will it take?','clarodoc')}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
+</tr>
+<tr style="height: 19px;">
+<td style="width: 50%; height: 19px;">{trans('Last updated','clarodoc')}</td>
+<td style="width: 50%; height: 19px;">{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
+</tr>
+</tbody>
+</table>
+HTML */
 
     $learningUnitDocument->setShowDescription(true);
-    $learningUnitDocument->setDisclaimer(
-        <<<HTML
-    <p id="disclaimer-start">{{#resource.resourceNode.tags["disclaimer"] }}</p>
-    <h3>{trans('Disclaimer','clarodoc')}</h3>
-    <p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
-    <p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
-    HTML
-    );
+    $learningUnitDocument->setDisclaimer(null);
+    /* older disclaimer stored in DB, now replaced by default template
+    <<<HTML
+<p id="disclaimer-start">{{#resource.resourceNode.tags["disclaimer"] }}</p>
+<h3>{trans('Disclaimer','clarodoc')}</h3>
+<p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
+<p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
+HTML */
 
     // updated description template
-    $learningUnitDocument->setDescriptionTitle(
+    /* older description title now default in component
         <<<HTML
     <h3>{trans('Learning outcomes','clarodoc')}</h3>
-    HTML
-    );
+    HTML*/
+    $learningUnitDocument->setDescriptionTitle(null);
 
     $description = $learningUnitNode->getDescription();
     $learningOutcomeContent = $description;
@@ -371,11 +373,35 @@ class DocumentManager implements LoggerAwareInterface
   public function configureAsModule(Document $moduleDocument){
     // set description
     // set learning unit resource list
+    $moduleNode = $moduleDocument->getResourceNode();
+    $moduleDocument->setShowOverview(false);
+    $moduleDocument->setWidgetsPagination(false);
+    $this->addOrUpdateResourceListWidget($moduleDocument,$moduleNode, "Learning units");
+
+    $this->om->persist($moduleNode);
+    $this->om->persist($moduleDocument);
+    $this->om->flush();
+
   }
 
   public function configureAsCourse(Document $courseDocument){
     //  set description
     // set modules resources list
+    $courseNode = $courseDocument->getResourceNode();
+    $courseDocument->setShowOverview(false);
+    $courseDocument->setWidgetsPagination(false);
+
+    $this->addOrUpdateResourceListWidget($courseDocument,$courseNode, "Modules");
+
+    $courseNode->setDescription(<<<HTML
+    <ul>{trans('Modules','clarodoc')}: {{#resource.resourceNode.children}}
+    <li><a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{ name }}</a></li>
+    {{/resource.resourceNode.children}}</ul>
+    HTML);
+
+    $this->om->persist($courseNode);
+    $this->om->persist($courseDocument);
+    $this->om->flush();
   }
 
 
@@ -485,8 +511,12 @@ class DocumentManager implements LoggerAwareInterface
    * @param [type] $document     [description]
    * @param [type] $resourceNode [description]
    */
-  public function addOrUpdateResourceListWidget($document, $parentNode, $name = null)
-  {
+  public function addOrUpdateResourceListWidget(
+    Document $document,
+    ResourceNode $parentNode,
+    $name = null,
+    $showName = false
+  ) {
       if ($document->getWidgetContainers()->isEmpty()) {
           $newWidget = new ListWidget();
           $newWidget->setFilters(
@@ -505,7 +535,7 @@ class DocumentManager implements LoggerAwareInterface
           $widget->setActions(false);
           $widget->setCount(true);
           $widget->setDisplayedColumns(["name", "meta.description"]);
-          if ($name == "Learning units") {
+          if ($name === "Learning units") {
               // update widget to display two columns
               // - the name column should be labeled "Select a learning unit" with a
               // - the meta.description should be title "Learning outcomes"
@@ -523,7 +553,7 @@ class DocumentManager implements LoggerAwareInterface
                       ],
                   ]
               );
-          } elseif ($name == "Modules") {
+          } elseif ($name === "Modules") {
               // update widget to display two columns
               // - the name column should be labeled "Select a module" with a
               // - the meta.description title should be removed
@@ -554,7 +584,9 @@ class DocumentManager implements LoggerAwareInterface
           $newWidgetContainer->addInstance($newWidgetInstance);
           $newWidgetInstance->setContainer($newWidgetContainer);
           $newWidgetContainerConfig = new WidgetContainerConfig();
-          $newWidgetContainerConfig->setName($name);
+          if($showName) {
+            $newWidgetContainerConfig->setName($name);
+          }
           $newWidgetContainerConfig->setBackgroundType("color");
           $newWidgetContainerConfig->setBackground("#ffffff");
           $newWidgetContainerConfig->setPosition(0);
@@ -592,7 +624,12 @@ class DocumentManager implements LoggerAwareInterface
           $widget->setCount(true);
           $widget->setDisplayedColumns(["name", "meta.description"]);
 
-          $containerConfig->setName($name);
+          if($showName) {
+            $containerConfig->setName($name);
+          } else {
+            $containerConfig->setName(null);
+          }
+
 
           if ($name == "Learning units") {
               // update widget to display two columns

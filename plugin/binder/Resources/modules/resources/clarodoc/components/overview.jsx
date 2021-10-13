@@ -23,20 +23,69 @@ const getUpdateDate = (resourceNode)=>{
 const DocumentOverview = (props) => {
     const overviewContent = [];
     overviewContent.push(
-        props.overviewMessage ? props.overviewMessage : "",
-        (props.showDescription && props.descriptionTitle) ? props.descriptionTitle : "",
+        // Added default overview template, description title and disclaimer
+        props.overviewMessage ? props.overviewMessage :
+`<table
+    class="table-hover lu-table"
+    style="font-weight:bold;"
+    border="1"
+    cellspacing="5px"
+    cellpadding="20px">
+  <tbody>
+  <tr>
+    <td>{trans('Learning unit','clarodoc')}</td>
+    <td>
+      <ul style="list-style-type:none; padding-left:0; margin:0px;">
+        <li><b>{trans('Course','clarodoc')}: <a id="{{ resource.resourceNode.path[-3].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></li>
+        <li><b>{trans('Module','clarodoc')}: <a id="{{ resource.resourceNode.path[-2].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></li>
+        <li><b>{trans('Learning unit','clarodoc')}: <a id="{{ resource.resourceNode.slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></span></li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td>{trans('Who is it for?','clarodoc')}</td>
+    <td>{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
+  </tr>
+  <tr>
+    <td>{trans('What is included?','clarodoc')}</td>
+    <td>{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
+  </tr>
+  <tr>
+    <td>{trans('How long will it take?','clarodoc')}</td>
+    <td>{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
+  </tr>
+  {{ #requirements}}
+  <tr>
+    <td>{trans('requirements','clarodoc')}</td>
+    <td> {{ #children }} <a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{name}}</a>{{ /children }}</td>
+  </tr>
+  {{ /requirements}}
+  <tr>
+    <td>{trans('Last updated','clarodoc')}</td>
+    <td>{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
+  </tr>
+  </tbody>
+</table>`,
+        (props.showDescription) ? (props.descriptionTitle || `<h3>{trans('Learning outcomes','clarodoc')}</h3>`) : "",
         props.showDescription ? props.resource.resourceNode.meta.description : "",
-        props.disclaimer ? props.disclaimer : ""
+        props.disclaimer ? props.disclaimer :
+          `{{#resource.resourceNode.tags["disclaimer"] }}
+          <h3>{trans('Disclaimer','clarodoc')}</h3>
+          <p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
+          {{/resource.resourceNode.tags["disclaimer"] }}`
     )
-    
     return (
         <ResourceOverview
             contentText={
                 <ContentHtmlComponent
                     store={{
-                        resource:props.resource
+                        resource:props.resource,
+                        requirements:props.requirementResource
+                            && props.requirementResource.children.length > 0 ?
+                          props.requirementResource :
+                          null
                     }}>
-                    {overviewContent}
+                    {overviewContent.join("")}
                 </ContentHtmlComponent>
             }
             actions={[
@@ -52,34 +101,7 @@ const DocumentOverview = (props) => {
                 }
             }
             ]}>
-            {props.requirementResource && 
-                <Widget
-                  key="requirements-widget"
-                  widget={{
-                    name:trans('requirements'),
-                    visible:true,
-                    display:{
-                        layout:[1],
-                        alignName:"left",
-                        color:"#333333",
-                        borderColor:null,
-                        backgroundType:"color",
-                        background:"#FFFFFF"
-                    },
-                    contents:[
-                        {
-                            type:'resource',
-                            source:'resource',
-                            parameters:{
-                                resource:props.requirementResource,
-                                showResourceHeader:false
-                            }
-                        }
-                    ]
-                  }}
-                  currentContext={props.currentContext}
-                />
-            }
+
             <section className="resource-section resource-overview">
                 <h3 className="h2">{trans('summary')}</h3>
                 <ContentSummary
@@ -119,3 +141,35 @@ DocumentOverview.propTypes = {
 export {
     DocumentOverview
 }
+
+/* code backup
+
+{props.requirementResource &&
+    <Widget
+      key="requirements-widget"
+      widget={{
+        name:trans('requirements'),
+        visible:true,
+        display:{
+            layout:[1],
+            alignName:"left",
+            color:"#333333",
+            borderColor:null,
+            backgroundType:"color",
+            background:"#FFFFFF"
+        },
+        contents:[
+            {
+                type:'resource',
+                source:'resource',
+                parameters:{
+                    resource:props.requirementResource,
+                    showResourceHeader:false
+                }
+            }
+        ]
+      }}
+      currentContext={props.currentContext}
+    />
+}
+ */
