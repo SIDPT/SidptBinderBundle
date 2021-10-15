@@ -158,64 +158,17 @@ class DocumentManager implements LoggerAwareInterface
 
 
 
-  public function configureAsLearningUnit(Document $learningUnitDocument){
+  public function configureAsLearningUnit(
+    Document $learningUnitDocument,
+    bool $flush = true
+  ){
     $learningUnitNode = $learningUnitDocument->getResourceNode();
     $learningUnitDocument->setShowOverview(true);
     $learningUnitDocument->setWidgetsPagination(true);
-
-    $learningUnitDocument->setOverviewMessage(null);
-    /* Previous template that is now by default in the UI component to ease mockup
-    even if thats mean its less customizable :
-    <<<HTML
-<table class="table table-striped table-hover table-condensed data-table" style="height: 133px; width: 100%; border-collapse: collapse; margin-left: auto; margin-right: auto;" border="1" cellspacing="5px" cellpadding="20px">
-<tbody>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('Learning unit','clarodoc')}</td>
-<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('Module','clarodoc')}</td>
-<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-2].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('Course','clarodoc')}</td>
-<td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-3].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('Who is it for?','clarodoc')}</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('What is included?','clarodoc')}</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('How long will it take?','clarodoc')}</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
-</tr>
-<tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">{trans('Last updated','clarodoc')}</td>
-<td style="width: 50%; height: 19px;">{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
-</tr>
-</tbody>
-</table>
-HTML */
-
     $learningUnitDocument->setShowDescription(true);
-    $learningUnitDocument->setDisclaimer(null);
-    /* older disclaimer stored in DB, now replaced by default template
-    <<<HTML
-<p id="disclaimer-start">{{#resource.resourceNode.tags["disclaimer"] }}</p>
-<h3>{trans('Disclaimer','clarodoc')}</h3>
-<p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
-<p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
-HTML */
 
-    // updated description template
-    /* older description title now default in component
-        <<<HTML
-    <h3>{trans('Learning outcomes','clarodoc')}</h3>
-    HTML*/
+    $learningUnitDocument->setDisclaimer(null);
+    $learningUnitDocument->setOverviewMessage(null);
     $learningUnitDocument->setDescriptionTitle(null);
 
     $description = $learningUnitNode->getDescription();
@@ -348,7 +301,10 @@ HTML */
 
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
-    $this->om->flush();
+    if($flush){
+      $this->om->flush();
+    }
+
     // TODO build tag hierarchy
     // Get or create the the module tag (plateforme tags)
     // $learningUnitTag = $this->tagManager->getOnePlatformTagByName($learningUnitNode->getName(), $moduleTag);
@@ -370,7 +326,10 @@ HTML */
 
   }
 
-  public function configureAsModule(Document $moduleDocument){
+  public function configureAsModule(
+    Document $moduleDocument,
+    bool $flush = true
+  ){
     // set description
     // set learning unit resource list
     $moduleNode = $moduleDocument->getResourceNode();
@@ -380,11 +339,16 @@ HTML */
 
     $this->om->persist($moduleNode);
     $this->om->persist($moduleDocument);
-    $this->om->flush();
+    if($flush){
+      $this->om->flush();
+    }
 
   }
 
-  public function configureAsCourse(Document $courseDocument){
+  public function configureAsCourse(
+    Document $courseDocument,
+    bool $flush = true
+  ){
     //  set description
     // set modules resources list
     $courseNode = $courseDocument->getResourceNode();
@@ -394,17 +358,28 @@ HTML */
     $this->addOrUpdateResourceListWidget($courseDocument,$courseNode, "Modules");
 
     $courseNode->setDescription(<<<HTML
-    <ul>{trans('Modules','clarodoc')}: {{#resource.resourceNode.children}}
+    <p style="margin-bottom:0px;">{trans('Modules','clarodoc')}: </p>
+    <ul>{{#resource.resourceNode.children}}
     <li><a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{ name }}</a></li>
     {{/resource.resourceNode.children}}</ul>
     HTML);
 
     $this->om->persist($courseNode);
     $this->om->persist($courseDocument);
-    $this->om->flush();
+    if($flush){
+      $this->om->flush();
+    }
   }
 
 
+  /**
+   * [addOrUpdateDocumentSubObject description]
+   * @param [type]  $user          [description]
+   * @param [type]  $documentNode  [description]
+   * @param [type]  $subnodeName   [description]
+   * @param [type]  $resourceType  [description]
+   * @param boolean $withWidget    [description]
+   */
   public function addOrUpdateDocumentSubObject(
       $user,
       $documentNode,
@@ -436,6 +411,8 @@ HTML */
           $subResource->setName($subnodeName);
 
           if ($resourceType->getName() == "ujm_exercise") {
+              $subResource->setShowOverview(false);
+              $subResource->setShowEndConfirm(false);
               if ($subnodeName == "Practice") {
                   $subResource->setType(ExerciseType::CONCEPTUALIZATION);
                   $subResource->setScoreRule(json_encode(["type" => "none"]));
@@ -446,7 +423,6 @@ HTML */
           }
 
           $this->om->persist($subResource);
-
           $this->om->persist($document);
 
           if ($withWidget) {
@@ -456,8 +432,11 @@ HTML */
           // Update the document or node
           // Update the underlying resource
           $subResource = $this->resourceManager->getResourceFromNode($subNode);
-          if ($subResource->getMimeType() == "custom/ujm_exercise") {
-              if ($subResource->getType() == ExerciseType::SUMMATIVE) {
+
+          if ($subNode->getResourceType()->getName() == "ujm_exercise") {
+              $subResource->setShowOverview(false);
+              $subResource->setShowEndConfirm(false);
+              if ($subResource->getType() == ExerciseType::CONCEPTUALIZATION) {
                   if (empty($subResource->getScoreRule())) {
                       $subResource->setScoreRule(
                           json_encode(["type" => "none"])
