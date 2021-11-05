@@ -57,6 +57,8 @@ class DocumentManager implements LoggerAwareInterface
   private $workspaceRepo;
   private $resourceNodeRepo;
   private $homeTabsRepo;
+
+  private $simpleWidgetsRepo;
   private $resourceWidgetsRepo;
   private $listWidgetsRepo;
 
@@ -73,6 +75,7 @@ class DocumentManager implements LoggerAwareInterface
   private $listWidgetType;
 
   private $nodeSeralizer;
+  private $documentSeralizer;
 
   // Tags hierarchy
   private $contentLevel;
@@ -118,6 +121,8 @@ class DocumentManager implements LoggerAwareInterface
       $this->workspaceRepo = $this->om->getRepository(Workspace::class);
       $this->resourceNodeRepo = $this->om->getRepository(ResourceNode::class);
       $this->homeTabsRepo = $this->om->getRepository(HomeTab::class);
+
+      $this->simpleWidgetsRepo = $this->om->getRepository(SimpleWidget::class);
       $this->resourceWidgetsRepo = $this->om->getRepository(ResourceWidget::class);
       $this->listWidgetsRepo = $this->om->getRepository(ListWidget::class);
 
@@ -166,6 +171,7 @@ class DocumentManager implements LoggerAwareInterface
           ['name' => 'list']
       );
       $this->nodeSeralizer = $this->serializer->get(ResourceNode::class);
+      $this->documentSeralizer = $this->serializer->get(Document::class);
 
   }
 
@@ -243,16 +249,20 @@ class DocumentManager implements LoggerAwareInterface
 
     $learningUnitNode->setDescription($learningOutcomeContent);
 
+    // Reset containers list
+    $learningUnitDocument->getWidgetContainers()->clear();
+    $this->om->persist($learningUnitDocument);
+    $this->om->flush();
+
     $user = $learningUnitNode->getCreator();
     $requiredKnowledgeNode = $this->addOrUpdateDocumentSubObject(
         $user,
         $learningUnitNode,
         "Required knowledge",
-        $this->directoryType,
-        false
+        $this->directoryType
     );
-
     $learningUnitDocument->setRequiredResourceNodeTreeRoot($requiredKnowledgeNode);
+
 
     // - a practice exercise:
     $practiceNode = $this->addOrUpdateDocumentSubObject(
@@ -261,6 +271,7 @@ class DocumentManager implements LoggerAwareInterface
         "Practice",
         $this->exerciseType
     );
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $practiceNode, "Practice");
     // - A theroy lesson
     $theoryNode = $this->addOrUpdateDocumentSubObject(
         $user,
@@ -268,6 +279,7 @@ class DocumentManager implements LoggerAwareInterface
         "Theory",
         $this->lessonType
     );
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $theoryNode, "Theory");
 
     // - An assessment exercice
     $assessmentNode = $this->addOrUpdateDocumentSubObject(
@@ -276,6 +288,7 @@ class DocumentManager implements LoggerAwareInterface
         "Assessment",
         $this->exerciseType
     );
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $assessmentNode, "Assessment");
 
 
     // - An activity text
@@ -285,6 +298,7 @@ class DocumentManager implements LoggerAwareInterface
         "Activity",
         $this->textType
     );
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $activityNode, "Activity");
 
     // - A references document
     $referencesNode = $this->addOrUpdateDocumentSubObject(
@@ -293,7 +307,11 @@ class DocumentManager implements LoggerAwareInterface
         "References",
         $this->documentType
     );
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References");
+
     $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
+    $referencesDocument->getWidgetContainers()->clear();
+    $this->om->persist($referencesDocument);
     $this->om->flush();
     // The reference document contains 2 sections :
     // - an external reference textual section
@@ -303,6 +321,8 @@ class DocumentManager implements LoggerAwareInterface
         "External references",
         $this->textType
     );
+    $this->addOrUpdateResourceWidget($referencesDocument, $externalReferencesNode, "External references");
+
     // - an internal reference folder, to store a hierarchy of shortcuts
     $internalReferencesNode = $this->addOrUpdateDocumentSubObject(
         $user,
@@ -310,8 +330,10 @@ class DocumentManager implements LoggerAwareInterface
         "IPIP references",
         $this->directoryType
     );
+    $this->addOrUpdateResourceWidget($referencesDocument, $internalReferencesNode, "IPIP references");
     // */
 
+    $this->om->persist($referencesDocument);
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
     if($flush){
@@ -348,6 +370,10 @@ class DocumentManager implements LoggerAwareInterface
     $moduleNode = $moduleDocument->getResourceNode();
     $moduleDocument->setShowOverview(false);
     $moduleDocument->setWidgetsPagination(false);
+
+    // reset widgets from document
+    $this->documentSeralizer->deserializeWidgets([],$moduleDocument);
+
     $this->addOrUpdateResourceListWidget($moduleDocument,$moduleNode, "Learning units");
 
     $this->om->persist($moduleNode);
@@ -368,6 +394,11 @@ class DocumentManager implements LoggerAwareInterface
     $courseDocument->setShowOverview(false);
     $courseDocument->setWidgetsPagination(false);
 
+    // remove widgets from document
+    $this->documentSeralizer->deserializeWidgets([],$courseDocument);
+
+
+    // recreate the widget
     $this->addOrUpdateResourceListWidget($courseDocument,$courseNode, "Modules");
 
     $courseNode->setDescription(<<<HTML
@@ -384,7 +415,6 @@ class DocumentManager implements LoggerAwareInterface
     }
   }
 
-
   /**
    * [addOrUpdateDocumentSubObject description]
    * @param [type]  $user          [description]
@@ -397,17 +427,19 @@ class DocumentManager implements LoggerAwareInterface
       $user,
       $documentNode,
       $subnodeName,
-      $resourceType,
-      $withWidget = true
-  ) {
+      $resourceType
+  ) : ResourceNode {
       $document = $this->resourceManager->getResourceFromNode($documentNode);
       $subNode = $this->resourceNodeRepo->findOneBy(
           [
               'name' => $subnodeName,
               'parent' => $documentNode->getId(),
               'resourceType' => $resourceType->getId(),
+              'active' => true
           ]
       );
+      $subResource = null;
+      // Create node if not present, else retrieve subresource
       if (empty($subNode)) {
           $subNode = new ResourceNode();
           $subNode->setName($subnodeName);
@@ -416,182 +448,55 @@ class DocumentManager implements LoggerAwareInterface
           $subNode->setParent($documentNode);
           $subNode->setCreator($user);
           $subNode->setMimeType("custom/" . $resourceType->getName());
+
           $this->om->persist($subNode);
-
-          $resourceclass = $resourceType->getClass();
-          $subResource = new $resourceclass();
-          $subResource->setResourceNode($subNode);
-          $subResource->setName($subnodeName);
-
-          if ($resourceType->getName() == "ujm_exercise") {
-              $subResource->setShowOverview(false);
-              $subResource->setShowEndConfirm(false);
-              if ($subnodeName == "Practice") {
-                  $subResource->setType(ExerciseType::CONCEPTUALIZATION);
-                  $subResource->setScoreRule(json_encode(["type" => "none"]));
-              } else if ($subnodeName == "Assessment") {
-                  $subResource->setType(ExerciseType::SUMMATIVE);
-                  $subResource->setScoreRule(json_encode(["type" => "sum"]));
-              }
-          } elseif ($resourceType->getName() == "icap_lesson") {
-            // set poster in overview message
-            $link = self::BANNER_IMAGES_LINK[0];
-            // set poster in overview message
-            $subResource->setDescription(<<<HTML
-              <img src="$link" class="img-responsive" style="max-height:300px;"/>
-            HTML);
-            $subResource->searchIsAllowed(false);
-          }
-
-          $this->om->persist($subResource);
-          $this->om->persist($document);
-
-          if ($withWidget) {
-              $this->addResourceWidget($document, $subNode, $subnodeName);
-          }
       } else {
-          // Update the document or node
-          // Update the underlying resource
-          $subResource = $this->resourceManager->getResourceFromNode($subNode);
-
-          if ($subNode->getResourceType()->getName() == "ujm_exercise") {
-              $subResource->setShowOverview(false);
-              $subResource->setShowEndConfirm(false);
-              if ($subResource->getType() == ExerciseType::CONCEPTUALIZATION) {
-                  if (empty($subResource->getScoreRule())) {
-                      $subResource->setScoreRule(
-                          json_encode(["type" => "none"])
-                      );
-                  }
-              } else if ($subResource->getType() == ExerciseType::SUMMATIVE) {
-                  if (empty($subResource->getScoreRule())) {
-                      $subResource->setScoreRule(
-                          json_encode(["type" => "sum"])
-                      );
-                  }
-              }
-          } elseif ($resourceType->getName() == "icap_lesson") {
-            $link = self::BANNER_IMAGES_LINK["Theory"];
-            // set poster in overview message
-            $subResource->setDescription(<<<HTML
-              <img src="$link" class="img-responsive" style="max-height:300px;"/>
-            HTML);
-            $subResource->searchIsAllowed(false);
-          }
-          // update the widget
-          $subNodeWidgets = $this->resourceWidgetsRepo->findBy(
-              [
-                  'resourceNode' => $subNode->getId(),
-              ]
-          );
-          if (!empty($subNodeWidgets)) {
-              // widget was found
-              foreach ($subNodeWidgets as $widget) {
-                  $widget->setShowResourceHeader(false);
-                  $instance = $widget->getWidgetInstance();
-                  $container = $instance->getContainer();
-                  if (!$withWidget) {
-                      // widget is no more requested
-                      // remove the widget container
-                      $this->om->remove($container);
-                      $this->om->remove($instance);
-                      $this->om->remove($widget);
-                  } else {
-                      $containerConfig = $container->getWidgetContainerConfigs()->first();
-                      $containerConfig->setName($subnodeName);
-                      $bannerType = $subnodeName !== "Theory" && array_key_exists($subnodeName,self::BANNER_IMAGES_LINK);
-                      // Update container for widget section that should have a banner
-                      if($bannerType !== false) {
-                        $containerConfig->setLayout([1,2]);
-                        $allInstances = $container->getInstances();
-                        if($allInstances->count() == 1){
-                          // poster widget is missing
-                          $link = self::BANNER_IMAGES_LINK[$subnodeName];
-                          // make the banner widget
-                          $bannerWidget = new SimpleWidget();
-                          $bannerWidget->setContent(<<<HTML
-                            <img src="$link" class="img-responsive" style="max-height:300px;"/>
-                          HTML);
-                          $this->om->persist($bannerWidget);
-
-                          $bannerWidgetInstance = new WidgetInstance();
-                          $bannerWidgetInstance->setWidget($this->simpleWidgetType);
-                          $bannerWidgetInstance->setDataSource(null);
-                          $this->om->persist($bannerWidgetInstance);
-
-                          $bannerWidget->setWidgetInstance($bannerWidgetInstance);
-                          $this->om->persist($bannerWidget);
-
-                          $bannerWidgetInstanceConfig = new WidgetInstanceConfig();
-                          $bannerWidgetInstanceConfig->setType("simple");
-                          $bannerWidgetInstanceConfig->setWidgetInstance($bannerWidgetInstance);
-                          $bannerWidgetInstanceConfig->setPosition(0);
-                          $this->om->persist($bannerWidgetInstanceConfig);
-
-                          $instanceConfig = $instance->getWidgetInstanceConfigs()[0];
-                          $instanceConfig->setPosition(1);
-                          $this->om->persist($instanceConfig);
-
-                          $container->addInstance($bannerWidgetInstance);
-                          $this->om->persist($container);
-                          $this->om->persist($containerConfig);
-
-                        }
-                      }
-                      if($subnodeName == "IPIP references") {
-                        $this->om->remove($widget);
-                        // replace directory widget by resource list widget
-                        $widget = new ListWidget();
-                        $widget->setFilters(
-                            [0 => [
-                                "property" => "parent",
-                                "value" => [
-                                    "id" => $subNode->getUuid(),
-                                    "name" => $subNode->getName(),
-                                ],
-                                "locked" => true,
-                            ],
-                            1 => [
-                                "property" => "published",
-                                "value" => true,
-                                "locked" => true,
-                            ]
-                          ],
-                        );
-
-                        $widget->setDisplay("table");
-                        $widget->setActions(false);
-                        $widget->setCount(true);
-                        $widget->setDisplayedColumns(["name"]);
-
-                        $instance->setWidget($this->listWidgetType);
-                        $instance->setDataSource($this->resourcesListDataSource);
-                        $widget->setWidgetInstance($instance);
-
-                        $widgetInstanceConfig = $instance->getWidgetInstanceConfigs()[0];
-                        $widgetInstanceConfig->setType("list");
-
-                        $this->om->persist($widgetInstanceConfig);
-                        $this->om->persist($instance);
-
-                      }
-
-                      $this->om->persist($widget);
-                  }
-              }
-          } elseif ($withWidget) {
-              // FIXME handle post update IPIP references recreation
-              // subnode is alledgedly used in a widget but was not found
-              // So we add it
-              $this->addResourceWidget($document, $subNode, $subnodeName);
-          }
+        $subResource = $this->resourceManager->getResourceFromNode($subNode);
       }
+      // create new subresource if not present
+      if(empty($subResource)){
+        $resourceclass = $resourceType->getClass();
+        $subResource = new $resourceclass();
+        $subResource->setResourceNode($subNode);
+        $subResource->setName($subnodeName);
+        $this->om->persist($subResource);
+      }
+      // update subresource
+      if ($resourceType->getName() == "ujm_exercise") {
+          $subResource->setShowOverview(false);
+          $subResource->setShowEndConfirm(false);
+          if ($subnodeName == "Practice") {
+              $subResource->setType(ExerciseType::CONCEPTUALIZATION);
+              $subResource->setScoreRule(json_encode(["type" => "none"]));
+          } else if ($subnodeName == "Assessment") {
+              $subResource->setType(ExerciseType::SUMMATIVE);
+              $subResource->setScoreRule(json_encode(["type" => "sum"]));
+          }
+
+      } elseif ($resourceType->getName() == "icap_lesson") {
+        $link = self::BANNER_IMAGES_LINK["Theory"];
+        // set poster in overview message
+        $subResource->setDescription(<<<HTML
+          <img src="$link" class="img-responsive" style="max-height:300px;"/>
+        HTML);
+        $subResource->searchIsAllowed(false);
+      } elseif ($resourceType->getName() == "directory") {
+        // change listing to only display the list of names
+        $subResource->setDisplay("table");
+        $subResource->setActions(false);
+        $subResource->setCount(true);
+        $subResource->setDisplayedColumns(["name"]);
+      }
+      $this->om->persist($subResource);
+      $this->om->persist($document);
+
+      // Handle the withWdiget option here
       //$this->om->flush();
       return $subNode;
   }
 
   /**
-   * [addResourceWidget description]
+   * [addOrUpdateResourceWidget description]
    * @param [type] $document     [description]
    * @param [type] $resourceNode [description]
    */
@@ -601,6 +506,9 @@ class DocumentManager implements LoggerAwareInterface
     $name = null,
     $showName = false
   ) {
+      // Search for and existing listing widget in document
+      //
+
       if ($document->getWidgetContainers()->isEmpty()) {
           $newWidget = new ListWidget();
           $newWidget->setFilters(
@@ -687,6 +595,7 @@ class DocumentManager implements LoggerAwareInterface
 
           $document->addWidgetContainer($newWidgetContainer);
       } else {
+          // FIXME Find the widget using the parent node
           $container = $document->getWidgetContainers()->first();
           $containerConfig = $container->getWidgetContainerConfigs()->first();
           $instance = $container->getInstances()->first();
@@ -773,120 +682,159 @@ class DocumentManager implements LoggerAwareInterface
 
 
   /**
-   * [addResourceWidget description]
+   * Make or update an existing resource widget section
    * @param [type] $document     [description]
    * @param [type] $resourceNode [description]
    */
-  public function addResourceWidget($document, $resourceNode, $name = null)
+  public function addOrUpdateResourceWidget($document, $resourceNode, $name = null)
   {
-
-      $bannerType = $name !== "Theory" && array_key_exists($name,self::BANNER_IMAGES_LINK);
-
-      if($name === "IPIP references"){
-        $newWidget = new ListWidget();
-        $newWidget->setFilters(
-            [0 => [
-                "property" => "parent",
-                "value" => [
-                    "id" => $resourceNode->getUuid(),
-                    "name" => $resourceNode->getName(),
-                ],
-                "locked" => true,
-            ],
-            1 => [
-                "property" => "published",
-                "value" => true,
-                "locked" => true,
-            ]
-          ],
-        );
-
-        $newWidget->setDisplay("table");
-        $newWidget->setActions(false);
-        $newWidget->setCount(true);
-        $newWidget->setDisplayedColumns(["name"]);
-
-        $newWidgetInstance = new WidgetInstance();
-        $newWidgetInstance->setWidget($this->listWidgetType);
-        $newWidgetInstance->setDataSource($this->resourcesListDataSource);
-
-        $this->om->persist($newWidgetInstance);
-        $newWidget->setWidgetInstance($newWidgetInstance);
-
-        $newWidgetInstanceConfig = new WidgetInstanceConfig();
-        $newWidgetInstanceConfig->setType("list");
-        $newWidgetInstanceConfig->setWidgetInstance($newWidgetInstance);
-      } else {
-        $newWidget = new ResourceWidget();
-        $newWidget->setResourceNode($resourceNode);
-        $newWidget->setShowResourceHeader(false);
-        $this->om->persist($newWidget);
-
-        $newWidgetInstance = new WidgetInstance();
-        $newWidgetInstance->setWidget($this->resourceWidgetType);
-        $newWidgetInstance->setDataSource($this->resourceDataSource);
-        $this->om->persist($newWidgetInstance);
-        $newWidget->setWidgetInstance($newWidgetInstance);
-
-        $newWidgetInstanceConfig = new WidgetInstanceConfig();
-        $newWidgetInstanceConfig->setType("resource");
-        $newWidgetInstanceConfig->setWidgetInstance($newWidgetInstance);
-      }
-
-      if($bannerType !== false){
-        $newWidgetInstanceConfig->setPosition(1);
-      }
-      $this->om->persist($newWidgetInstanceConfig);
-
-      if($bannerType !== false){
+      $bannerText = null;
+      if($name !== "Theory" && array_key_exists($name,self::BANNER_IMAGES_LINK)){
         $link = self::BANNER_IMAGES_LINK[$name];
-        // make the banner widget
-        $bannerWidget = new SimpleWidget();
-        $bannerWidget->setContent(<<<HTML
-          <img src="$link" class="img-responsive" style="max-height:300px;"/>
-        HTML);
+        $bannerText = <<<HTML
+          <img src="${link}" class="img-responsive" style="max-height:300px;"/>
+        HTML;
+      }
+
+
+      $resourceWidget = null;
+      $resourceWidgetInstance = null;
+      $resourceWidgetInstanceConfig = null;
+
+      $bannerWidget = null;
+      $bannerWidgetInstance = null;
+      $bannerWidgetInstanceConfig = null;
+
+      $widgetSection = null;
+      $widgetSectionConfig = null;
+
+      // Search for an existing widget holding the resource widget in the
+      // current document widget sections
+      $widgetSections = $document->getWidgetContainers()->toArray();
+      foreach ($widgetSections as $section) {
+          // get container instances
+          $currentInstances = $section->getInstances()->toArray();
+          foreach ($currentInstances as $key => $instance) {
+            // check for an existing resource widget pointing to the
+            // resource node in this instance
+            $resourceWidget = $this->resourceWidgetsRepo->findOneBy(
+                [
+                    "widgetInstance" => $instance->getId(),
+                    "resourceNode" => $resourceNode->getId()
+
+                ]
+            );
+
+            if(!empty($resourceWidget)) {
+              $resourceWidgetInstance = $instance;
+              $resourceWidgetInstanceConfig = $instance->getWidgetInstanceConfigs()->first();
+              //break;
+            } elseif (!empty($bannerText)) {
+              // For resource widget that should have a banner,
+              // check if the instance contains one with the wanted banner
+              $bannerWidget = $this->simpleWidgetsRepo->findOneBy(
+                  [
+                      "widgetInstance" => $instance->getId(),
+                      "content" => $bannerText
+                  ]
+              );
+              if(!empty($bannerWidget)) {
+                $bannerWidgetInstance = $instance;
+                $bannerWidgetInstanceConfig = $instance->getWidgetInstanceConfigs()->first();
+                //break;
+              }
+            }
+          }
+
+          if(!empty($resourceWidget)) {
+            $widgetSection = $section;
+            $widgetSectionConfig = $section->getWidgetContainerConfigs()->first();
+            break;
+          }
+      }
+
+      // widget not found, make a new one
+      if(empty($resourceWidget)){
+         // make widget, instance and container
+          $resourceWidget = new ResourceWidget();
+
+          $widgetSection = new WidgetContainer();
+          $widgetSectionConfig = new WidgetContainerConfig();
+
+          $resourceWidget = new ResourceWidget();
+          $resourceWidget->setResourceNode($resourceNode);
+          $resourceWidget->setShowResourceHeader(false);
+          $this->om->persist($resourceWidget);
+
+          $resourceWidgetInstance = new WidgetInstance();
+          $resourceWidgetInstance->setWidget($this->resourceWidgetType);
+          $resourceWidgetInstance->setDataSource($this->resourceDataSource);
+          $this->om->persist($resourceWidgetInstance);
+          $resourceWidget->setWidgetInstance($resourceWidgetInstance);
+
+          $resourceWidgetInstanceConfig = new WidgetInstanceConfig();
+          $resourceWidgetInstanceConfig->setType("resource");
+          $resourceWidgetInstanceConfig->setWidgetInstance($resourceWidgetInstance);
+
+          $widgetSection = new WidgetContainer();
+          $this->om->persist($widgetSection);
+
+          $widgetSectionConfig = new WidgetContainerConfig();
+          $widgetSectionConfig->setWidgetContainer($widgetSection);
+          $this->om->persist($widgetSectionConfig);
+
+          $document->addWidgetContainer($widgetSection);
+      }
+
+      if(!empty($bannerText)){
+
+        // empty banner widget, make new one
+        if(empty($bannerWidget)){
+          // make the banner widget
+          $bannerWidget = new SimpleWidget();
+          $bannerWidget->setContent($bannerText);
+          $this->om->persist($bannerWidget);
+
+          $bannerWidgetInstance = new WidgetInstance();
+          $bannerWidgetInstance->setWidget($this->simpleWidgetType);
+          $bannerWidgetInstance->setDataSource(null);
+          $this->om->persist($bannerWidgetInstance);
+          $bannerWidget->setWidgetInstance($bannerWidgetInstance);
+
+          $bannerWidgetInstanceConfig = new WidgetInstanceConfig();
+          $bannerWidgetInstanceConfig->setType("simple");
+          $bannerWidgetInstanceConfig->setWidgetInstance($bannerWidgetInstance);
+
+          $this->om->persist($bannerWidgetInstanceConfig);
+        }
+        $bannerWidget->setContent($bannerText);
         $this->om->persist($bannerWidget);
 
-        $bannerWidgetInstance = new WidgetInstance();
-        $bannerWidgetInstance->setWidget($this->simpleWidgetType);
-        $bannerWidgetInstance->setDataSource(null);
-        $this->om->persist($bannerWidgetInstance);
-        $bannerWidget->setWidgetInstance($bannerWidgetInstance);
+        $widgetSection->addInstance($bannerWidgetInstance);
+        $widgetSection->addInstance($resourceWidgetInstance);
+        $widgetSectionConfig->setLayout([1,2]);
 
-        $bannerWidgetInstanceConfig = new WidgetInstanceConfig();
-        $bannerWidgetInstanceConfig->setType("simple");
-        $bannerWidgetInstanceConfig->setWidgetInstance($bannerWidgetInstance);
         $bannerWidgetInstanceConfig->setPosition(0);
+        $resourceWidgetInstanceConfig->setPosition(1);
+
         $this->om->persist($bannerWidgetInstanceConfig);
 
-      }
-
-      $newWidgetContainer = new WidgetContainer();
-      if($bannerType !== false){
-        $newWidgetContainer->addInstance($bannerWidgetInstance);
-        $bannerWidgetInstance->setContainer($newWidgetContainer);
-      }
-      $newWidgetContainer->addInstance($newWidgetInstance);
-      $newWidgetInstance->setContainer($newWidgetContainer);
-      $this->om->persist($newWidgetContainer);
-
-      $newWidgetContainerConfig = new WidgetContainerConfig();
-      $newWidgetContainerConfig->setName($name);
-      $newWidgetContainerConfig->setBackgroundType("color");
-      $newWidgetContainerConfig->setBackground("#ffffff");
-      $newWidgetContainerConfig->setPosition(0);
-      if($bannerType !== false){
-        $newWidgetContainerConfig->setLayout([1,2]);
       } else {
-        $newWidgetContainerConfig->setLayout(array(1));
+        $resourceWidgetInstanceConfig->setPosition(0);
+        $widgetSection->addInstance($resourceWidgetInstance);
+        $widgetSectionConfig->setLayout(array(1));
       }
+      $this->om->persist($resourceWidgetInstanceConfig);
 
-      $newWidgetContainerConfig->setWidgetContainer($newWidgetContainer);
+      $widgetSectionConfig->setName($name);
+      $widgetSectionConfig->setBackgroundType("color");
+      $widgetSectionConfig->setBackground("#ffffff");
+      $widgetSectionConfig->setWidgetContainer($widgetSection);
 
-      $this->om->persist($newWidgetContainerConfig);
+      $this->om->persist($widgetSectionConfig);
+      $this->om->persist($widgetSection);
 
-      $document->addWidgetContainer($newWidgetContainer);
-
+      $document->addWidgetContainer($widgetSection);
       $this->om->persist($document);
   }
 
