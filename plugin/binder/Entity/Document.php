@@ -9,6 +9,9 @@ use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
+
+use Claroline\CoreBundle\Entity\Model\DirectoryTrait;
+
 /**
  *
  * @ORM\Entity()
@@ -17,7 +20,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Document extends AbstractResource
 {
     use Uuid;
-    use ListParameters;
+    use DirectoryTrait;
 
     /**
      * @ORM\Column(name="long_title", nullable=true, type="text")
@@ -138,23 +141,7 @@ class Document extends AbstractResource
     {
         $this->refreshUuid();
         $this->widgetContainers = new ArrayCollection();
-
-        // C/C from directory
-        // set some list configuration defaults
-        // can be done later in the resource.directory.create event
-        $this->count = true;
-        $this->card = ['icon', 'flags', 'subtitle', 'description', 'footer'];
-
-        $this->availableColumns = ['name', 'published', 'resourceType'];
-        $this->displayedColumns = ['name', 'published', 'resourceType'];
-
-        $this->filterable = true;
-        $this->searchMode = 'unified';
-        $this->availableFilters = ['name', 'published', 'resourceType'];
-
-        $this->sortable = true;
-        $this->sortBy = 'name';
-        $this->availableSort = ['name', 'resourceType'];
+        $this->initializeDirectory();
     }
 
     /**
