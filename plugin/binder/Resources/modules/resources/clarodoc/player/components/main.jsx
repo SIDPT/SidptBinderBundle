@@ -31,7 +31,7 @@ class DocumentPlayerMain extends Component {
 
   render(){
     // TODO document parameter to be stored
-    
+
     let visibleWidgets = this.props.document.widgets.filter(
         widget => widget.visible === true
       ).map((widget,index)=>{
@@ -40,26 +40,26 @@ class DocumentPlayerMain extends Component {
         return temp;
       });
 
-      const nextButtonLabel = ( 
-        this.props.document.widgetsPagination && 
-          visibleWidgets.length > this.state.selectedPage && 
+      const nextButtonLabel = (
+        this.props.document.widgetsPagination &&
+          visibleWidgets.length > this.state.selectedPage &&
           visibleWidgets[this.state.selectedPage].name != null
       ) ? visibleWidgets[this.state.selectedPage].name : trans('next')
 
-      const backButtonLabel = 
-        this.props.document.showOverview && this.state.selectedPage <= 1 ? 
+      const backButtonLabel =
+        this.props.document.showOverview && this.state.selectedPage <= 1 ?
           trans('overview') :
-          ( this.state.selectedPage > 2 && visibleWidgets[this.state.selectedPage - 2].name ?
-            visibleWidgets[this.state.selectedPage - 2].name : 
+          ( this.state.selectedPage > 1 && visibleWidgets[this.state.selectedPage - 2].name ?
+            visibleWidgets[this.state.selectedPage - 2].name :
             trans('back')
           )
 
       return (
         <Fragment>
-          <header className={this.props.document.centerTitle ? "text-center" : ''}> 
+          <header className={this.props.document.centerTitle ? "text-center" : ''}>
             <h1 className="page-title">{this.props.document.longTitle}</h1>
           </header>
-          {this.props.document.showOverview && 0 === this.state.selectedPage && 
+          {this.props.document.showOverview && 0 === this.state.selectedPage &&
               <DocumentOverview
                 authorizeSummaryLinks={false}
                 resource={this.props.resource}
@@ -76,9 +76,9 @@ class DocumentPlayerMain extends Component {
               />
             }
 
-          {this.props.document.widgetsPagination ? 
+          {this.props.document.widgetsPagination ?
             <Fragment>
-              {0 < this.state.selectedPage && 
+              {0 < this.state.selectedPage &&
                 <div className="widgets-grid">
                   <Widget
                       key={this.state.selectedPage}
@@ -86,6 +86,19 @@ class DocumentPlayerMain extends Component {
                       currentContext={this.props.currentContext}
                     />
                   <div class="widgets-nav-bottom">
+                    {this.state.selectedPage > 1 &&
+                      <Button
+                        className="btn btn-emphasis component-container pull-left"
+                        type={CALLBACK_BUTTON}
+                        callback={() => {
+                          this.selectPage(0);
+                        }}
+                        primary={true}
+                      >
+                        <span className="fa fa-angle-double-left icon-with-text-right" />
+                        {trans('overview')}
+                      </Button>
+                    }
                     <Button
                       className="btn btn-emphasis component-container pull-left"
                       type={CALLBACK_BUTTON}
@@ -93,9 +106,9 @@ class DocumentPlayerMain extends Component {
                         this.selectPage(this.state.selectedPage - 1);
                       }}
                       primary={true}
-                    > 
-                      <span className="fa fa-angle-double-left icon-with-text-right" />
-                      {backButtonLabel}  
+                    >
+                      <span className="fa fa-angle-left icon-with-text-right" />
+                      {backButtonLabel}
                     </Button>
                     {visibleWidgets.length > this.state.selectedPage &&
                         <Button
@@ -107,7 +120,7 @@ class DocumentPlayerMain extends Component {
                           primary={true}
                         >
                         {nextButtonLabel}
-                        <span className="fa fa-angle-double-right icon-with-text-left" />
+                        <span className="fa fa-angle-right icon-with-text-left" />
                         </Button>
                     }
                   </div>
@@ -124,7 +137,7 @@ class DocumentPlayerMain extends Component {
                 />
               }
 
-              {0 !== visibleWidgets.length && 0 < this.state.selectedPage && 
+              {0 !== visibleWidgets.length && 0 < this.state.selectedPage &&
                 <div className="widgets-grid">
                   {visibleWidgets.map((widget, index) =>
                     <Widget
@@ -142,9 +155,9 @@ class DocumentPlayerMain extends Component {
                           this.selectPage(this.state.selectedPage - 1);
                         }}
                         primary={true}
-                      > 
+                      >
                         <span className="fa fa-angle-double-left icon-with-text-right" />
-                        {backButtonLabel}  
+                        {backButtonLabel}
                       </Button>
                     </div>
                   }
@@ -172,5 +185,5 @@ export {
 }
 
 /**
- * 
+ *
  */

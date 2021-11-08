@@ -5,7 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 
 import {trans} from '#/main/app/intl/translation'
 import {scrollTo} from '#/main/app/dom/scroll'
-import {CALLBACK_BUTTON} from '#/main/app/buttons'
+import {CALLBACK_BUTTON, CallbackButton} from '#/main/app/buttons'
 import {ContentHtmlComponent} from '#/main/app/content/components/html'
 import {ResourceOverview} from '#/main/core/resource/components/overview'
 import {ContentSummary} from '#/main/app/content/components/summary'
@@ -43,20 +43,20 @@ const DocumentOverview = (props) => {
     </td>
   </tr>
   <tr>
-    <td>{trans('Who is it for?','clarodoc')}</td>
+    <td>{trans('Professional profiles','clarodoc')}</td>
     <td>{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
   </tr>
   <tr>
-    <td>{trans('What is included?','clarodoc')}</td>
+    <td>{trans('Learning objects','clarodoc')}</td>
     <td>{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
   </tr>
   <tr>
-    <td>{trans('How long will it take?','clarodoc')}</td>
+    <td>{trans('Approximate duration','clarodoc')}</td>
     <td>{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
   </tr>
   {{ #requirements}}
   <tr>
-    <td>{trans('requirements','clarodoc')}</td>
+    <td>{trans('Recommended prior knowledge','clarodoc')}</td>
     <td> {{ #children }} <a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{name}}</a>{{ /children }}</td>
   </tr>
   {{ /requirements}}
@@ -100,26 +100,26 @@ const DocumentOverview = (props) => {
                     props.selectPage(1)
                 }
             }
-            ]}>
-
-            <section className="resource-section resource-overview">
-                <h3 className="h2">{trans('summary')}</h3>
-                <ContentSummary
-                  className="component-container"
-                  links={props.widgets.filter(widget => widget.name && widget.name !== "")
-                    .map((widget, index) => {
-                        return {
-                          type: CALLBACK_BUTTON,
-                          label: widget.name,
-                          disabled:!props.authorizeSummaryLinks,
-                          callback: () => {
-                            props.selectPage(props.paginated ? index+1 : 1)
-                          }
-                        }
-                      })}
-                />
-          </section>
+          ]}
+          customActionsSection={
+            <nav className="resource-overview-nav">
+              <ul>{trans('Jump to')}
+              {props.widgets.filter(widget => widget.name && widget.name !== "")
+                .map((widget, index) => {
+                    return <li>
+                      <CallbackButton
+                        className="nav-link"
+                        label={widget.name}
+                        callback={() => {
+                          props.selectPage(props.paginated ? index+1 : 1)
+                        }}>{widget.name}</CallbackButton>
+                    </li>
+                  })}
+              </ul>
+            </nav>
+          }>
         </ResourceOverview>
+
     )
 }
 

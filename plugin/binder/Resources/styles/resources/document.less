@@ -33,3 +33,32 @@
 
 
 }
+
+.resource-overview-nav {
+  margin-top: 10px;
+  text-align: right;
+  ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+
+    li {
+      display: inline;
+      margin-left: 5px;
+    }
+
+    li + li::before {
+     margin-right:5px;
+     display: inline-block;
+     content: ' - ';
+    }
+
+    .nav-link {
+      .button-link-variant(@brand-primary, @brand-secondary);
+      text-decoration: underline;
+    }
+
+
+  }
+
+}
