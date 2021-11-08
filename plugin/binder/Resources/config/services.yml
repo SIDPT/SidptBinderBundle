@@ -5,3 +5,4 @@ imports:
     - { resource: services/listener.yml }
     - { resource: services/serializer.yml }
     - { resource: services/transfer.yml }
+    - { resource: services/subscriber.yml }
