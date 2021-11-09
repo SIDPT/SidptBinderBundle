@@ -308,6 +308,7 @@ class DocumentManager implements LoggerAwareInterface
         $this->documentType
     );
     $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References");
+    $this->om->flush();
 
     $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
     $referencesDocument->getWidgetContainers()->clear();
@@ -417,11 +418,11 @@ class DocumentManager implements LoggerAwareInterface
 
   /**
    * [addOrUpdateDocumentSubObject description]
-   * @param [type]  $user          [description]
-   * @param [type]  $documentNode  [description]
-   * @param [type]  $subnodeName   [description]
-   * @param [type]  $resourceType  [description]
-   * @param boolean $withWidget    [description]
+   * @param  [type]       $user                       [description]
+   * @param  [type]       $documentNode               [description]
+   * @param  [type]       $subnodeName                [description]
+   * @param  [type]       $resourceType               [description]
+   * @return ResourceNode               the newly created resource node
    */
   public function addOrUpdateDocumentSubObject(
       $user,
@@ -490,7 +491,6 @@ class DocumentManager implements LoggerAwareInterface
       $this->om->persist($subResource);
       $this->om->persist($document);
 
-      // Handle the withWdiget option here
       //$this->om->flush();
       return $subNode;
   }
