@@ -373,7 +373,10 @@ class DocumentManager implements LoggerAwareInterface
     $moduleDocument->setWidgetsPagination(false);
 
     // reset widgets from document
-    $this->documentSeralizer->deserializeWidgets([],$moduleDocument);
+    //$this->documentSeralizer->deserializeWidgets([],$moduleDocument);
+    $moduleDocument->getWidgetContainers()->clear();
+    $this->om->persist($moduleDocument);
+    $this->om->flush();
 
     $this->addOrUpdateResourceListWidget($moduleDocument,$moduleNode, "Learning units");
 
@@ -396,14 +399,15 @@ class DocumentManager implements LoggerAwareInterface
     $courseDocument->setWidgetsPagination(false);
 
     // remove widgets from document
-    $this->documentSeralizer->deserializeWidgets([],$courseDocument);
-
+    //$this->documentSeralizer->deserializeWidgets([],$courseDocument);
+    $courseDocument->getWidgetContainers()->clear();
+    $this->om->persist($courseDocument);
+    $this->om->flush();
 
     // recreate the widget
     $this->addOrUpdateResourceListWidget($courseDocument,$courseNode, "Modules");
 
     $courseNode->setDescription(<<<HTML
-    <p style="margin-bottom:0px;">{trans('Modules','clarodoc')}: </p>
     <ul>{{#resource.resourceNode.children}}
     <li><a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{ name }}</a></li>
     {{/resource.resourceNode.children}}</ul>
