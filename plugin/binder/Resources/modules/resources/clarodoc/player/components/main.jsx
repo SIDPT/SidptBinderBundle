@@ -56,9 +56,11 @@ class DocumentPlayerMain extends Component {
 
       return (
         <Fragment>
-          <header className={this.props.document.centerTitle ? "text-center" : ''}>
-            <h1 className="page-title">{this.props.document.longTitle}</h1>
-          </header>
+          {this.props.document.longTitle &&
+            <header className={this.props.document.centerTitle ? "text-center" : ''}>
+              <h2 className="page-title">{this.props.document.longTitle}</h2>
+            </header>
+          }
           {this.props.document.showOverview && 0 === this.state.selectedPage &&
               <DocumentOverview
                 authorizeSummaryLinks={false}
