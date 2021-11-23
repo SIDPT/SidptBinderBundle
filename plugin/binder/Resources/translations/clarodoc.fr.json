@@ -7,22 +7,22 @@
 	"Module":"Module",
 	"Course":"Cours",
 
-	"Professional profiles":"Professional profiles",
-	"Learning objects":"Learning objects",
-	"Approximate duration":"Approximate duration",
-	"Recommended prior knowledge":"Recommended prior knowledge",
-	"Last updated":"Last updated",
+	"Professional profiles":"Filières de l'édition concernées",
+	"Learning objects":"Objets d'apprentissage",
+	"Approximate duration":"Temps d'apprentissage estimé",
+	"Recommended prior knowledge":"Connaissances préalables recommandées",
+	"Last updated":"Dernière mise à jour",
 
-	"Learning outcomes":"Learning outcomes",
-	"Disclaimer":"Disclaimer",
-	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.",
+	"Learning outcomes":"Résultats d'apprentissage attendus",
+	"Disclaimer":"Avertissement",
+	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"Cette unité d'enseignement contient des images pouvant ne pas être accessible à certains apprenants. Ce contenu est utilisé comme support d'apprentissage. L'information présenté dans les images est expliqué dans le text lorsque cela est possible.",
 
 	"Practice":"Entrainement",
 	"Theory":"Théorie",
 	"Assessment":"Évaluation",
 	"Activity":"Activité",
 	"References": "Références",
-	"External references": "External references",
-	"IPIP references": "IPIP references"
+	"External references": "Références externes",
+	"IPIP references": "Références IPIP"
 
 }

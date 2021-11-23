@@ -35,7 +35,7 @@ const DocumentOverview = (props) => {
   <tr>
     <td>{trans('Learning unit','clarodoc')}</td>
     <td>
-      <ul style="list-style-type:none; padding-left:0; margin:0px;">
+      <ul>
         <li><b>{trans('Course','clarodoc')}: <a id="{{ resource.resourceNode.path[-3].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></li>
         <li><b>{trans('Module','clarodoc')}: <a id="{{ resource.resourceNode.path[-2].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></li>
         <li><b>{trans('Learning unit','clarodoc')}: <a id="{{ resource.resourceNode.slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></span></li>
