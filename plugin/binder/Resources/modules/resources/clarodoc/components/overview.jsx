@@ -103,7 +103,7 @@ const DocumentOverview = (props) => {
           ]}
           customActionsSection={
             <nav className="resource-overview-nav">
-              <ul>{trans('Jump to')}
+              <ul>{trans('Jump to', {}, 'clarodoc')}
               {props.widgets.filter(widget => widget.name && widget.name !== "")
                 .map((widget, index) => {
                     return <li>

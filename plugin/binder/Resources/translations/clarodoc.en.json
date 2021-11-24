@@ -6,7 +6,7 @@
 	"Learning unit":"Learning unit",
 	"Module":"Module",
 	"Course":"Course",
-	
+
 	"Professional profiles":"Professional profiles",
 	"Learning objects":"Learning objects",
 	"Approximate duration":"Approximate duration",
@@ -23,5 +23,7 @@
 	"Activity":"Activity",
 	"References": "References",
 	"External references": "External references",
-	"IPIP references": "IPIP references"
+	"IPIP references": "IPIP references",
+
+	"Jump to":"Jump to"
 }

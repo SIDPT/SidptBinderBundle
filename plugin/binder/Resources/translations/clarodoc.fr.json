@@ -17,12 +17,14 @@
 	"Disclaimer":"Avertissement",
 	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"Cette unité d'enseignement contient des images pouvant ne pas être accessible à certains apprenants. Ce contenu est utilisé comme support d'apprentissage. L'information présenté dans les images est expliqué dans le text lorsque cela est possible.",
 
-	"Practice":"Entrainement",
+	"Practice":"Entraînement",
 	"Theory":"Théorie",
 	"Assessment":"Évaluation",
 	"Activity":"Activité",
 	"References": "Références",
 	"External references": "Références externes",
-	"IPIP references": "Références IPIP"
+	"IPIP references": "Références IPIP",
+
+	"Jump to":"Aller à"
 
 }
