@@ -21,3 +21,6 @@ plugin:
                 decoder: create
                 group: management
                 api: [POST]
+    widgets:
+        - name: resources_search
+          class: Sidpt\BinderBundle\Entity\Widget\ResourcesSearchWidget

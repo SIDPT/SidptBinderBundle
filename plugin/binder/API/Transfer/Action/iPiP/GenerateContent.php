@@ -116,7 +116,7 @@ class GenerateContent extends AbstractAction
     private $estimatedTime;
     private $includedResources;
 
-    
+
 
     /**
      *
@@ -149,8 +149,8 @@ class GenerateContent extends AbstractAction
         $this->homeTabsRepo = $this->om->getRepository(HomeTab::class);
         $this->resourceWidgetsRepo = $this->om->getRepository(ResourceWidget::class);
         $this->listWidgetsRepo = $this->om->getRepository(ListWidget::class);
-        
-        
+
+
         $widgetsTypeRepo = $this->om->getRepository(Widget::class);
         $dataSourceRepo = $this->om->getRepository(DataSource::class);
         $typesRepo = $this->om->getRepository(ResourceType::class);
@@ -200,7 +200,7 @@ class GenerateContent extends AbstractAction
      */
     public function execute(array $data, &$successData = [])
     {
-        
+
         $user = $this->tokenStorage->getToken()->getUser();
 
         $curriculum = isset($data['curriculum']) ? trim($data['curriculum']) : null;
@@ -208,7 +208,7 @@ class GenerateContent extends AbstractAction
         $module = isset($data['module']) ? trim($data['module']) : null;
         $learningUnit = isset($data['learning_unit']) ? trim($data['learning_unit']) : null;
         $learningOutcome = isset($data['learning_outcome']) ? trim($data['learning_outcome']) :null;
-        
+
 
         ///// WORKSPACE / CURRICULUM
         // for line with empty curriculum, stop right here
@@ -219,13 +219,13 @@ class GenerateContent extends AbstractAction
             ];
             return;
         }
-        
+
         // Check if curriculum exist
         $workspace = $this->workspaceRepo->findOneBy(['name' => $curriculum]);
         // Create it if not
         if (empty($workspace)) {
             $workspaceCode = str_replace(" ", "_", strtolower($curriculum));
-            
+
             $data = [
                 "name" => $curriculum,
                 "code" => $workspaceCode,
@@ -263,7 +263,7 @@ class GenerateContent extends AbstractAction
                   "enabled" => false
                 ]
             ];
-        
+
             // From workspace manager
             // (seems mandatory to do it this way for default rights)
             $workspace = $this->crud->create(Workspace::class, $data);
@@ -294,7 +294,7 @@ class GenerateContent extends AbstractAction
             ['Content level/Curriculum',$curriculumTag->getPath()],
             $workspace
         );
-                
+
         // Workspace root directory
         $curriculumNode = $this->resourceNodeRepo->findOneBy(
             [
@@ -303,7 +303,7 @@ class GenerateContent extends AbstractAction
             ]
         );
         $curriculumNodeData = $this->nodeSeralizer->serialize($curriculumNode);
-        
+
         $wscollaborator = $this->roleManager->getCollaboratorRole($workspace);
         foreach ($curriculumNodeData["rights"] as $key => $right) {
             // if we want to allow everyone to open the content
@@ -428,10 +428,10 @@ class GenerateContent extends AbstractAction
             if ($courseNode->getResourceType()->getId() == $this->binderType->getId()) {
                 // Replace by document
                 $courseBinder = $this->resourceManager->getResourceFromNode($courseNode);
-                
+
                 $courseNode->setResourceType($this->documentType);
                 $courseNode->setMimeType("custom/sidpt_document");
-                
+
                 $this->om->remove($courseBinder);
             } else {
                 $courseDocument = $this->resourceManager->getResourceFromNode($courseNode);
@@ -489,7 +489,7 @@ class GenerateContent extends AbstractAction
         if (empty($module)) {
             return;
         }
-        
+
 
         $moduleNode = $this->resourceNodeRepo->findOneBy(
             [
@@ -514,10 +514,10 @@ class GenerateContent extends AbstractAction
             if ($moduleNode->getResourceType()->getId() == $this->binderType->getId()) {
                 // Replace by document
                 $moduleBinder = $this->resourceManager->getResourceFromNode($moduleNode);
-                
+
                 $moduleNode->setResourceType($this->documentType);
                 $moduleNode->setMimeType("custom/sidpt_document");
-                
+
                 $this->om->remove($moduleBinder);
             } else {
                 $moduleDocument = $this->resourceManager->getResourceFromNode($moduleNode);
@@ -612,50 +612,76 @@ class GenerateContent extends AbstractAction
         $learningUnitDocument->setName($learningUnit);
         $learningUnitDocument->setShowOverview(true);
         $learningUnitDocument->setWidgetsPagination(true);
-        $learningUnitNode->setDescription(
+
+        $learningUnitDocument->setOverviewMessage(
             <<<HTML
 <table class="table table-striped table-hover table-condensed data-table" style="height: 133px; width: 100%; border-collapse: collapse; margin-left: auto; margin-right: auto;" border="1" cellspacing="5px" cellpadding="20px">
 <tbody>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">Learning Unit</td>
+<td style="width: 50%; height: 19px;">{trans('Learning unit','clarodoc')}</td>
 <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">Module</td>
+<td style="width: 50%; height: 19px;">{trans('Module','clarodoc')}</td>
 <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-2].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">Course</td>
+<td style="width: 50%; height: 19px;">{trans('Course','clarodoc')}</td>
 <td class="text-left string-cell" style="width: 50%; height: 19px;"><a id="{{ resource.resourceNode.path[-3].slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">Who is it for?</td>
+<td style="width: 50%; height: 19px;">{trans('Who is it for?','clarodoc')}</td>
 <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">What is included?</td>
+<td style="width: 50%; height: 19px;">{trans('What is included?','clarodoc')}</td>
 <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">How long will it take?</td>
+<td style="width: 50%; height: 19px;">{trans('How long will it take?','clarodoc')}</td>
 <td style="width: 50%; height: 19px;">{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
 </tr>
 <tr style="height: 19px;">
-<td style="width: 50%; height: 19px;">Last updated</td>
+<td style="width: 50%; height: 19px;">{trans('Last updated','clarodoc')}</td>
 <td style="width: 50%; height: 19px;">{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
 </tr>
 </tbody>
 </table>
-<h3>Learning outcome</h3>
-<p>{$learningOutcomeContent}</p>
-<p>{{#resource.resourceNode.tags["disclaimer"] }}</p>
-<h3>Disclaimer</h3>
-<p class="p1">This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.</p>
-<p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
-HTML //end of document
+HTML
         );
 
-        
+        $learningUnitDocument->setShowDescription(true);
+        $learningUnitDocument->setDisclaimer(
+            <<<HTML
+<p id="disclaimer-start">{{#resource.resourceNode.tags["disclaimer"] }}</p>
+<h3>{trans('Disclaimer','clarodoc')}</h3>
+<p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
+<p>{{/resource.resourceNode.tags["disclaimer"] }}</p>
+HTML
+        );
+
+        // updated description template
+        $learningUnitDocument->setDescriptionTitle(
+            <<<HTML
+<h3>{trans('Learning outcomes','clarodoc')}</h3>
+HTML
+        );
+        $documentNode->setDescription($learningOutcomeContent);
+
+        $user = $learningUnitNode->getCreator();
+        $requiredKnowledgeNode = $this->addOrUpdateDocumentSubObject(
+            $user,
+            $learningUnitNode,
+            "Required knowledge",
+            $this->directoryType,
+            false
+        );
+
+
+
+        $learningUnitDocument->setRequiredResourceNodeTreeRoot($requiredKnowledgeNode);
+
+
         $this->om->persist($learningUnitNode);
         $this->om->persist($learningUnitDocument);
         $this->om->flush();
@@ -683,11 +709,11 @@ HTML //end of document
             $learningUnitNode
         );
 
-        
+
 
         // for each learning unit, pre-creating the default resources and widget
         // that is
-        
+
         // - a practice exercise:
         $practiceNode = $this->addOrUpdateDocumentSubObject(
             $user,
@@ -723,7 +749,7 @@ HTML //end of document
             $assessmentNode
         );
 
-        
+
         // - An activity text
         $activityNode = $this->addOrUpdateDocumentSubObject(
             $user,
@@ -735,7 +761,7 @@ HTML //end of document
             $curriculumNodeData['rights'],
             $activityNode
         );
-        
+
         // - A references document
         $referencesNode = $this->addOrUpdateDocumentSubObject(
             $user,
@@ -748,7 +774,7 @@ HTML //end of document
             $referencesNode
         );
         $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
-        
+
         // The reference document contains 2 sections :
         // - an external reference textual section
         $externalReferencesNode = $this->addOrUpdateDocumentSubObject(
@@ -778,6 +804,266 @@ HTML //end of document
             'data' => $data,
             'log' => "learning unit {$curriculum}|{$course}|{$module}|{$learningUnit} created or updated",
         ];
+    }
+
+    public function addOrUpdateDocumentSubObject(
+        $user,
+        $documentNode,
+        $subnodeName,
+        $resourceType,
+        $withWidget = true
+    ) {
+        $document = $this->resourceManager->getResourceFromNode($documentNode);
+        $subNode = $this->resourceNodeRepo->findOneBy(
+            [
+                'name' => $subnodeName,
+                'parent' => $documentNode->getId(),
+                'resourceType' => $resourceType->getId(),
+            ]
+        );
+        if (empty($subNode)) {
+            $subNode = new ResourceNode();
+            $subNode->setName($subnodeName);
+            $subNode->setWorkspace($documentNode->getWorkspace());
+            $subNode->setResourceType($resourceType);
+            $subNode->setParent($documentNode);
+            $subNode->setCreator($user);
+            $subNode->setMimeType("custom/" . $resourceType->getName());
+            $this->om->persist($subNode);
+
+            $resourceclass = $resourceType->getClass();
+            $subResource = new $resourceclass();
+            $subResource->setResourceNode($subNode);
+            $subResource->setName($subnodeName);
+
+            if ($resourceType->getName() == "ujm_exercise") {
+                if ($subnodeName == "Practice") {
+                    $subResource->setType(ExerciseType::CONCEPTUALIZATION);
+                    $subResource->setScoreRule(json_encode(["type" => "none"]));
+                } else if ($subnodeName == "Assessment") {
+                    $subResource->setType(ExerciseType::SUMMATIVE);
+                    $subResource->setScoreRule(json_encode(["type" => "sum"]));
+                }
+            }
+
+            $this->om->persist($subResource);
+
+            $this->om->persist($document);
+
+            if ($withWidget) {
+                $this->addResourceWidget($document, $subNode, $subnodeName);
+            }
+        } else {
+            // Update the document or node
+            // Update the underlying resource
+            $subResource = $this->resourceManager->getResourceFromNode($subNode);
+            if ($subResource->getMimeType() == "custom/ujm_exercise") {
+                if ($subResource->getType() == ExerciseType::SUMMATIVE) {
+                    if (empty($subResource->getScoreRule())) {
+                        $subResource->setScoreRule(
+                            json_encode(["type" => "none"])
+                        );
+                    }
+                } else if ($subResource->getType() == ExerciseType::SUMMATIVE) {
+                    if (empty($subResource->getScoreRule())) {
+                        $subResource->setScoreRule(
+                            json_encode(["type" => "sum"])
+                        );
+                    }
+                }
+            }
+            // update the widget
+            $subNodeWidgets = $this->resourceWidgetsRepo->findBy(
+                [
+                    'resourceNode' => $subNode->getId(),
+                ]
+            );
+            if (!empty($subNodeWidgets)) {
+                // widget was found
+                foreach ($subNodeWidgets as $widget) {
+                    $widget->setShowResourceHeader(false);
+                    $instance = $widget->getWidgetInstance();
+                    $container = $instance->getContainer();
+                    if (!$withWidget) {
+                        // widget is no more requested
+                        // remove the widget container
+                        $this->om->remove($container);
+                        $this->om->remove($instance);
+                        $this->om->remove($widget);
+                    } else {
+                        $containerConfig = $container->getWidgetContainerConfigs()->first();
+                        $containerConfig->setName($subnodeName);
+
+                        $this->om->persist($widget);
+                    }
+                }
+            } elseif ($withWidget) {
+                // subnode is alledgedly used in a widget but was not found
+                // So we add it
+                $this->addResourceWidget($document, $subNode, $subnodeName);
+            }
+        }
+        $this->om->flush();
+        return $subNode;
+    }
+
+    /**
+     * [addResourceWidget description]
+     * @param [type] $document     [description]
+     * @param [type] $resourceNode [description]
+     */
+    public function addOrUpdateResourceListWidget($document, $parentNode, $name = null)
+    {
+        if ($document->getWidgetContainers()->isEmpty()) {
+            $newWidget = new ListWidget();
+            $newWidget->setFilters(
+                [0 => [
+                    "property" => "parent",
+                    "value" => [
+                        "id" => $parentNode->getUuid(),
+                        "name" => $parentNode->getName(),
+                    ],
+                    "locked" => true,
+                ],
+                ]
+            );
+
+            $widget->setDisplay("table");
+            $widget->setActions(false);
+            $widget->setCount(true);
+            $widget->setDisplayedColumns(["name", "meta.description"]);
+            if ($name == "Learning units") {
+                // update widget to display two columns
+                // - the name column should be labeled "Select a learning unit" with a
+                // - the meta.description should be title "Learning outcomes"
+                $widget->setColumnsCustomization(
+                    [
+                        "name" => [
+                            "label" => "Select a learning unit",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                        "meta.description" => [
+                            "label" => "Learning outcomes",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                    ]
+                );
+            } elseif ($name == "Modules") {
+                // update widget to display two columns
+                // - the name column should be labeled "Select a module" with a
+                // - the meta.description title should be removed
+                $widget->setColumnsCustomization(
+                    [
+                        "name" => [
+                            "label" => "Select a module",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                        "meta.description" => [
+                            "hideLabel" => true,
+                        ],
+                    ]
+                );
+            } else {
+                // possibly course list, but might be done manually
+            }
+
+            $newWidgetInstance = new WidgetInstance();
+            $newWidgetInstance->setWidget($this->listWidgetType);
+            $newWidgetInstance->setDataSource($this->resourcesListDataSource);
+            $newWidget->setWidgetInstance($newWidgetInstance);
+            $newWidgetInstanceConfig = new WidgetInstanceConfig();
+            $newWidgetInstanceConfig->setType("list");
+            $newWidgetInstanceConfig->setWidgetInstance($newWidgetInstance);
+            $newWidgetContainer = new WidgetContainer();
+            $newWidgetContainer->addInstance($newWidgetInstance);
+            $newWidgetInstance->setContainer($newWidgetContainer);
+            $newWidgetContainerConfig = new WidgetContainerConfig();
+            $newWidgetContainerConfig->setName($name);
+            $newWidgetContainerConfig->setBackgroundType("color");
+            $newWidgetContainerConfig->setBackground("#ffffff");
+            $newWidgetContainerConfig->setPosition(0);
+            $newWidgetContainerConfig->setLayout(array(1));
+            $newWidgetContainerConfig->setWidgetContainer($newWidgetContainer);
+            $this->om->persist($newWidget);
+            $this->om->persist($newWidgetInstance);
+            $this->om->persist($newWidgetContainer);
+
+            $document->addWidgetContainer($newWidgetContainer);
+        } else {
+            $container = $document->getWidgetContainers()->first();
+            $containerConfig = $container->getWidgetContainerConfigs()->first();
+            $instance = $container->getInstances()->first();
+
+            $widget = $this->listWidgetsRepo->findOneBy(
+                [
+                    "widgetInstance" => $instance->getId(),
+                ]
+            );
+
+            $widget->setFilters(
+                [0 => [
+                    "property" => "parent",
+                    "value" => [
+                        "id" => $parentNode->getUuid(),
+                        "name" => $parentNode->getName(),
+                    ],
+                    "locked" => true,
+                ],
+                ]
+            );
+            $widget->setDisplay("table");
+            $widget->setActions(false);
+            $widget->setCount(true);
+            $widget->setDisplayedColumns(["name", "meta.description"]);
+
+            $containerConfig->setName($name);
+
+            if ($name == "Learning units") {
+                // update widget to display two columns
+                // - the name column should be labeled "Select a learning unit" with a
+                // - the meta.description should be title "Learning outcomes"
+                $widget->setColumnsCustomization(
+                    [
+                        "name" => [
+                            "label" => "Select a learning unit",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                        "meta.description" => [
+                            "label" => "Learning outcomes",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                    ]
+                );
+            } elseif ($name == "Modules") {
+                // update widget to display two columns
+                // - the name column should be labeled "Select a module" with a
+                // - the meta.description title should be removed
+                $widget->setColumnsCustomization(
+                    [
+                        "name" => [
+                            "label" => "Select a module",
+                            "translateLabel" => true,
+                            "translationDomain" => 'clarodoc',
+                        ],
+                        "meta.description" => [
+                            "hideLabel" => true,
+                        ],
+                    ]
+                );
+            } else {
+                // possibly course list, but might be done manually
+            }
+
+            $this->om->persist($widget);
+            $this->om->persist($containerConfig);
+        }
+        $this->om->persist($document);
+        $this->om->flush();
     }
 
     /**
@@ -816,179 +1102,9 @@ HTML //end of document
         $newWidgetContainerConfig->setLayout(array(1));
         $newWidgetContainerConfig->setWidgetContainer($newWidgetContainer);
         $this->om->persist($newWidgetContainerConfig);
-        
-        
 
         $document->addWidgetContainer($newWidgetContainer);
         $this->om->persist($document);
-    }
-
-
-    public function addOrUpdateDocumentSubObject(
-        $user,
-        $documentNode,
-        $nodeName,
-        $resourceType
-    ) {
-        $document = $this->resourceManager->getResourceFromNode($documentNode);
-        $subNode = $this->resourceNodeRepo->findOneBy(
-            [
-                'name' => $nodeName,
-                'parent'=>$documentNode->getId(),
-                'resourceType' => $resourceType->getId()
-            ]
-        );
-        if (empty($subNode)) {
-            $subNode = new ResourceNode();
-            $subNode->setName($nodeName);
-            $subNode->setWorkspace($documentNode->getWorkspace());
-            $subNode->setResourceType($resourceType);
-            $subNode->setParent($documentNode);
-            $subNode->setCreator($user);
-            $subNode->setMimeType("custom/".$resourceType->getName());
-            $this->om->persist($subNode);
-
-            $resourceclass = $resourceType->getClass();
-            $subResource = new $resourceclass();
-            $subResource->setResourceNode($subNode);
-            $subResource->setName($nodeName);
-
-            if ($resourceType->getName() == "ujm_exercise") {
-                if ($nodeName == "Practice") {
-                    $subResource->setType(ExerciseType::CONCEPTUALIZATION);
-                    $subResource->setScoreRule(json_encode(["type" => "none"]));
-                } else if ($nodeName == "Assessment") {
-                    $subResource->setType(ExerciseType::SUMMATIVE);
-                    $subResource->setScoreRule(json_encode(["type" => "sum"]));
-                }
-            }
-            
-            $this->om->persist($subResource);
-            
-            $this->om->persist($document);
-
-            $this->addResourceWidget($document, $subNode, $nodeName);
-        } else { // Update the document or node
-            // Update the underlying resource
-            $subResource = $this->resourceManager->getResourceFromNode($subNode);
-            if ($subResource->getMimeType() == "custom/ujm_exercise") {
-                if ($subResource->getType() == ExerciseType::SUMMATIVE) {
-                    if (empty($subResource->getScoreRule())) {
-                        $subResource->setScoreRule(
-                            json_encode(["type" => "none"])
-                        );
-                    }
-                } else if ($subResource->getType() == ExerciseType::SUMMATIVE) {
-                    if (empty($subResource->getScoreRule())) {
-                        $subResource->setScoreRule(
-                            json_encode(["type" => "sum"])
-                        );
-                    }
-                }
-            }
-            // update the widget
-            $subNodeWidgets = $this->resourceWidgetsRepo->findBy(
-                [
-                    'resourceNode' => $subNode->getId()
-                ]
-            );
-            if (!empty($subNodeWidgets)) {
-                foreach ($subNodeWidgets as $widget) {
-                    $widget->setShowResourceHeader(false);
-                    $instance = $widget->getWidgetInstance();
-                    $container = $instance->getContainer();
-                    $containerConfig = $container->getWidgetContainerConfigs()->first();
-                    $containerConfig->setName($nodeName);
-
-                    $this->om->persist($widget);
-                }
-            }
-        }
-        $this->om->flush();
-        return $subNode;
-    }
-
-    /**
-     * [addResourceWidget description]
-     * @param [type] $document     [description]
-     * @param [type] $resourceNode [description]
-     */
-    public function addOrUpdateResourceListWidget($document, $parentNode, $name = null)
-    {
-        if ($document->getWidgetContainers()->isEmpty()) {
-            $newWidget = new ListWidget();
-            $newWidget->setFilters(
-                [   0 => [
-                        "property" => "parent",
-                        "value" => [
-                            "id" => $parentNode->getUuid(),
-                            "name" => $parentNode->getName()
-                        ],
-                        "locked" => true
-                    ]
-                ]
-            );
-            $newWidget->setDisplay("table-min");
-            $newWidget->setActions(false);
-            $newWidget->setCount(true);
-            $newWidget->setDisplayedColumns(["name"]);
-            
-
-            $newWidgetInstance = new WidgetInstance();
-            $newWidgetInstance->setWidget($this->listWidgetType);
-            $newWidgetInstance->setDataSource($this->resourcesListDataSource);
-            $newWidget->setWidgetInstance($newWidgetInstance);
-            $newWidgetInstanceConfig = new WidgetInstanceConfig();
-            $newWidgetInstanceConfig->setType("list");
-            $newWidgetInstanceConfig->setWidgetInstance($newWidgetInstance);
-            $newWidgetContainer = new WidgetContainer();
-            $newWidgetContainer->addInstance($newWidgetInstance);
-            $newWidgetInstance->setContainer($newWidgetContainer);
-            $newWidgetContainerConfig = new WidgetContainerConfig();
-            $newWidgetContainerConfig->setName($name);
-            $newWidgetContainerConfig->setBackgroundType("color");
-            $newWidgetContainerConfig->setBackground("#ffffff");
-            $newWidgetContainerConfig->setPosition(0);
-            $newWidgetContainerConfig->setLayout(array(1));
-            $newWidgetContainerConfig->setWidgetContainer($newWidgetContainer);
-            $this->om->persist($newWidget);
-            $this->om->persist($newWidgetInstance);
-            $this->om->persist($newWidgetContainer);
-
-            $document->addWidgetContainer($newWidgetContainer);
-        } else {
-            $container = $document->getWidgetContainers()->first();
-            $containerConfig = $container->getWidgetContainerConfigs()->first();
-            $instance = $container->getInstances()->first();
-
-            $widget = $this->listWidgetsRepo->findOneBy(
-                [
-                    "widgetInstance" => $instance->getId()
-                ]
-            );
-
-            $widget->setFilters(
-                [   0 => [
-                        "property" => "parent",
-                        "value" => [
-                            "id" => $parentNode->getUuid(),
-                            "name" => $parentNode->getName()
-                        ],
-                        "locked" => true
-                    ]
-                ]
-            );
-            $widget->setDisplay("table-min");
-            $widget->setActions(false);
-            $widget->setCount(true);
-            $widget->setDisplayedColumns(["name"]);
-            $containerConfig->setName($name);
-
-            $this->om->persist($widget);
-            $this->om->persist($containerConfig);
-        }
-        $this->om->persist($document);
-        $this->om->flush();
     }
 
 

@@ -3,7 +3,9 @@ services:
         autowire: false
         autoconfigure: false
         public: true
-        
+
+    Sidpt\BinderBundle\API\Serializer\Widget\ResourcesSearchWidgetSerializer:
+      tags: [claroline.serializer]
 
     Sidpt\BinderBundle\API\Serializer\DocumentSerializer:
       tags: [claroline.serializer]
