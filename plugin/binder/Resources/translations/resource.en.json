@@ -1,4 +1,6 @@
 {
     "sidpt_document": "Document",
-    "sidpt_document_desc": "Advanced document that can contain and play claroline widgets, like the Home tool pages"
+    "sidpt_document_desc": "Advanced document that can contain and play claroline widgets, like the Home tool pages",
+    "sidpt_binder": "Binder",
+    "sidpt_binder_desc": "Document binder that can hold documents or other binders"
 }

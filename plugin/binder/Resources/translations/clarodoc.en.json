@@ -1,29 +1,24 @@
 {
-	"resourceName":"Resource (header) title",
-	"longTitle":"Extended title of the document",
-	"center_title":"Center the title on page",
-
-	"Learning unit":"Learning unit",
-	"Module":"Module",
-	"Course":"Course",
-
-	"Professional profiles":"Professional profiles",
-	"Learning objects":"Learning objects",
-	"Approximate duration":"Approximate duration",
-	"Recommended prior knowledge":"Recommended prior knowledge",
-	"Last updated":"Last updated",
-
-	"Learning outcomes":"Learning outcomes",
-	"Disclaimer":"Disclaimer",
-	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.",
-
-	"Practice":"Practice",
-	"Theory":"Theory",
-	"Assessment":"Assessment",
-	"Activity":"Activity",
-	"References": "References",
-	"External references": "External references",
-	"IPIP references": "IPIP references",
-
-	"Jump to":"Jump to"
+    "resourceName": "Resource (header) title",
+    "longTitle": "Extended title of the document",
+    "center_title": "Center the title on page",
+    "Learning unit": "Learning unit",
+    "Module": "Module",
+    "Course": "Course",
+    "Professional profiles": "Professional profiles",
+    "Learning objects": "Learning objects",
+    "Approximate duration": "Approximate duration",
+    "Recommended prior knowledge": "Recommended prior knowledge",
+    "Last updated": "Last updated",
+    "Learning outcomes": "Learning outcomes",
+    "Disclaimer": "Disclaimer",
+    "This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.": "This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.",
+    "Practice": "Practice",
+    "Theory": "Theory",
+    "Assessment": "Assessment",
+    "Activity": "Activity",
+    "References": "References",
+    "External references": "External references",
+    "IPIP references": "IPIP references",
+    "Jump to": "Jump to"
 }
