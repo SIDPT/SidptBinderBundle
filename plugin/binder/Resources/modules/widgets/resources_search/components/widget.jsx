@@ -57,16 +57,16 @@ class ResourcesSearchWidget extends Component {
       return(
         <Fragment>
           {unlockedFilters.map((filter, index) => {
-            const customization = this.props.parameters.searchFormConfiguration[filter.property]
+            const customization = this.props.parameters.searchFormConfiguration[filter.property] || {}
             // reprendre la customization des tables
-            const formLabel = customization.label ?
+            const formLabel = (customization.label) ?
               ( customization.translate ?
                 trans(customization.label,{}, customization.transDomain || 'platform') :
                 customization.label
               ) :
               trans('Select one or more values in the following list:', {}, 'widget')
 
-            const hideLabel = false || customization.hideLabel
+            const hideLabel = false || (customization.hideLabel)
             return (
               <section key={`${filter.property}-${index}`}>
                   {!hideLabel && formLabel}
