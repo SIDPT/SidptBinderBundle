@@ -56,37 +56,45 @@ class ResourcesSearchWidget extends Component {
     if(!this.state.showResult && unlockedFilters.length > 0){
       return(
         <Fragment>
-          {unlockedFilters.map(filter => {
+          {unlockedFilters.map((filter, index) => {
             const customization = this.props.parameters.searchFormConfiguration[filter.property]
-            return (<Fragment>{ Array.isArray(filter.value) &&
-              <section>{trans(filter.property)}
+            // reprendre la customization des tables
+            const formLabel = customization.label ?
+              ( customization.translate ?
+                trans(customization.label,{}, customization.transDomain || 'platform') :
+                customization.label
+              ) :
+              trans('Select one or more values in the following list:', {}, 'widget')
 
-                    <Checkboxes
-                      onChange={(values) => {
-                        this.setUserSelection(filter.property, values)
-                      }}
-                      id={`select-${filter.property}`}
-                      value={this.state.userSelection[filter.property]}
-                      inline={false}
-                      choices={
-                        // convert filters array to an associative array
-                        // { '{property}_{id}':'{name}'
-                        filter.value.reduce(
-                          (acc, subValue, index) => {
-                            const accIndex = subValue.hasOwnProperty('id') ?
-                              subValue.id : `${filter.property}_` + (
-                                subValue.hasOwnProperty('name') ?
-                                  subValue.name : subValue.toString())
-                            const accValue = subValue.hasOwnProperty('name') ?
-                              subValue.name : subValue.hasOwnProperty('id') ?
-                                subValue.id : subValue.toString()
-                            acc[accIndex] = accValue
-                            return acc;
-                        },{})
-                      }/>
+            const hideLabel = false || customization.hideLabel
+            return (
+              <section key={`${filter.property}-${index}`}>
+                  {!hideLabel && formLabel}
+                  <Checkboxes
+                    onChange={(values) => {
+                      this.setUserSelection(filter.property, values)
+                    }}
+                    id={`select-${filter.property}`}
+                    value={this.state.userSelection[filter.property]}
+                    inline={false}
+                    choices={
+                      // convert filters array to an associative array
+                      // { '{property}_{id}':'{name}'
+                      filter.value.reduce(
+                        (acc, subValue, index) => {
+                          const accIndex = subValue.hasOwnProperty('id') ?
+                            subValue.id : `${filter.property}_` + (
+                              subValue.hasOwnProperty('name') ?
+                                subValue.name : subValue.toString())
+                          const accValue = subValue.hasOwnProperty('name') ?
+                            subValue.name : subValue.hasOwnProperty('id') ?
+                              subValue.id : subValue.toString()
+                          acc[accIndex] = accValue
+                          return acc;
+                      },{})
+                    }/>
 
-              </section>
-            }</Fragment>)
+              </section>)
           })}
           <CallbackButton
             className="btn btn-primary"
