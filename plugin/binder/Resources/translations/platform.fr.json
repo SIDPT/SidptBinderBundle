@@ -1,9 +1,10 @@
 {
   "Learning unit":"Unité d'enseignement",
-	"Module":"Module",
+  "Modules":"Modules",
 	"Courses":"Cours",
   "Learning with iPiP": "Apprendre avec iPiP",
   "Glossary":"Glossaire",
   "About":"À propos",
-  "Skip to content": "Aller au contenu"
+  "Skip to content": "Aller au contenu",
+  "Warning: This is a beta version":"Attention : Ceci est une version bêta"
 }
