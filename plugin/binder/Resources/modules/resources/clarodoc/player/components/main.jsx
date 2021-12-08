@@ -7,6 +7,7 @@ import {ContentPlaceholder} from '#/main/app/content/components/placeholder'
 import {Widget} from '#/main/core/widget/player/components/widget'
 import {DocumentOverview} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/components/overview'
 
+import {Heading} from '#/main/core/layout/components/heading'
 import {CallbackButton} from '#/main/app/buttons/callback/components/button'
 import {Button} from '#/main/app/action/components/button'
 import {CALLBACK_BUTTON, MODAL_BUTTON} from '#/main/app/buttons'
@@ -31,7 +32,11 @@ class DocumentPlayerMain extends Component {
 
   render(){
     // TODO document parameter to be stored
+    //
+    // Starting level depends on the display of resource title
+    // should be the specified level + 1 if the resource header is shown
 
+    const startingLevel = (this.props.resource.level + (this.props.resource.showHeader ? 1 : 0)) || 1
     let visibleWidgets = this.props.document.widgets.filter(
         widget => widget.visible === true
       ).map((widget,index)=>{
@@ -57,9 +62,12 @@ class DocumentPlayerMain extends Component {
       return (
         <Fragment>
           {this.props.document.longTitle &&
-            <header className={this.props.document.centerTitle ? "text-center" : ''}>
-              <h2 className="page-title">{this.props.document.longTitle}</h2>
-            </header>
+            <Heading
+              level={startingLevel || 2}
+              className="page-title"
+            >
+              {this.props.document.longTitle}
+            </Heading>
           }
           {this.props.document.showOverview && 0 === this.state.selectedPage &&
               <DocumentOverview
@@ -86,8 +94,9 @@ class DocumentPlayerMain extends Component {
                       key={this.state.selectedPage}
                       widget={visibleWidgets[this.state.selectedPage-1]}
                       currentContext={this.props.currentContext}
+                      level={startingLevel + (this.props.document.longTitle ? 1 : 0)}
                     />
-                  <div class="widgets-nav-bottom">
+                  <div className="widgets-nav-bottom">
                     {this.state.selectedPage > 1 &&
                       <Button
                         className="btn btn-emphasis component-container pull-left"
@@ -146,10 +155,11 @@ class DocumentPlayerMain extends Component {
                       key={index}
                       widget={widget}
                       currentContext={this.props.currentContext}
+                      level={startingLevel + (this.props.document.longTitle ? 1 : 0)}
                     />
                   )}
                   { this.state.selectedPage > (this.props.document.showOverview ? 0 : 1) &&
-                    <div class="widgets-nav-bottom">
+                    <div className="widgets-nav-bottom">
                       <Button
                         className="btn btn-emphasis component-container pull-left"
                         type={CALLBACK_BUTTON}

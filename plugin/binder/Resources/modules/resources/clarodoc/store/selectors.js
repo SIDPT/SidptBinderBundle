@@ -14,6 +14,13 @@ const clarodoc = createSelector(
   (resource) => resource.clarodoc
 )
 
+const level = createSelector(
+  [resource],
+  (resource) => resource.level
+)
+
+
+
 const directories = createSelector(
   [resource],
   (resource) => resource.directories
@@ -53,6 +60,7 @@ export const selectors = {
   LIST_NAME,
   resource,
   clarodoc,
+  level,
   directories,
   directory,
   id,

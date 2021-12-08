@@ -13,7 +13,7 @@ import {DocumentEditorMain} from '~/sidpt/binder-bundle/plugin/binder/resources/
 import {DocumentPlayerMain, DocumentDirectory} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/containers/main'
 
 const DocumentResource = (props) => {
-	
+
 	// const translations = props.clarodoc.translations;
  //  if(translations && Object.keys(translations).length > 0){
  //    for(const field in translations){
@@ -54,6 +54,7 @@ const DocumentResource = (props) => {
 		target: `${props.path}/${props.resourceNode.slug}`
 
 	}]
+	
 	return (
 		<ResourcePage
       customActions={ actions }
