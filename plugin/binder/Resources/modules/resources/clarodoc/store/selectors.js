@@ -20,7 +20,6 @@ const level = createSelector(
 )
 
 
-
 const directories = createSelector(
   [resource],
   (resource) => resource.directories

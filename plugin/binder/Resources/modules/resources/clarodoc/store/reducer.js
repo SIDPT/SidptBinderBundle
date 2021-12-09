@@ -48,15 +48,19 @@ const reducer = combineReducers(
   {
     clarodoc: makeFormReducer(selectors.FORM_NAME, {}, {
         data: makeReducer({}, {
-          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
+          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.raw
         }),
         originalData: makeReducer({}, {
-          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData
+          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.raw
+        }),
+        translated:makeReducer({}, {
+          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.translated
         })
       }
     ),
+
     directory: makeReducer({}, {
-      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.directory
+      [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => action.resourceData.translated.directory
     }),
     /**
      * The list of available directories.
@@ -105,17 +109,17 @@ const reducer = combineReducers(
           [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: () => []
         }),
         filters: makeReducer([], {
-          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => get(action.resourceData.directory, 'list.filters') || []
+          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => get(action.resourceData.translated.directory, 'list.filters') || []
         }),
         page: makeReducer([], {
           [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: () => 0
         }),
         pageSize: makeReducer([], {
-          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => get(action.resourceData.directory, 'list.pageSize') || listConst.DEFAULT_PAGE_SIZE
+          [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => get(action.resourceData.translated.directory, 'list.pageSize') || listConst.DEFAULT_PAGE_SIZE
         }),
         sortBy: makeReducer([], {
           [makeInstanceAction(RESOURCE_LOAD, selectors.STORE_NAME)]: (state, action) => {
-            const sorting = get(action.resourceData.directory, 'list.sorting')
+            const sorting = get(action.resourceData.translated.directory, 'list.sorting')
 
             let sortBy = {property: null, direction: 0}
             if (sorting) {

@@ -28,13 +28,13 @@ const getUpdateDate = (resourceNode)=>{
 const DocumentPlayerMain = withRouter(
   connect(
     (state) => ({
-      document: formSelect.originalData(formSelect.form(state, selectors.FORM_NAME)).clarodoc,
+      document: formSelect.form(state, selectors.FORM_NAME).translated.clarodoc,
       resource: state['resource'],
       path: resourceSelectors.basePath(state),
       currentContext: {
         type:"workspace",
         data:resourcesSelectors.workspace(state),
-        resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
+        resourceNode:formSelect.form(state, selectors.FORM_NAME).translated.resourceNode,
         lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
       }
     })

@@ -64,7 +64,8 @@ class DocumentListener
     {
         /** @var Binder $document */
         $document = $event->getResource();
-        $documentData = $this->serializer->serialize($document, ['translated']);
+        $documentData['raw'] = $this->serializer->serialize($document);
+        $documentData['translated'] = $this->serializer->serialize($document, ['translated']);
         $event->setData($documentData);
         $event->stopPropagation();
     }
@@ -78,7 +79,7 @@ class DocumentListener
         // Get the document node
         $node = $document->getResourceNode();
         $nodeCopy = $documentCopy->getResourceNode();
-        
+
         // For each child of the node
         foreach ($node->getChildren() as $child) {
             //  Create a copy of the node

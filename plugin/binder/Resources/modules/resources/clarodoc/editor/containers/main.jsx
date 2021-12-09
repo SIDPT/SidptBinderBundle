@@ -37,7 +37,7 @@ const DocumentEditorMain = withRouter(
       update(field, value) {
         dispatch(formActions.updateProp(selectors.FORM_NAME, field, value))
       }
-      
+
     })
   )(DocumentEditorMainComponent)
 )
