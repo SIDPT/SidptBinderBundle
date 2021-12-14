@@ -1,6 +1,6 @@
 {
     "sidpt_document": "Document",
-    "sidpt_document_desc": "Vooruitstrevend document dat claroline widgets kan bevatten en afspelen, zoals de hulpmiddelen op de Homepagina",
+    "sidpt_document_desc": "Geavanceerd document dat Claroline widgets kan bevatten en afspelen, zoals tools op de Homepagina",
     "sidpt_binder": "Map",
-    "sidpt_binder_desc": "Documentmap die documenten vasthoudt of andere mappen"
+    "sidpt_binder_desc": "Documentmap die documenten of andere mappen kan bevatten"
 }

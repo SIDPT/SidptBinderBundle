@@ -1,1 +1,6 @@
-{}
+{
+    "sidpt_document": "Dokumentieren",
+    "sidpt_document_desc": "Progressive Dokument, das Claroline-Widgets enthalten und abspielen kann, z. B. die Werkzeuge auf der Homepage",
+    "sidpt_binder": "Ordner",
+    "sidpt_binder_desc": "Dokumentordner, der Dokumente oder andere Ordner enthält"
+}
