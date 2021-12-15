@@ -33,7 +33,7 @@ const DocumentOverview = (props) => {
     cellpadding="20px">
   <tbody>
   <tr>
-    <td>{trans('Learning unit','clarodoc')}</td>
+    <th scope="row">{trans('Learning unit','clarodoc')}</th>
     <td>
       <ul>
         <li><b>{trans('Course','clarodoc')}:</b> <a id="{{ resource.resourceNode.path[-3].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></li>
@@ -43,25 +43,25 @@ const DocumentOverview = (props) => {
     </td>
   </tr>
   <tr>
-    <td>{trans('Professional profiles','clarodoc')}</td>
+    <th scope="row">{trans('Professional profiles','clarodoc')}</th>
     <td>{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
   </tr>
   <tr>
-    <td>{trans('Learning objects','clarodoc')}</td>
+    <th scope="row">{trans('Learning objects','clarodoc')}</th>
     <td>{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
   </tr>
   <tr>
-    <td>{trans('Approximate duration','clarodoc')}</td>
+    <th scope="row">{trans('Approximate duration','clarodoc')}</th>
     <td>{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
   </tr>
   {{ #requirements}}
   <tr>
-    <td>{trans('Recommended prior knowledge','clarodoc')}</td>
+    <th scope="row">{trans('Recommended prior knowledge','clarodoc')}</th>
     <td> {{ #children }} <a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{name}}</a>{{ /children }}</td>
   </tr>
   {{ /requirements}}
   <tr>
-    <td>{trans('Last updated','clarodoc')}</td>
+    <th scope="row">{trans('Last updated','clarodoc')}</th>
     <td>{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
   </tr>
   </tbody>
