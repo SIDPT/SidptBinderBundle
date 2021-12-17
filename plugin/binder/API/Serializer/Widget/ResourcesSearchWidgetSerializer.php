@@ -4,6 +4,15 @@ namespace Sidpt\BinderBundle\API\Serializer\Widget;
 
 use Claroline\AppBundle\API\Serializer\SerializerTrait;
 use Sidpt\BinderBundle\Entity\Widget\ResourcesSearchWidget;
+use Claroline\AppBundle\API\Options;
+use Claroline\AppBundle\API\FinderProvider;
+
+// Entities to be translated
+//
+
+use Claroline\TagBundle\Entity\Tag;
+use Claroline\CoreBundle\Entity\Workspace\Workspace;
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
 
 /**
  * @todo : find a way to merge with directory serializer
@@ -11,6 +20,12 @@ use Sidpt\BinderBundle\Entity\Widget\ResourcesSearchWidget;
 class ResourcesSearchWidgetSerializer
 {
     use SerializerTrait;
+
+    private $finder;
+
+    public function __construct(FinderProvider $finder) {
+      $this->finder = $finder;
+    }
 
     public function getClass()
     {
@@ -22,8 +37,54 @@ class ResourcesSearchWidgetSerializer
         return 'resources_search_widget';
     }
 
+
     public function serialize(ResourcesSearchWidget $widget, array $options = []): array
     {
+        // TODO
+        // When serializing filters, retrieve entities translated names
+        // using their ids and recompute the filters content
+        // for now, only tags are sent back with their name
+        $filters = $widget->getFilters();
+        $translatedFilters = array();
+        foreach ($filters as $index => $filter) {
+          $property = $filter['property'];
+          $value = $filter['value'];
+          switch ($property) {
+            case 'tags':
+              $tagsFilters = is_array($value) ? $value : [$value];
+              $tagsIds = array_map(function ($tag){
+                return $tag['id'];
+              }, $tagsFilters);
+              $tags = $this->finder->search(
+                Tag::class,
+                ['uuid' => $tagsIds],
+                [Options::TRANSLATED]
+              )['data'];
+              $translatedFilters[] = [
+                'property' => 'tags',
+                'value' => array_map(function ($tag){
+                  return [
+                    'id' => $tag['id'],
+                    'name' => $tag['name'],
+                  ];
+                }, $tags),
+                'locked' => $filter['locked'] ?? 0
+              ];
+
+              break;
+
+            default: // copy filter
+              $translatedFilters[] = $filter;
+              // code...
+              break;
+          }
+        }
+
+        // throw new \Exception(print_r([
+        //    'filters' => $filters,
+        //    'translated' => $translatedFilters
+        // ]));
+
         return [
             'searchFormConfiguration' => $widget->getSearchFormConfiguration(),
             'maxResults' => $widget->getMaxResults(),
@@ -41,7 +102,7 @@ class ResourcesSearchWidgetSerializer
 
             // filter feature
             'searchMode' => $widget->getSearchMode(),
-            'filters' => $widget->getFilters(),
+            'filters' => $translatedFilters,
             'availableFilters' => $widget->getAvailableFilters(),
 
             // pagination feature

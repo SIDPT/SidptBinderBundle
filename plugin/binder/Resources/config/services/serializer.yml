@@ -6,6 +6,8 @@ services:
 
     Sidpt\BinderBundle\API\Serializer\Widget\ResourcesSearchWidgetSerializer:
       tags: [claroline.serializer]
+      arguments:
+        - '@Claroline\AppBundle\API\FinderProvider'
 
     Sidpt\BinderBundle\API\Serializer\DocumentSerializer:
       tags: [claroline.serializer]
