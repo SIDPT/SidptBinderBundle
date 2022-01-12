@@ -3,13 +3,12 @@ import {connect} from 'react-redux'
 import {withRouter} from '#/main/app/router'
 
 import {selectors as formSelect} from '#/main/app/content/form/store/selectors'
-import {selectors as resourcesSelectors} from '#/main/core/resource/store'
+import {selectors as resourceSelectors} from '#/main/core/resource/store'
 
 import {DocumentPlayerMain as DocumentPlayerMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
 import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
 
 import {selectors as securitySelectors} from '#/main/app/security/store'
-import {selectors as resourceSelectors} from '#/main/core/resource/store'
 
 import {actions as listActions} from '#/main/app/content/list/store'
 import {selectors as resourcesToolSelectors} from '#/main/core/tools/resources/store'
@@ -25,21 +24,20 @@ const getUpdateDate = (resourceNode)=>{
   return "";
 }
 
-const DocumentPlayerMain = withRouter(
-  connect(
+const DocumentPlayerMain = connect(
     (state) => ({
       document: formSelect.form(state, selectors.FORM_NAME).translated.clarodoc,
+      path: resourceSelectors.path(state),
       resource: state['resource'],
-      path: resourceSelectors.basePath(state),
+      basePath: resourceSelectors.basePath(state),
       currentContext: {
         type:"workspace",
-        data:resourcesSelectors.workspace(state),
+        data:resourceSelectors.workspace(state),
         resourceNode:formSelect.form(state, selectors.FORM_NAME).translated.resourceNode,
         lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
       }
     })
   )(DocumentPlayerMainComponent)
-)
 
 // directory style viewer
 const DocumentDirectory = connect(

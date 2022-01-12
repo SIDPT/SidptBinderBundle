@@ -1,11 +1,12 @@
 import React, {Fragment} from 'react'
-import {PropTypes as T} from 'prop-types'
+import {object, PropTypes as T} from 'prop-types'
 import get from 'lodash/get'
 import isEmpty from 'lodash/isEmpty'
 
 import {trans} from '#/main/app/intl/translation'
 import {scrollTo} from '#/main/app/dom/scroll'
 import {CALLBACK_BUTTON, CallbackButton} from '#/main/app/buttons'
+import {Button} from '#/main/app/action/components/button'
 import {ContentHtmlComponent} from '#/main/app/content/components/html'
 import {ResourceOverview} from '#/main/core/resource/components/overview'
 import {ContentSummary} from '#/main/app/content/components/summary'
@@ -22,60 +23,102 @@ const getUpdateDate = (resourceNode)=>{
 
 const DocumentOverview = (props) => {
     const overviewContent = [];
-    overviewContent.push(
-        // Added default overview template, description title and disclaimer
-        props.overviewMessage ? props.overviewMessage :
-`<table
-    class="table-hover lu-table"
-    style="font-weight:bold;"
-    border="1"
-    cellspacing="5px"
-    cellpadding="20px">
-  <tbody>
-  <tr>
-    <th scope="row">{trans('Learning unit','clarodoc')}</th>
-    <td>
-      <ul>
-        <li><b>{trans('Course','clarodoc')}:</b> <a id="{{ resource.resourceNode.path[-3].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></li>
-        <li><b>{trans('Module','clarodoc')}:</b> <a id="{{ resource.resourceNode.path[-2].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></li>
-        <li><b>{trans('Learning unit','clarodoc')}:</b> <a id="{{ resource.resourceNode.slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <th scope="row">{trans('Professional profiles','clarodoc')}</th>
-    <td>{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
-  </tr>
-  <tr>
-    <th scope="row">{trans('Learning objects','clarodoc')}</th>
-    <td>{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
-  </tr>
-  <tr>
-    <th scope="row">{trans('Approximate duration','clarodoc')}</th>
-    <td>{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
-  </tr>
-  {{ #requirements}}
-  <tr>
-    <th scope="row">{trans('Recommended prior knowledge','clarodoc')}</th>
-    <td> {{ #children }} <a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{name}}</a>{{ /children }}</td>
-  </tr>
-  {{ /requirements}}
-  <tr>
-    <th scope="row">{trans('Last updated','clarodoc')}</th>
-    <td>{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
-  </tr>
-  </tbody>
-</table>`,
-        (props.showDescription) ? (props.descriptionTitle || `<h3>{trans('Learning outcomes','clarodoc')}</h3>`) : "",
-        props.showDescription ? props.resource.resourceNode.meta.description : "",
-        props.disclaimer ? props.disclaimer :
-          `{{#resource.resourceNode.tags["disclaimer"] }}
-          <h3>{trans('Disclaimer','clarodoc')}</h3>
-          <p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.','clarodoc')}</p>
-          {{/resource.resourceNode.tags["disclaimer"] }}`
-    )
+    const overviewMessage = props.overviewMessage ? props.overviewMessage :
+    `<table
+        class="table-hover lu-table"
+        style="font-weight:bold;"
+        border="1"
+        cellspacing="5px"
+        cellpadding="20px">
+      <tbody>
+      <tr>
+        <th scope="row">{trans('Learning unit','clarodoc')}</th>
+        <td>
+          <ul>
+            <li><b>{trans('Course','clarodoc')}:</b> <a id="{{ resource.resourceNode.path[-3].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-3].slug}}">{{ resource.resourceNode.path[-3].name }}</a></li>
+            <li><b>{trans('Module','clarodoc')}:</b> <a id="{{ resource.resourceNode.path[-2].slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.path[-2].slug}}">{{ resource.resourceNode.path[-2].name }}</a></li>
+            <li><b>{trans('Learning unit','clarodoc')}:</b> <a id="{{ resource.resourceNode.slug }}" class="default" href="#/desktop/workspaces/open/{{resource.resourceNode.workspace.slug}}/resources/{{resource.resourceNode.slug}}">{{ resource.resourceNode.name }}</a></li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">{trans('Professional profiles','clarodoc')}</th>
+        <td>{{#resource.resourceNode.tags["professional-profile"]}}{{childrenNames}}{{/resource.resourceNode.tags["professional-profile"]}}</td>
+      </tr>
+      <tr>
+        <th scope="row">{trans('Learning objects','clarodoc')}</th>
+        <td>{{#resource.resourceNode.tags["included-resource-type"]}}{{childrenNames}}{{/resource.resourceNode.tags["included-resource-type"]}}</td>
+      </tr>
+      <tr>
+        <th scope="row">{trans('Approximate duration','clarodoc')}</th>
+        <td>{{#resource.resourceNode.tags["time-frame"]}}{{childrenNames}}{{/resource.resourceNode.tags["time-frame"]}}</td>
+      </tr>
+      {{ #requirements}}
+      <tr>
+        <th scope="row">{trans('Recommended prior knowledge','clarodoc')}</th>
+        <td> {{ #children }} <a id="{{ slug }}" class="list-primary-action default" href="#/desktop/workspaces/open/{{workspace.slug}}/resources/{{slug}}">{{name}}</a>{{ /children }}</td>
+      </tr>
+      {{ /requirements}}
+      <tr>
+        <th scope="row">{trans('Last updated','clarodoc')}</th>
+        <td>{{#resource.resourceNode.meta.updated}}{{formatDate}}{{/resource.resourceNode.meta.updated}}</td>
+      </tr>
+      </tbody>
+    </table>`
+    
+
+
     return (
-        <ResourceOverview
+      <section className='resource-section resource-overview'>
+        <div className='row'>
+          {props.showDescription && <div class='user-column col-md-12'>
+            {props.descriptionTitle || <h3>{trans('Learning outcomes',{},'clarodoc')}</h3>}
+            <ContentHtmlComponent
+                store={{
+                    resource:props.resource,
+                    requirements:props.requirementResource
+                        && props.requirementResource.children.length > 0 ?
+                      props.requirementResource :
+                      null
+                }}>
+                {props.resource.resourceNode.meta.description}
+            </ContentHtmlComponent>
+            
+          </div>}
+          <div class='resource-column col-md-8'>
+            {props.startButton && <Button {...props.startButton}/>}
+          </div>
+          <div class='resource-column col-md-12'>
+            {props.disclaimer ? 
+              props.disclaimer : (
+                props.resource.resourceNode.tags && props.resource.resourceNode.tags.disclaimer && <Fragment>
+                  <h3>{trans('Disclaimer',{},'clarodoc')}</h3>
+                  <p class="p1">{trans('This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.',{}, 'clarodoc')}</p>
+                </Fragment>
+                )
+            }
+            <ContentHtmlComponent
+                store={{
+                    resource:props.resource,
+                    requirements:props.requirementResource
+                        && props.requirementResource.children.length > 0 ?
+                      props.requirementResource :
+                      null
+                }}>
+                {overviewMessage}
+            </ContentHtmlComponent>
+          </div>
+        </div>
+
+      </section>
+        
+
+    )
+    
+}
+
+/* 
+<ResourceOverview
             contentText={
                 <ContentHtmlComponent
                     store={{
@@ -120,8 +163,7 @@ const DocumentOverview = (props) => {
           }>
         </ResourceOverview>
 
-    )
-}
+*/
 
 DocumentOverview.propTypes = {
     description:T.string,
