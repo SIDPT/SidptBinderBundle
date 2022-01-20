@@ -25,10 +25,14 @@ class DocumentPlayerMain extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedPage:this.props.document.showOverview ? 0 : 1
+      selectedPage:this.props.document.showOverview ? 0 : 1,
+      widgetProgressionStart:-1,
+      widgetProgression:0
     }
 
     this.selectPage = this.selectPage.bind(this)
+
+    this.setWidgetProgression = this.setWidgetProgression.bind(this)
 
   }
 
@@ -37,7 +41,13 @@ class DocumentPlayerMain extends Component {
       selectedPage:index
     })
     
-    
+  }
+
+  setWidgetProgression(currentProgression, start=-1){
+    this.setState({
+      widgetProgression:currentProgression,
+      widgetProgressionStart:start
+    })
   }
   
 
@@ -121,63 +131,131 @@ class DocumentPlayerMain extends Component {
                   },{
                     path: '/:slug',
                     render: (routeProps) => {
-                      console.log(routeProps)
+                      // console.log(routeProps)
                       const page = visibleWidgets.findIndex((widget,index) => {
                         return routeProps.match.params.slug === (widget.slug || `section-${index+1}`)
                       })
                       if (page >= 0) {
-                        
-                        const Current = <Fragment>
-                          <ProgressBar
-                            className="progress-minimal"
-                            value={Math.floor(((page+1) / (visibleWidgets.length)) * 100)}
-                            size="xs"
-                            type="user"
-                          />
+                        const progress = Math.floor(((page+1) / (visibleWidgets.length)) * 100) + Math.floor(this.state.widgetProgression / visibleWidgets.length)
+                        return (<Fragment>
                           <div className="widgets-grid">
-                            <div className="widgets-nav-bottom">
+                            <nav className="widgets-nav">
+                            <ul>
                               {this.props.document.showOverview && 
-                                <LinkButton
-                                  className="btn component-container"
+                                <li>
+                                  <LinkButton
+                                  className="btn"
                                   style={{marginRight:"5px"}}
+                                  exact={true}
                                   target={`${this.props.path}/`}
+                                  title={trans('presentation')}
                                   primary={false}
+                                  active={false}
+                                  onClick={()=>{
+                                    this.setWidgetProgression(0)
+                                  }}
                                 >
-                                  <span className="fa fa-angle-double-left icon-with-text-right" />
                                     {trans('presentation')}
-                                </LinkButton>
+                                    <span>&nbsp;<span className="fa fa-angle-double-left icon-with-text-right" /></span>
+                                </LinkButton></li>
                               }
                               {visibleWidgets.map((widget,index) => {
                                 const beforePage = (page > index)
                                 const afterPage = (page < index)
                                 const isCurrent = page === index
                                 const slug = (widget.slug || `section-${index+1}`)
-                                return (<LinkButton
-                                  className="btn component-container "
+                                return (<li>
+                                  <LinkButton
+                                  className={"btn"}
                                   style={{marginRight:"5px"}}
-                                  icon={
-                                    afterPage ? "fa fa-angle-right icon-with-text-left" :
-                                    (beforePage ? "fa fa-angle-left icon-with-text-right" : "")
-                                  }
                                   target={`${this.props.path}/${slug}`}
+                                  exact={true}
                                   disabled={isCurrent}
                                   primary={afterPage}
+                                  title={(widget.name || (trans('section') + " " + (index+1)))}
+                                  onClick={()=>{
+                                    this.setWidgetProgression(0)
+                                  }}
                                 >
-                                  {" " + (widget.name || (trans('section') + " " + (index+1))) + " "}
-                                </LinkButton>)
+                                  {afterPage && <span className='fa fa-angle-right icon-with-text-left'>&nbsp;</span>}
+                                  {(index+1) + ' - ' + (widget.name || (trans('section') + " " + (index+1)))}
+                                  {beforePage && <span>&nbsp;<span className="fa fa-angle-left icon-with-text-right" /></span>}
+                                </LinkButton></li>)
                               })}
-                              
-                            </div>
+                            
+                            </ul>
+                            </nav>
+                            
+                            <ProgressBar
+                              className="progress-minimal"
+                              value={progress}
+                              size="m"
+                              type="user"
+                            />
+                              {// TODO 
+                               // - add previous and next button respectivaly on first and last page of the widget display
+                               // - disable progression in subresources and update the upper progression bar
+                              }
                               <Widget
                                 key={page}
                                 widget={visibleWidgets[page]}
                                 currentContext={this.props.currentContext}
                                 level={startingLevel + (this.props.document.longTitle ? 1 : 0)}
-                              />
-                          </div>
-                        </Fragment>
+                                showProgression={false}
+                                onProgressionChange={(newValue, startValue) => {
+                                  this.setWidgetProgression(newValue, startValue)
+                                }}
+                                slug={
+                                  routeProps.location.pathname.substr(routeProps.match.url.length).split('/').filter(v => v).join('/')
+                                }
+                                onSlugChange={(newSlug) => {
+                                  console.log(newSlug)
+                                  // Updating the currently displayed route based on the updated navigation slug within the resource
+                                  //window.history.replaceState(null, "", path + newSlug)
+                                }
+                                }
+                                onStart={
+                                  // (this.state.widgetProgressionStart == 0 && (page) > 0) ? (
+                                  //   <LinkButton
+                                  //       className={"btn component-container pull-left"}
+                                  //       style={{marginRight:"5px"}}
+                                  //       target={`${this.props.path}/${(visibleWidgets[page-1].slug || `section-${page+2}`)}`}
+                                  //       primary={true}
+                                  //       title={(visibleWidgets[page-1].name || (trans('section') + " " + (page)))}
+                                  //       onClick={()=>{
+                                  //         this.setWidgetProgression(0)
+                                  //       }}
+                                  //     >
+                                  //       {(visibleWidgets[page-1].name || (trans('section') + " " + (page)))}
+                                  //       <span>&nbsp;<span className="fa fa-angle-left icon-with-text-right" /></span>
+                                  //     </LinkButton>
+                                  //   ) : 
+                                  false
+                                }
+                                onEnd={
+                                  // (this.state.widgetProgression == 100 && (page+1) < visibleWidgets.length) ? (
+                                  //   <LinkButton
+                                  //       className={"btn component-container pull-right"}
+                                  //       style={{marginRight:"5px"}}
+                                  //       target={`${this.props.path}/${(visibleWidgets[page+1].slug || `section-${page+2}`)}`}
+                                  //       primary={true}
+                                  //       title={(visibleWidgets[page+1].name || (trans('section') + " " + (page+2)))}
+                                  //       onClick={()=>{
+                                  //         this.setWidgetProgression(0)
+                                  //       }}
+                                  //     >
+                                  //       <span className='fa fa-angle-right icon-with-text-left'>&nbsp;</span>
+                                  //       {(visibleWidgets[page+1].name || (trans('section') + " " + (page+2)))}
+                                  //     </LinkButton>
+                                  //   ) : 
+                                  false
+                                  
+                                }
 
-                        return Current
+                              />
+                              
+                          </div>
+                        </Fragment>)
                       }
 
                       routeProps.history.push(this.props.path+'/')

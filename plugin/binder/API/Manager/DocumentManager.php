@@ -469,6 +469,7 @@ class DocumentManager implements LoggerAwareInterface
       // update subresource
       if ($resourceType->getName() == "ujm_exercise") {
           $subResource->setShowOverview(false);
+          $subResource->setProgressionDisplayed(false);
           $subResource->setShowEndConfirm(false);
           if ($subnodeName == "Practice") {
               $subResource->setType(ExerciseType::CONCEPTUALIZATION);

@@ -1,33 +1,26 @@
 {
-	"resourceName": "Titre (Entête) de la resource",
-	"longTitle":"Titre étendu du document",
-	"center_title":"Centrer le titre sur la page",
-
-	"Learning unit":"Unité d'enseignement",
-	"Module":"Module",
-	"Course":"Cours",
-
-	"Professional profiles":"Filières de l'édition concernées",
-	"Learning objects":"Objets d'apprentissage",
-	"Approximate duration":"Temps d'apprentissage estimé",
-	"Recommended prior knowledge":"Connaissances préalables recommandées",
-	"Last updated":"Dernière mise à jour",
-
-	"Learning outcomes":"Résultats d'apprentissage attendus",
-	"Disclaimer":"Avertissement",
-	"This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.":"Cette unité d'enseignement contient des images pouvant ne pas être accessible à certains apprenants. Ce contenu est utilisé comme support d'apprentissage. L'information présenté dans les images est expliqué dans le text lorsque cela est possible.",
-
-	"Practice":"Entraînement",
-	"Theory":"Théorie",
-	"Assessment":"Évaluation",
-	"Activity":"Activité",
-	"References": "Références",
-	"External references": "Références externes",
-	"IPIP references": "Références IPIP",
-
-	"Jump to":"Aller à",
-
-	"Select a module": "Sélectionnez un module",
-	"Select a learning unit": "Sélectionnez une unité d'enseignement"
-
+    "resourceName": "Titre (Entête) de la resource",
+    "longTitle": "Titre étendu du document",
+    "center_title": "Centrer le titre sur la page",
+    "Learning unit": "Unité d'enseignement",
+    "Module": "Module",
+    "Course": "Cours",
+    "Professional profiles": "Filières de l'édition concernées",
+    "Learning objects": "Objets d'apprentissage",
+    "Approximate duration": "Temps d'apprentissage estimé",
+    "Recommended prior knowledge": "Connaissances préalables recommandées",
+    "Last updated": "Dernière mise à jour",
+    "Learning outcomes": "Résultats d'apprentissage attendus",
+    "Disclaimer": "Avertissement",
+    "This learning unit contains images that may not be accessible to some learners. This content is used to support learning. Whenever possible the information presented in the images is explained in the text.": "Cette unité d'enseignement contient des images pouvant ne pas être accessible à certains apprenants. Ce contenu est utilisé comme support d'apprentissage. L'information présenté dans les images est expliqué dans le text lorsque cela est possible.",
+    "Practice": "Entraînement",
+    "Theory": "Théorie",
+    "Assessment": "Évaluation",
+    "Activity": "Activité",
+    "References": "Références",
+    "External references": "Références externes",
+    "IPIP references": "Références IPIP",
+    "Jump to": "Aller à",
+    "Select a module": "Sélectionnez un module",
+    "Select a learning unit": "Sélectionnez une unité d'enseignement"
 }
