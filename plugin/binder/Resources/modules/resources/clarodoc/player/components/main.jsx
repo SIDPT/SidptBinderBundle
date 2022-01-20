@@ -135,55 +135,56 @@ class DocumentPlayerMain extends Component {
                       const page = visibleWidgets.findIndex((widget,index) => {
                         return routeProps.match.params.slug === (widget.slug || `section-${index+1}`)
                       })
+                      
                       if (page >= 0) {
                         const progress = Math.floor(((page+1) / (visibleWidgets.length)) * 100) + Math.floor(this.state.widgetProgression / visibleWidgets.length)
                         return (<Fragment>
                           <div className="widgets-grid">
                             <nav className="widgets-nav">
-                            <ul>
-                              {this.props.document.showOverview && 
-                                <li>
-                                  <LinkButton
-                                  className="btn"
-                                  style={{marginRight:"5px"}}
-                                  exact={true}
-                                  target={`${this.props.path}/`}
-                                  title={trans('presentation')}
-                                  primary={false}
-                                  active={false}
-                                  onClick={()=>{
-                                    this.setWidgetProgression(0)
-                                  }}
-                                >
-                                    {trans('presentation')}
-                                    <span>&nbsp;<span className="fa fa-angle-double-left icon-with-text-right" /></span>
-                                </LinkButton></li>
-                              }
-                              {visibleWidgets.map((widget,index) => {
-                                const beforePage = (page > index)
-                                const afterPage = (page < index)
-                                const isCurrent = page === index
-                                const slug = (widget.slug || `section-${index+1}`)
-                                return (<li>
-                                  <LinkButton
-                                  className={"btn"}
-                                  style={{marginRight:"5px"}}
-                                  target={`${this.props.path}/${slug}`}
-                                  exact={true}
-                                  disabled={isCurrent}
-                                  primary={afterPage}
-                                  title={(widget.name || (trans('section') + " " + (index+1)))}
-                                  onClick={()=>{
-                                    this.setWidgetProgression(0)
-                                  }}
-                                >
-                                  {afterPage && <span className='fa fa-angle-right icon-with-text-left'>&nbsp;</span>}
-                                  {(index+1) + ' - ' + (widget.name || (trans('section') + " " + (index+1)))}
-                                  {beforePage && <span>&nbsp;<span className="fa fa-angle-left icon-with-text-right" /></span>}
-                                </LinkButton></li>)
-                              })}
-                            
-                            </ul>
+                              <ul>
+                                {this.props.document.showOverview && 
+                                  <li>
+                                    <LinkButton
+                                    className="btn"
+                                    style={{marginRight:"5px"}}
+                                    exact={true}
+                                    target={`${this.props.path}/`}
+                                    title={trans('presentation', {}, 'clarodoc')}
+                                    primary={false}
+                                    active={false}
+                                    onClick={()=>{
+                                      this.setWidgetProgression(0)
+                                    }}
+                                  >
+                                      {trans('presentation', {}, 'clarodoc')}
+                                      <span>&nbsp;<span className="fa fa-angle-double-left icon-with-text-right" /></span>
+                                  </LinkButton></li>
+                                }
+                                {visibleWidgets.map((widget,index) => {
+                                  const beforePage = (page > index)
+                                  const afterPage = (page < index)
+                                  const isCurrent = page === index
+                                  const slug = (widget.slug || `section-${index+1}`)
+                                  return (<li>
+                                    <LinkButton
+                                      className={"btn"}
+                                      style={{marginRight:"5px"}}
+                                      target={`${this.props.path}/${slug}`}
+                                      exact={true}
+                                      disabled={isCurrent}
+                                      primary={afterPage}
+                                      title={(index+1) + ' - ' + (widget.name || (trans('section') + " " + (index+1)))}
+                                      onClick={()=>{
+                                        this.setWidgetProgression(0)
+                                      }}
+                                    >
+                                      {afterPage && <span className='fa fa-angle-right icon-with-text-left'>&nbsp;</span>}
+                                      {(index+1) + ' - ' + (widget.name || (trans('section') + " " + (index+1)))}
+                                      {beforePage && <span>&nbsp;<span className="fa fa-angle-left icon-with-text-right" /></span>}
+                                    </LinkButton>
+                                  </li>)
+                                })}
+                              </ul>
                             </nav>
                             
                             <ProgressBar
@@ -212,8 +213,7 @@ class DocumentPlayerMain extends Component {
                                   console.log(newSlug)
                                   // Updating the currently displayed route based on the updated navigation slug within the resource
                                   //window.history.replaceState(null, "", path + newSlug)
-                                }
-                                }
+                                }}
                                 onStart={
                                   // (this.state.widgetProgressionStart == 0 && (page) > 0) ? (
                                   //   <LinkButton
@@ -323,7 +323,7 @@ class DocumentPlayerMain extends Component {
                         primary={true}
                       >
                         <span className="fa fa-angle-double-left icon-with-text-right" />
-                        {trans('presentation')}
+                        {trans('presentation', {}, 'clarodoc')}
                       </Button>
                     </div>
                   }

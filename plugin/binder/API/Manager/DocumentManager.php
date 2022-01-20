@@ -487,11 +487,12 @@ class DocumentManager implements LoggerAwareInterface
         HTML);
         $subResource->searchIsAllowed(false);
       } elseif ($resourceType->getName() == "directory") {
-        // change listing to only display the list of names
+        // change listing to only display the list of path
+        // (for ipip references folder)
         $subResource->setDisplay("table");
         $subResource->setActions(false);
         $subResource->setCount(true);
-        $subResource->setDisplayedColumns(["name"]);
+        $subResource->setDisplayedColumns(["path"]);
       }
       $this->om->persist($subResource);
       $this->om->persist($document);
