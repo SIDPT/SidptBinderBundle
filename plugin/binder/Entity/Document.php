@@ -62,7 +62,8 @@ class Document extends AbstractResource
      * required/recommended resource to have read before
      *
      * @ORM\ManyToOne(
-     *     targetEntity="Claroline\CoreBundle\Entity\Resource\ResourceNode"
+     *     targetEntity="Claroline\CoreBundle\Entity\Resource\ResourceNode",
+     *      cascade={"persist"}
      * )
      * @ORM\JoinColumn(
      *     name="requirements_node_id",

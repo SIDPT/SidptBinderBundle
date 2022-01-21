@@ -126,53 +126,56 @@ class DocumentManager implements LoggerAwareInterface
       $this->resourceWidgetsRepo = $this->om->getRepository(ResourceWidget::class);
       $this->listWidgetsRepo = $this->om->getRepository(ListWidget::class);
 
-      $widgetsTypeRepo = $this->om->getRepository(Widget::class);
-      $dataSourceRepo = $this->om->getRepository(DataSource::class);
-      $typesRepo = $this->om->getRepository(ResourceType::class);
-
-      $this->binderType = $typesRepo->findOneBy(
-          ['name' => 'sidpt_binder']
-      );
-      $this->documentType = $typesRepo->findOneBy(
-          ['name' => 'sidpt_document']
-      );
-
-      $this->directoryType = $typesRepo->findOneBy(
-          ['name' => 'directory']
-      );
-
-      $this->lessonType = $typesRepo->findOneBy(
-          ['name' => 'icap_lesson']
-      );
-
-      $this->exerciseType = $typesRepo->findOneBy(
-          ['name' => 'ujm_exercise']
-      );
-
-      $this->textType = $typesRepo->findOneBy(
-          ['name' => 'text']
-      );
-
-      $this->resourceDataSource = $dataSourceRepo->findOneBy(
-          ['name' => 'resource']
-      );
-      $this->resourcesListDataSource = $dataSourceRepo->findOneBy(
-          ['name' => 'resources']
-      );
-
-      $this->simpleWidgetType = $widgetsTypeRepo->findOneBy(
-          ['name' => 'simple']
-      );
-
-      $this->resourceWidgetType = $widgetsTypeRepo->findOneBy(
-          ['name' => 'resource']
-      );
-      $this->listWidgetType = $widgetsTypeRepo->findOneBy(
-          ['name' => 'list']
-      );
       $this->nodeSeralizer = $this->serializer->get(ResourceNode::class);
       $this->documentSeralizer = $this->serializer->get(Document::class);
 
+  }
+
+  private function doctrineLoad(){
+    $widgetsTypeRepo = $this->om->getRepository(Widget::class);
+    $dataSourceRepo = $this->om->getRepository(DataSource::class);
+    $typesRepo = $this->om->getRepository(ResourceType::class);
+
+    $this->binderType = $typesRepo->findOneBy(
+        ['name' => 'sidpt_binder']
+    );
+    $this->documentType = $typesRepo->findOneBy(
+        ['name' => 'sidpt_document']
+    );
+
+    $this->directoryType = $typesRepo->findOneBy(
+        ['name' => 'directory']
+    );
+
+    $this->lessonType = $typesRepo->findOneBy(
+        ['name' => 'icap_lesson']
+    );
+
+    $this->exerciseType = $typesRepo->findOneBy(
+        ['name' => 'ujm_exercise']
+    );
+
+    $this->textType = $typesRepo->findOneBy(
+        ['name' => 'text']
+    );
+
+    $this->resourceDataSource = $dataSourceRepo->findOneBy(
+        ['name' => 'resource']
+    );
+    $this->resourcesListDataSource = $dataSourceRepo->findOneBy(
+        ['name' => 'resources']
+    );
+
+    $this->simpleWidgetType = $widgetsTypeRepo->findOneBy(
+        ['name' => 'simple']
+    );
+
+    $this->resourceWidgetType = $widgetsTypeRepo->findOneBy(
+        ['name' => 'resource']
+    );
+    $this->listWidgetType = $widgetsTypeRepo->findOneBy(
+        ['name' => 'list']
+    );
   }
 
 
@@ -181,6 +184,7 @@ class DocumentManager implements LoggerAwareInterface
     Document $learningUnitDocument,
     bool $flush = true
   ){
+    $this->doctrineLoad();
     $learningUnitNode = $learningUnitDocument->getResourceNode();
     $learningUnitDocument->setShowOverview(true);
     $learningUnitDocument->setWidgetsPagination(true);
@@ -251,8 +255,10 @@ class DocumentManager implements LoggerAwareInterface
 
     // Reset containers list
     $learningUnitDocument->getWidgetContainers()->clear();
+    $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
     $this->om->flush();
+    
 
     $user = $learningUnitNode->getCreator();
     $requiredKnowledgeNode = $this->addOrUpdateDocumentSubObject(
@@ -262,7 +268,6 @@ class DocumentManager implements LoggerAwareInterface
         $this->directoryType
     );
     $learningUnitDocument->setRequiredResourceNodeTreeRoot($requiredKnowledgeNode);
-
 
     // - a practice exercise:
     $practiceNode = $this->addOrUpdateDocumentSubObject(
@@ -308,6 +313,9 @@ class DocumentManager implements LoggerAwareInterface
         $this->documentType
     );
     $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References");
+
+    $this->om->persist($learningUnitNode);
+    $this->om->persist($learningUnitDocument);
     $this->om->flush();
 
     $referencesDocument = $this->resourceManager->getResourceFromNode($referencesNode);
@@ -366,6 +374,7 @@ class DocumentManager implements LoggerAwareInterface
     Document $moduleDocument,
     bool $flush = true
   ){
+    $this->doctrineLoad();
     // set description
     // set learning unit resource list
     $moduleNode = $moduleDocument->getResourceNode();
@@ -392,6 +401,7 @@ class DocumentManager implements LoggerAwareInterface
     Document $courseDocument,
     bool $flush = true
   ){
+    $this->doctrineLoad();
     //  set description
     // set modules resources list
     $courseNode = $courseDocument->getResourceNode();
@@ -492,7 +502,14 @@ class DocumentManager implements LoggerAwareInterface
         $subResource->setDisplay("table");
         $subResource->setActions(false);
         $subResource->setCount(true);
-        $subResource->setDisplayedColumns(["path"]);
+        $subResource->setAvailableFilters([]);
+        $subResource->setDisplayedColumns(["absolutePath"]);
+        $subResource->setColumnsCustomization(
+            [
+                "absolutePath" => [
+                    "hideLabel" => true
+                ]
+            ]);
       }
       $this->om->persist($subResource);
       $this->om->persist($document);
@@ -841,7 +858,7 @@ class DocumentManager implements LoggerAwareInterface
       $this->om->persist($widgetSection);
 
       $document->addWidgetContainer($widgetSection);
-      $this->om->persist($document);
+      //$this->om->persist($document);
   }
 
 
