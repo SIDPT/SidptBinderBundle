@@ -4,28 +4,17 @@ This repo holds the binder plugin of the IPIP platform for the claroline LMS.
 
 ## New ressources
 
-This plugin expose 2 new ressources to users of the IPIP platform :
-- A new "Document" ressource can be used to create pages that holds claroline widgets, like the existing home tool tabs.
-- A new "Binder" ressource that can be used to create a tabbed document using other "documents" or "binder" resources
+This plugin expose 2 new ressources to users of the IPIP (Claroline) platform.
 
-## Targeted functionnalities
+A Document re-use Claroline home pages with its WYSIWYG editor but generalize it to make it as a resource.
 
-### Document resource
-
-For learning user : 
-- Use or point to integrated resources like lessons or quizz
-- Possibly track progression in the document :
-  - Get progression for widgets when available
-  - Check the user position in the document :
-  	- On leaving the document, mark it as validate if the user has finished all the widgets and has reached the bottom of the document
-
-For content editors / resources manager: 
-- WYSIWYG creation tool to structure the page, including:
-  - Creating sections
-  - Adding widgets (that is pointing to resources) to sections
-  - Moving widgets in and between sections
-  - Moving sections in the page
+This resource has 3 display mode :
+- The original mode display the list of widgets as a single page
+- A paginated mode allows to split the document in pages, each pages holding a section of widgets.
+- A directory view to display subresources stored under the document in the claroline resource tree.
 
 
 ### Binder
-A binder should be associated with a progression status
+
+(Under development / on stand by)
+A Binder is a resource that regroup otehr resources displayed within a set of ordered tabs.

@@ -1,15 +1,17 @@
 {
-    "name": "sidpt/binder-bundle",
-    "description": "Binder and Document resource plugin for the claroline LMS",
+    "name": "sidpt/ipip-binder-bundle",
+    "description": "Binder and Document resources for the SIDPT/Claroline platform",
     "type": "claroline-plugin",
-    "license": "GPL v3",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Nicolas Pavie",
-            "email": "nicolas.pavie@braillenet.org"
+            "email": "pavie.nicolas@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "php": ">=7.2"
+    },
     "autoload": {
         "psr-4": {
             "Sidpt\\BinderBundle\\": "plugin/binder/"
