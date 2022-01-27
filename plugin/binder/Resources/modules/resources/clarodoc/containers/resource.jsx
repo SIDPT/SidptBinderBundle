@@ -7,8 +7,8 @@ import {selectors as formSelect} from '#/main/app/content/form/store/selectors'
 import {hasPermission} from '#/main/app/security'
 
 
-import {DocumentResource as DocumentResourceComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/components/resource'
-import {reducer, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
+import {DocumentResource as DocumentResourceComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/components/resource'
+import {reducer, selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/store'
 
 // resources
 import {selectors as securitySelectors} from '#/main/app/security/store'

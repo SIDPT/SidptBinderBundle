@@ -1,5 +1,5 @@
 import {PropTypes as T} from 'prop-types'
-import {Document} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/prop-types'
+import {Document} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/prop-types'
 
 
 const Binder = {

@@ -88,7 +88,7 @@ class DocumentSerializer
      */
     public function getSchema()
     {
-        return '~/sidpt/binder-bundle/plugin/binder/document.json';
+        return '~/sidpt/ipip-binder-bundle/plugin/binder/document.json';
     }
 
     /**

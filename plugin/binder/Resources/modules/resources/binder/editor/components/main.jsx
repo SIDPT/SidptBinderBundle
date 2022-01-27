@@ -16,12 +16,12 @@ import {Button} from '#/main/app/action/components/button'
 import {CALLBACK_BUTTON, MODAL_BUTTON} from '#/main/app/buttons'
 import {ContentPlaceholder} from '#/main/app/content/components/placeholder'
 
-import {TabsList} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/components/tabslist'
+import {TabsList} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/components/tabslist'
 
 
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/selectors'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store/selectors'
 
-import {Tab} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
+import {Tab} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/prop-types'
 
 const authorizedTypes = [
   'sidpt_binder',

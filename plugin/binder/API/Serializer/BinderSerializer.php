@@ -107,7 +107,7 @@ class BinderSerializer
      */
     public function getSchema()
     {
-        return '~/sidpt/binder-bundle/plugin/binder/binder.json';
+        return '~/sidpt/ipip-binder-bundle/plugin/binder/binder.json';
     }
 
     /**

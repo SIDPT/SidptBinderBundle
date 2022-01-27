@@ -9,7 +9,7 @@ import {Routes} from '#/main/app/router'
 
 import {ContentPlaceholder} from '#/main/app/content/components/placeholder'
 import {Widget} from '#/main/core/widget/player/components/widget'
-import {DocumentOverview} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/components/overview'
+import {DocumentOverview} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/components/overview'
 
 import {Heading} from '#/main/core/layout/components/heading'
 import {Button} from '#/main/app/action/components/button'

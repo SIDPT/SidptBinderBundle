@@ -40,7 +40,10 @@ class ResourcesSearchWidgetParameters extends Component {
     // for (var filter of currentFilters) {
     //   if(!filter.locked){
     //     // add a filter configuration section to let the editor select for
-    //     // - Type of user selection radio or checkbox
+    //     // - customize label :
+    //     //  - modify the introduction text
+    //     //  - hide or show the text
+    //     //  - make it translatable in a specified domain
     //     //
     //   }
     // }

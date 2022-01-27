@@ -6,8 +6,8 @@ import {Routes} from '#/main/app/router'
 
 import {MenuSection} from '#/main/app/layout/menu/components/section'
 
-import {BinderPlayerMenu} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/containers/menu'
-import {BinderEditorMenu} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/editor/containers/menu'
+import {BinderPlayerMenu} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/player/containers/menu'
+import {BinderEditorMenu} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/editor/containers/menu'
 
 /*
 <Routes

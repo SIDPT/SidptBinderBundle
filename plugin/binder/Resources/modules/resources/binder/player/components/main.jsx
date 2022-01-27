@@ -8,11 +8,11 @@ import {Button} from '#/main/app/action/components/button'
 import {CALLBACK_BUTTON, MODAL_BUTTON} from '#/main/app/buttons'
 
 
-import {TabsList} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/components/tabslist'
+import {TabsList} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/components/tabslist'
 
-import {BinderNavigator} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/components/nav'
+import {BinderNavigator} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/player/components/nav'
 
-import {DocumentPlayerMain} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
+import {DocumentPlayerMain} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
 
 class BinderPlayerMain extends Component {
   constructor(props){

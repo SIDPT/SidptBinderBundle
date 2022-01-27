@@ -5,8 +5,8 @@ import {withRouter} from '#/main/app/router'
 import {selectors as formSelect} from '#/main/app/content/form/store/selectors'
 import {selectors as resourceSelectors} from '#/main/core/resource/store'
 
-import {DocumentPlayerMain as DocumentPlayerMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
+import {DocumentPlayerMain as DocumentPlayerMainComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/player/components/main'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/store'
 
 import {selectors as securitySelectors} from '#/main/app/security/store'
 

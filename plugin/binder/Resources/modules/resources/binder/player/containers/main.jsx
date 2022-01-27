@@ -11,9 +11,9 @@ import {selectors as resourceSelectors} from '#/main/core/resource/store'
 
 import {PlayerMain as DirectoryPlayerMainComponent} from '#/main/core/resources/directory/player/components/main'
 
-import {BinderPlayerMain as BinderPlayerMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/components/main'
+import {BinderPlayerMain as BinderPlayerMainComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/player/components/main'
 
-import {actions, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {actions, selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store'
 
 const BinderPlayerMain = withRouter(
   connect(

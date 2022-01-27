@@ -1,8 +1,8 @@
 
-import {BinderResource} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/containers/resource'
-import {BinderMenu} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/containers/menu'
+import {BinderResource} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/containers/resource'
+import {BinderMenu} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/containers/menu'
 
-import {reducer} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {reducer} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store'
 
 /**
  * HomeTool application.

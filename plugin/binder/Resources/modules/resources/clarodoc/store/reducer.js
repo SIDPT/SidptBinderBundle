@@ -10,7 +10,7 @@ import {constants as listConst} from '#/main/app/content/list/constants'
 
 import {RESOURCE_LOAD} from '#/main/core/resource/store/actions'
 
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
 
 import {selectors as playerSelectors} from '#/main/core/resources/directory/player/store/selectors'
 import {DIRECTORIES_LOAD, DIRECTORY_TOGGLE_OPEN} from '#/main/core/resources/directory/store/actions'

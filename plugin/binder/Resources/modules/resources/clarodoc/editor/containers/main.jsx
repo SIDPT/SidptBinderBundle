@@ -8,9 +8,9 @@ import {selectors as resourcesSelectors} from '#/main/core/resource/store'
 
 
 
-import {DocumentEditorMain as DocumentEditorMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/editor/components/main'
+import {DocumentEditorMain as DocumentEditorMainComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/editor/components/main'
 
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/store'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/store'
 
 import {displayDate} from '#/main/app/intl/date'
 

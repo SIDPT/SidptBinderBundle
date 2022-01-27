@@ -13,8 +13,8 @@ import {
   BINDER_TAB_LOAD,
   BINDER_LOAD,
   DOCUMENT_LOAD
-} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/actions'
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store/selectors'
+} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store/actions'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store/selectors'
 
 
 import {selectors as editorSelectors} from '#/main/core/resources/directory/editor/store/selectors'

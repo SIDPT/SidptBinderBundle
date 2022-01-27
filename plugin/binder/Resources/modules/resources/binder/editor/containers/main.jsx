@@ -5,9 +5,9 @@ import {actions as formActions} from '#/main/app/content/form/store/actions'
 import {selectors as formSelect} from '#/main/app/content/form/store/selectors'
 import {selectors as resourcesSelectors} from '#/main/core/resource/store'
 
-import {BinderEditorMain as BinderEditorMainComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/editor/components/main'
+import {BinderEditorMain as BinderEditorMainComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/editor/components/main'
 
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store'
 
 
 const BinderEditorMain = withRouter(

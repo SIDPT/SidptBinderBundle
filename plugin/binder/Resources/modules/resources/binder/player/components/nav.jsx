@@ -8,7 +8,7 @@ import {Button} from '#/main/app/action/components/button'
 import {CallbackButton} from '#/main/app/buttons/callback/components/button'
 
 
-import {Tab as TabType, Binder as BinderType} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
+import {Tab as TabType, Binder as BinderType} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/prop-types'
 
 class BinderNavigator extends Component {
 	constructor(props){

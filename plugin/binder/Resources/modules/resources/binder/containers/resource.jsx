@@ -7,8 +7,8 @@ import {selectors as resourcesSelectors} from '#/main/core/resource/store'
 import {hasPermission} from '#/main/app/security'
 
 import {actions as formActions} from '#/main/app/content/form/store/actions'
-import {BinderResource as BinderResourceComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/components/resource'
-import {reducer, selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {BinderResource as BinderResourceComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/components/resource'
+import {reducer, selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store'
 
 
 const BinderResource = withRouter(

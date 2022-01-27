@@ -9,8 +9,8 @@ import { Button } from '#/main/app/action/components/button'
 import { CALLBACK_BUTTON, LINK_BUTTON } from '#/main/app/buttons'
 
 
-import { DocumentEditorMain } from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/editor/containers/main'
-import { DocumentPlayerMain, DocumentDirectory } from '~/sidpt/binder-bundle/plugin/binder/resources/clarodoc/player/containers/main'
+import { DocumentEditorMain } from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/editor/containers/main'
+import { DocumentPlayerMain, DocumentDirectory } from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/player/containers/main'
 
 const DocumentResource = (props) => {
 

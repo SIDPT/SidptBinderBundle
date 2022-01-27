@@ -6,8 +6,8 @@ import {selectors as resourcesSelectors} from '#/main/core/resource/store'
 
 import {hasPermission} from '#/main/app/security'
 
-import {BinderMenu as BinderMenuComponent} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/components/menu'
-import {selectors} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/store'
+import {BinderMenu as BinderMenuComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/components/menu'
+import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/store'
 
 const BinderMenu = withRouter(
   connect(

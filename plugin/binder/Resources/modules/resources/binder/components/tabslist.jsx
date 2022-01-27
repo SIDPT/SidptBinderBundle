@@ -9,7 +9,7 @@ import {CALLBACK_BUTTON} from '#/main/app/buttons'
 import {CallbackButton} from '#/main/app/buttons/callback/components/button'
 
 
-import {Tab as TabTypes} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/prop-types'
+import {Tab as TabTypes} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/prop-types'
 
 class TabsList extends Component{
 	constructor(props){

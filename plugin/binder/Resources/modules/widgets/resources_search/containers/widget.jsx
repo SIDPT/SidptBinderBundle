@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import isEqual from 'lodash/isEqual'
 
-import {ResourcesSearchWidget as ResourcesSearchWidgetComponent} from '~/sidpt/binder-bundle/plugin/binder/widgets/resources_search/components/widget'
+import {ResourcesSearchWidget as ResourcesSearchWidgetComponent} from '~/sidpt/ipip-binder-bundle/plugin/binder/widgets/resources_search/components/widget'
 
 import {withReducer} from '#/main/app/store/components/withReducer'
 

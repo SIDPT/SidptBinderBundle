@@ -5,8 +5,8 @@ import {ResourcePage} from '#/main/core/resource/containers/page'
 import {trans} from '#/main/app/intl/translation'
 import {CALLBACK_BUTTON, LINK_BUTTON} from '#/main/app/buttons'
 
-import {BinderEditorMain} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/editor/containers/main'
-import {BinderPlayerMain, BinderDirectory} from '~/sidpt/binder-bundle/plugin/binder/resources/binder/player/containers/main'
+import {BinderEditorMain} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/editor/containers/main'
+import {BinderPlayerMain, BinderDirectory} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/binder/player/containers/main'
 
 
 const BinderResource = (props) => {
