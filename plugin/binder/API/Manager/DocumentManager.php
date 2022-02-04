@@ -90,7 +90,7 @@ class DocumentManager implements LoggerAwareInterface
     'References' => 'bundles/sidptbinder/images/lu/References.jpeg',  // References banner image
     'Theory' => 'bundles/sidptbinder/images/lu/Theory.jpeg', // Theory banner image
   ];
-
+  
 
   /**
    *
@@ -276,7 +276,7 @@ class DocumentManager implements LoggerAwareInterface
         "Practice",
         $this->exerciseType
     );
-    $this->addOrUpdateResourceWidget($learningUnitDocument, $practiceNode, "Practice");
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $practiceNode, "Practice","<p>{trans('Determine what you already know.','clarodoc')}</p>");
     // - A theroy lesson
     $theoryNode = $this->addOrUpdateDocumentSubObject(
         $user,
@@ -284,7 +284,7 @@ class DocumentManager implements LoggerAwareInterface
         "Theory",
         $this->lessonType
     );
-    $this->addOrUpdateResourceWidget($learningUnitDocument, $theoryNode, "Theory");
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $theoryNode, "Theory", "<p>{trans('Read and learn about the topic.','clarodoc')}</p>");
 
     // - An assessment exercice
     $assessmentNode = $this->addOrUpdateDocumentSubObject(
@@ -293,7 +293,7 @@ class DocumentManager implements LoggerAwareInterface
         "Assessment",
         $this->exerciseType
     );
-    $this->addOrUpdateResourceWidget($learningUnitDocument, $assessmentNode, "Assessment");
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $assessmentNode, "Assessment", "<p>{trans('Evaluate what you have learned.','clarodoc')}</p>");
 
 
     // - An activity text
@@ -303,7 +303,7 @@ class DocumentManager implements LoggerAwareInterface
         "Activity",
         $this->textType
     );
-    $this->addOrUpdateResourceWidget($learningUnitDocument, $activityNode, "Activity");
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $activityNode, "Activity", "<p>{trans('Put everything you have learned into practice.','clarodoc')}</p>");
 
     // - A references document
     $referencesNode = $this->addOrUpdateDocumentSubObject(
@@ -312,7 +312,8 @@ class DocumentManager implements LoggerAwareInterface
         "References",
         $this->documentType
     );
-    $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References");
+    $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References",
+    "<p>{trans('You have complete the learning unit.','clarodoc')}<br/>{trans('Consult resources and find related learning material on the platform.','clarodoc')}</p>");
 
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
@@ -519,7 +520,7 @@ class DocumentManager implements LoggerAwareInterface
   }
 
   /**
-   * [addOrUpdateResourceWidget description]
+   * [addOrUpdateResourceListWidget description]
    * @param [type] $document     [description]
    * @param [type] $resourceNode [description]
    */
@@ -709,8 +710,13 @@ class DocumentManager implements LoggerAwareInterface
    * @param [type] $document     [description]
    * @param [type] $resourceNode [description]
    */
-  public function addOrUpdateResourceWidget($document, $resourceNode, $name = null)
-  {
+  public function addOrUpdateResourceWidget(
+      $document,
+      $resourceNode,
+      $name = null,
+      $introduction = null,
+      $conclusion = null
+  ){
       $bannerText = null;
       if($name !== "Theory" && array_key_exists($name,self::BANNER_IMAGES_LINK)){
         $link = self::BANNER_IMAGES_LINK[$name];
@@ -780,11 +786,6 @@ class DocumentManager implements LoggerAwareInterface
       if(empty($resourceWidget)){
          // make widget, instance and container
           $resourceWidget = new ResourceWidget();
-
-          $widgetSection = new WidgetContainer();
-          $widgetSectionConfig = new WidgetContainerConfig();
-
-          $resourceWidget = new ResourceWidget();
           $resourceWidget->setResourceNode($resourceNode);
           $resourceWidget->setShowResourceHeader(false);
           $this->om->persist($resourceWidget);
@@ -853,7 +854,8 @@ class DocumentManager implements LoggerAwareInterface
       $widgetSectionConfig->setBackgroundType("color");
       $widgetSectionConfig->setBackground("#ffffff");
       $widgetSectionConfig->setWidgetContainer($widgetSection);
-
+      $widgetSectionConfig->setIntroduction($introduction);
+      $widgetSectionConfig->setConclusion($conclusion);
       $this->om->persist($widgetSectionConfig);
       $this->om->persist($widgetSection);
 

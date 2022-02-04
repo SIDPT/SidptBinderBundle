@@ -1,10 +1,10 @@
 import {connect} from 'react-redux'
-
+import {API_REQUEST, url} from '#/main/app/api'
 import {withRouter} from '#/main/app/router'
 import {actions as formActions} from '#/main/app/content/form/store/actions'
 import {actions as modalActions} from '#/main/app/overlays/modal/store'
 import {selectors as formSelect} from '#/main/app/content/form/store/selectors'
-import {selectors as resourcesSelectors} from '#/main/core/resource/store'
+import {selectors as resourceSelectors} from '#/main/core/resource/store'
 
 
 
@@ -25,18 +25,38 @@ const DocumentEditorMain = withRouter(
   connect(
     (state) => ({
       data:formSelect.data(formSelect.form(state, selectors.FORM_NAME)),
-      path: resourcesSelectors.path(state),
+      path: resourceSelectors.path(state),
       currentContext: {
         type:"workspace",
-        data:resourcesSelectors.workspace(state),
-        resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
-        lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
+        data:resourceSelectors.workspace(state),
+        //resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
+        //lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
+        resourceNode:resourceSelectors.resourceNode(state),
+        lastUpdate:getUpdateDate(resourceSelectors.resourceNode(state))
       }
     }),
     (dispatch) => ({
       update(field, value) {
         dispatch(formActions.updateProp(selectors.FORM_NAME, field, value))
+      },
+      moveWidgetToDocumentNode(widgetContainer, fromDocument, toNode ){
+        dispatch({
+          [API_REQUEST]: {
+            url: ['sidpt_document_move_section', {
+              widgetContainerId: widgetContainer.id,
+              fromId:fromDocument.id,
+              toId:toNode.id
+            }],
+            request: {
+              method: 'PUT'
+            },
+            success: (data) => {
+              dispatch(formActions.updateProp(selectors.FORM_NAME, 'clarodoc', data.clarodoc))
+            }
+          }
+        })
       }
+
 
     })
   )(DocumentEditorMainComponent)

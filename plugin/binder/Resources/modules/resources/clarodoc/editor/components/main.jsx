@@ -3,6 +3,8 @@ import {PropTypes as T} from 'prop-types'
 import get from 'lodash/get'
 import cloneDeep from 'lodash/cloneDeep'
 
+import {url} from '#/main/app/api'
+import {ASYNC_BUTTON} from '#/main/app/buttons'
 import {LINK_BUTTON} from '#/main/app/buttons'
 import {FormData} from '#/main/app/content/form/containers/data'
 
@@ -17,27 +19,13 @@ import {MODAL_WIDGET_CREATION} from '#/main/core/widget/editor/modals/creation'
 import {MODAL_WIDGET_PARAMETERS} from '#/main/core/widget/editor/modals/parameters'
 
 import {MODAL_TRANSLATIONS} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/translations/modals'
+import {MODAL_RESOURCES} from '#/main/core/modals/resources'
 
 import {selectors} from '~/sidpt/ipip-binder-bundle/plugin/binder/resources/clarodoc/store/selectors'
 
 class DocumentEditorMain extends Component {
   constructor(props) {
     super(props)
-
-    const translations = this.props.data.clarodoc.translations;
-    if(translations.length > 0){
-      for(const field of translations){
-        for(const locale in field.locales){
-          if(field.locales[locale].length > 0){
-            Translator.add(
-              field.path,
-              field.locales[locale],
-              `${this.props.data.clarodoc.id}`,
-              locale);
-          }
-        }
-      }
-    }
 
     this.state = {
       movingContentId: null
@@ -61,23 +49,6 @@ class DocumentEditorMain extends Component {
         defaultValues[field.path] = get(this.props.data.clarodoc,`${field.path}`,'');
       }
     }
-    /*
-    <Button
-              className="btn btn-block btn-emphasis component-container"
-              type={MODAL_BUTTON}
-              label={trans('translations')}
-              modal={[MODAL_TRANSLATIONS, {
-                translations:this.props.data.clarodoc.translations,
-                defaultValues:defaultValues,
-                fieldDomain:`clarodoc`,
-                updateTranslations: (translations) => this.props.update(
-                    "translations",
-                    translations)
-              }]}
-              primary={true}
-            />
-     */
-
     return (
       <Fragment>
 
@@ -306,6 +277,29 @@ class DocumentEditorMain extends Component {
                       this.props.update('clarodoc.widgets', newWidgets)
                     }
                   }, {
+                    type: MODAL_BUTTON,
+                    icon: 'fa fa-fw fa-folder',
+                    label: trans('move_to_other_document', {}, 'actions'),
+                    // Use resource modal to select a document
+                    // use the 
+                    modal: [MODAL_RESOURCES, {
+                      title: trans('select_target_document'),
+                      current: this.props.currentContext.resourceNode && this.props.currentContext.resourceNode.parent ? this.props.currentContext.resourceNode.parent : this.props.currentContext.resourceNode,
+                      selectAction: (selectedNodes) => {
+                        return ({
+                          type:CALLBACK_BUTTON,
+                          label: trans('select', {}, 'actions'),
+                          callback:() => {
+                            if(selectedNodes.length > 0){
+                              this.props.moveWidgetToDocumentNode(widgets[index],this.props.data.clarodoc,selectedNodes[0])
+                            }
+                            
+                          }
+                        })
+                      },
+                      filters: [{property: 'resourceType', value: 'sidpt_document', locked: true}]
+                    }]
+                  },{
                     type: MODAL_BUTTON,
                     icon: 'fa fa-fw fa-cog',
                     label: trans('configure', {}, 'actions'),

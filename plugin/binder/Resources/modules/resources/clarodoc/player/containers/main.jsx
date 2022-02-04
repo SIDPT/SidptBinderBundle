@@ -33,8 +33,10 @@ const DocumentPlayerMain = connect(
       currentContext: {
         type:"workspace",
         data:resourceSelectors.workspace(state),
-        resourceNode:formSelect.form(state, selectors.FORM_NAME).translated.resourceNode,
-        lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
+        //resourceNode:formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode,
+        //lastUpdate:getUpdateDate(formSelect.data(formSelect.form(state, selectors.FORM_NAME)).resourceNode)
+        resourceNode:resourceSelectors.resourceNode(state),
+        lastUpdate:getUpdateDate(resourceSelectors.resourceNode(state))
       }
     })
   )(DocumentPlayerMainComponent)

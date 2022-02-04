@@ -11,6 +11,7 @@ services:
           - '@Claroline\AppBundle\API\Crud'
           - '@Claroline\AppBundle\API\SerializerProvider'
           - '@Sidpt\BinderBundle\API\Manager\DocumentManager'
+          - '@Claroline\CoreBundle\Manager\ResourceManager'
         calls:
             - setLogger: [ '@logger' ]
 

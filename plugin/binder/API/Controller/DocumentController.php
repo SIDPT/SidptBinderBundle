@@ -12,6 +12,11 @@ use Claroline\AppBundle\Persistence\ObjectManager;
 use Claroline\AppBundle\API\Crud;
 use Claroline\AppBundle\API\SerializerProvider;
 
+
+use Claroline\CoreBundle\Entity\Resource\ResourceNode;
+use Claroline\CoreBundle\Entity\Widget\WidgetContainer;
+use Claroline\CoreBundle\Manager\ResourceManager;
+
 // Exceptions
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -64,19 +69,22 @@ class DocumentController implements LoggerAwareInterface
 
     private $manager;
 
+    private $resourceManager;
 
     public function __construct(
         AuthorizationCheckerInterface $authorization,
         ObjectManager $om,
         Crud $crud,
         SerializerProvider $serializer,
-        DocumentManager $manager
+        DocumentManager $manager,
+        ResourceManager $resourceManager
     ) {
         $this->authorization = $authorization;
         $this->om = $om;
         $this->crud = $crud;
         $this->serializer = $serializer;
         $this->manager = $manager;
+        $this->resourceManager = $resourceManager;
     }
 
     /**
@@ -113,6 +121,37 @@ class DocumentController implements LoggerAwareInterface
         return new JsonResponse(
             $this->serializer->serialize($object)
         );
+    }
+
+    /**
+     * Moving a widget container (widgets section) from one document to another
+     * 
+     * @Route("/document/move/{widgetContainerId}/{fromId}/{toId}", name="sidpt_document_move_section", methods={"PUT"})
+     * @EXT\ParamConverter(
+     *     "moving",
+     *     class="ClarolineCoreBundle:Widget\WidgetContainer",
+     *     options={"mapping": {"widgetContainerId": "uuid"}})
+     * @EXT\ParamConverter(
+     *     "from",
+     *     class="SidptBinderBundle:Document",
+     *     options={"mapping": {"fromId": "uuid"}})
+     * @EXT\ParamConverter(
+     *     "to",
+     *     class="ClarolineCoreBundle:Resource\ResourceNode",
+     *     options={"mapping": {"toId": "uuid"}})
+     */
+    public function moveSectionToDocument(WidgetContainer $moving, Document $from, ResourceNode $to) : JsonResponse {
+
+      $toDocument = $this->resourceManager->getResourceFromNode($to);
+      // get the widget container
+      // remove it from the first document
+      $from->removeWidgetContainer($moving);
+      // add it to the second one
+      $toDocument->addWidgetContainer($moving);
+      $this->om->flush();
+      return new JsonResponse(
+        $this->serializer->serialize($from)
+      );
     }
 
     /**
