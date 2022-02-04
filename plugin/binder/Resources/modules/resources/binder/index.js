@@ -11,5 +11,5 @@ export default {
   component: BinderResource,
   menu: BinderMenu,
   store: reducer,
-  styles: ['sidpt-binder-plugin-binder-binder-resource']
+  styles: ['sidpt-ipip-binder-plugin-binder-binder-resource']
 }
