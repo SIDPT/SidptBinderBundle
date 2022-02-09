@@ -313,7 +313,7 @@ class DocumentManager implements LoggerAwareInterface
         $this->documentType
     );
     $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References",
-    "<p>{trans('You have complete the learning unit.','clarodoc')}<br/>{trans('Consult resources and find related learning material on the platform.','clarodoc')}</p>");
+    "<p>{trans('You have completed the learning unit.','clarodoc')}<br/>{trans('Consult resources and find related learning material on the platform.','clarodoc')}</p>");
 
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
@@ -473,6 +473,7 @@ class DocumentManager implements LoggerAwareInterface
       if(empty($subResource)){
         $resourceclass = $resourceType->getClass();
         $subResource = new $resourceclass();
+        
         $subResource->setResourceNode($subNode);
         $subResource->setName($subnodeName);
         $this->om->persist($subResource);
