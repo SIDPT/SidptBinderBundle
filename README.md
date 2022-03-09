@@ -17,4 +17,4 @@ This resource has 3 display mode :
 ### Binder
 
 (Under development / on stand by)
-A Binder is a resource that regroup otehr resources displayed within a set of ordered tabs.
+A Binder is a resource that regroup other resources displayed within a set of ordered tabs.

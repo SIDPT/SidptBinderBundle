@@ -313,7 +313,10 @@ class DocumentManager implements LoggerAwareInterface
         $this->documentType
     );
     $this->addOrUpdateResourceWidget($learningUnitDocument, $referencesNode, "References",
-    "<p>{trans('You have completed the learning unit.','clarodoc')}<br/>{trans('Consult resources and find related learning material on the platform.','clarodoc')}</p>");
+    "<div>
+        <p>{trans('You have completed the learning unit.','clarodoc')}</p>
+        <p>{trans('Consult resources and find related learning material on the platform.','clarodoc')}</p>
+    </div>");
 
     $this->om->persist($learningUnitNode);
     $this->om->persist($learningUnitDocument);
